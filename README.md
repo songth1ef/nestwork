@@ -35,6 +35,11 @@ Set it to **Private** — your memory stays yours.
 
 > **Why not Fork?** Forks are public by default and tied to the upstream repo.
 > A private repo created from this template is fully yours.
+> 
+> When hivequeen ships updates, `git merge upstream/main` would conflict with your
+> private `queen/strategy.md`, `agents/`, and `shared/` — files you intentionally
+> diverged. The `update.sh` script syncs only the protocol layer, leaving your
+> private data untouched.
 
 ### 2. Clone to each machine
 

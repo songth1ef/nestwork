@@ -56,6 +56,38 @@ If `git pull` finds conflicts:
 
 ---
 
+## 5. File Size Limits & Split Protocol
+
+Each file has a maximum line limit. When exceeded, split into topic files and replace the original with an index.
+
+| File | Max lines | Split target |
+|---|---|---|
+| `queen/agent-rules.md` | 80 | `queen/rules/<topic>.md` |
+| `queen/strategy.md` | 60 | `queen/strategy/<topic>.md` |
+| `agents/<id>/memory.md` | 150 | `agents/<id>/<topic>.md` |
+| `shared/memory.md` | 300 | `shared/<topic>.md` |
+| `projects/<name>.md` | 120 | `projects/<name>/<topic>.md` |
+
+**How to split** — replace the oversized file with an index:
+
+```markdown
+# MEMORY — claude-macbook
+
+## Index
+
+- [User Profile](user_profile.md) — role, stack, preferences
+- [Collaboration](feedback_collab.md) — working style, corrections
+- [Project: hivequeen](project_hivequeen.md) — goals, decisions
+```
+
+Each linked file is a standalone topic file. The index is the only file agents
+need to read first — they follow links only when the topic is relevant.
+
+**Agent rule**: before writing new memory, check if the target file is near its
+limit. If yes, split first, then write to the appropriate topic file.
+
+---
+
 ## Priority Rules
 
 ```

@@ -112,6 +112,41 @@ hivequeen/
 
 ---
 
+## File size limits
+
+Each file has a line limit. When exceeded, split into topic files and use an index with links.
+
+| File | Max lines |
+|---|---|
+| `queen/agent-rules.md` | 80 |
+| `queen/strategy.md` | 60 |
+| `agents/<id>/memory.md` | 150 |
+| `shared/memory.md` | 300 |
+| `projects/<name>.md` | 120 |
+
+**Example — split `agents/claude-macbook/memory.md` when it hits 150 lines:**
+
+```
+agents/claude-macbook/
+├── memory.md          ← becomes an index
+├── user_profile.md
+├── feedback_collab.md
+└── project_hivequeen.md
+```
+
+`memory.md` after split:
+```markdown
+# MEMORY — claude-macbook
+
+- [User Profile](user_profile.md) — role, stack, preferences
+- [Collaboration](feedback_collab.md) — working style, corrections
+- [Project: hivequeen](project_hivequeen.md) — goals, decisions
+```
+
+Agents read the index first, follow links only when the topic is relevant.
+
+---
+
 ## Why no conflicts?
 
 Each agent owns exactly one directory under `agents/`. No two agents ever write to the same file. Git conflicts are structurally impossible during normal operation.

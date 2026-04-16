@@ -63,10 +63,10 @@ Each file has a maximum line limit. When exceeded, split into topic files and re
 | File | Max lines | Split target |
 |---|---|---|
 | `queen/agent-rules.md` | 80 | `queen/rules/<topic>.md` |
-| `queen/strategy.md` | 60 | `queen/strategy/<topic>.md` |
-| `agents/<id>/memory.md` | 150 | `agents/<id>/<topic>.md` |
-| `shared/memory.md` | 300 | `shared/<topic>.md` |
-| `projects/<name>.md` | 120 | `projects/<name>/<topic>.md` |
+| `queen/strategy.md` | 80 | `queen/strategy/<topic>.md` |
+| `agents/<id>/memory.md` | 200 | `agents/<id>/<topic>.md` |
+| `shared/memory.md` | 500 | `shared/<topic>.md` |
+| `projects/<name>.md` | 150 | `projects/<name>/<topic>.md` |
 
 **How to split** — replace the oversized file with an index:
 

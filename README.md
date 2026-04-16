@@ -119,10 +119,10 @@ Each file has a line limit. When exceeded, split into topic files and use an ind
 | File | Max lines |
 |---|---|
 | `queen/agent-rules.md` | 80 |
-| `queen/strategy.md` | 60 |
-| `agents/<id>/memory.md` | 150 |
-| `shared/memory.md` | 300 |
-| `projects/<name>.md` | 120 |
+| `queen/strategy.md` | 80 |
+| `agents/<id>/memory.md` | 200 |
+| `shared/memory.md` | 500 |
+| `projects/<name>.md` | 150 |
 
 **Example — split `agents/claude-macbook/memory.md` when it hits 150 lines:**
 

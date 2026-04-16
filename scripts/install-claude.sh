@@ -8,7 +8,17 @@ set -e
 HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CLAUDE_DIR="$HOME/.claude"
 SETTINGS="$CLAUDE_DIR/settings.json"
-AGENT_ID="claude-$(hostname -s)"
+HIVEQUEEN_ID_FILE="$HOME/.hivequeen_id"
+
+# Generate or reuse agent-id (suffix is fixed per machine)
+if [ -f "$HIVEQUEEN_ID_FILE" ]; then
+  AGENT_ID="$(cat "$HIVEQUEEN_ID_FILE")"
+else
+  SUFFIX="$(cat /dev/urandom | tr -dc 'a-z0-9' | head -c 4)"
+  AGENT_ID="claude-$(hostname -s)-$SUFFIX"
+  echo "$AGENT_ID" > "$HIVEQUEEN_ID_FILE"
+fi
+
 AGENT_DIR="$HIVEQUEEN_PATH/agents/$AGENT_ID"
 
 echo "→ hivequeen path : $HIVEQUEEN_PATH"

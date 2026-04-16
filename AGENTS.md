@@ -130,9 +130,11 @@ Only agents explicitly triggered for distillation may write to `shared/`.
 
 1. Read all `agents/*/memory.md`
 2. Read current `shared/memory.md`
-3. Merge: remove duplicates, unify consistent facts, keep divergent observations as-is
-4. Write result to `shared/memory.md` — **never delete**, only merge and add
-5. Commit with message: `memory: distill shared`
+3. **Spawn a sub-agent to review**: check for sensitive data, factual errors, contradictions, and outdated entries — sub-agent reports only, does not write
+4. Present review report to human for confirmation
+5. Merge: remove duplicates, unify consistent facts, keep divergent observations as-is
+6. Write result to `shared/memory.md` — **never delete**, only merge and add
+7. Commit with message: `memory: distill shared`
 
 ### Rules
 

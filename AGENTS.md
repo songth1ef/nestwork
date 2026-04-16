@@ -48,7 +48,26 @@ Temporary task details, one-off debugging notes — do not commit.
 
 ---
 
-## 4. Conflict Resolution
+## 4. claude-mem Integration (optional)
+
+If [claude-mem](https://github.com/thedotmack/claude-mem) is installed and its worker is running on `localhost:37777`, hivequeen will automatically export a session digest at the end of each session:
+
+```
+agents/<agent-id>/claude-mem-digest.md   ← today's observations from claude-mem
+```
+
+This file is committed and pushed with the rest of your agent memory, giving claude-mem's observations cross-machine reach via git.
+
+**No configuration needed.** The export step runs as part of the Stop hook and silently skips if claude-mem is not running.
+
+To override the worker URL:
+```bash
+export CLAUDE_MEM_URL=http://localhost:37777
+```
+
+---
+
+## 5. Conflict Resolution
 
 If `git pull` finds conflicts:
 - `queen/` and `shared/` → take remote (they are managed upstream)
@@ -56,7 +75,7 @@ If `git pull` finds conflicts:
 
 ---
 
-## 5. File Size Limits & Split Protocol
+## 6. File Size Limits & Split Protocol
 
 Each file has a maximum line limit. When exceeded, split into topic files and replace the original with an index.
 

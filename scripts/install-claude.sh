@@ -74,7 +74,7 @@ agent_id = "$AGENT_ID"
 with open(settings_path) as f:
     settings = json.load(f)
 
-hook_cmd = f"""cd {hivequeen_path} && git pull --rebase --autostash -q && git add agents/{agent_id}/ && git diff --cached --quiet || git commit -m 'memory: update {agent_id}' && git push -q"""
+hook_cmd = f"""bash {hivequeen_path}/scripts/export-claude-mem.sh; cd {hivequeen_path} && git pull --rebase --autostash -q && git add agents/{agent_id}/ && git diff --cached --quiet || git commit -m 'memory: update {agent_id}' && git push -q"""
 
 hook = {"matcher": "", "hooks": [{"type": "command", "command": hook_cmd}]}
 

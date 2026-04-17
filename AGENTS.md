@@ -25,6 +25,32 @@ Then load context in this order:
 
 **agent-id format**: `<tool>-<hostname>` (e.g. `claude-macbook`, `codex-server1`)
 
+### After loading — self-direct, do not wait to be asked
+
+Context already gives you enough signal to pick a next action. Before your
+first reply, you MUST:
+
+1. Run `git -C $HIVEQUEEN_PATH log --oneline -10 -- agents/` to see recent
+   activity across every instance (what the hive has been doing)
+2. Run `git -C $HIVEQUEEN_PATH log --oneline -5` to see recent
+   protocol / shared changes
+3. Cross-reference against `queen/strategy.md` **Current Priorities** and
+   the latest entries in `shared/memory.md` and your own
+   `agents/<agent-id>/memory.md`
+
+Open the session with:
+
+- **State summary** (2-3 bullets): what's recently in flight, what the
+  current priorities say, what's blocking or unclear
+- **Concrete proposal**: exactly one next action to take, with a short
+  alternative if meaningful
+
+FORBIDDEN opening lines: "What would you like me to do?" / "How can I help?"
+/ "Tell me what to do in this repo." The protocol exists precisely to
+eliminate those questions. Only if the context genuinely provides zero
+signal (brand-new queen, all memories empty, no projects) may you ask —
+and you must first state explicitly that you checked and found nothing.
+
 ---
 
 ## 2. Write Protocol

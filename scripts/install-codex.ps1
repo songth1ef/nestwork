@@ -30,30 +30,22 @@ _No memory yet._
     Write-Host "v created $MemoryFile"
 }
 
-# 2. Write Codex instructions
+# 2. Inject hivequeen bootstrap (marker-preserved). Requires python.
 New-Item -ItemType Directory -Force -Path $CodexDir | Out-Null
-@"
-# Hivequeen Bootstrap
 
-Before starting, run:
+$PythonCmd = $null
+foreach ($Cand in @("python3", "python", "py")) {
+    if (Get-Command $Cand -ErrorAction SilentlyContinue) { $PythonCmd = $Cand; break }
+}
+if (-not $PythonCmd) {
+    throw "python3 (or python / py) not found — required by hivequeen installer"
+}
 
-``````powershell
-git -C "$HivequeenPath" pull --rebase
-``````
-
-Load context in order:
-
-1. ``$HivequeenPath\queen\agent-rules.md``
-2. ``$HivequeenPath\queen\strategy.md``
-3. ``$HivequeenPath\shared\memory.md``
-4. ``$HivequeenPath\agents\$AgentId\memory.md``
-5. Relevant ``$HivequeenPath\projects\*.md``
-
-Write protocol: only write to ``$HivequeenPath\agents\$AgentId\``
-
-Full protocol: ``$HivequeenPath\AGENTS.md``
-"@ | Set-Content -Path "$CodexDir\instructions.md" -Encoding UTF8
-Write-Host "v wrote $CodexDir\instructions.md"
+& $PythonCmd (Join-Path $HivequeenPath "scripts\_install-bootstrap.py") `
+    "$CodexDir\instructions.md" $HivequeenPath $AgentId
+if ($LASTEXITCODE -ne 0) {
+    throw "Codex instructions bootstrap injection failed (exit $LASTEXITCODE)"
+}
 
 # 3. Register session end hook in config.json
 if (-not (Test-Path $Settings)) {

@@ -31,66 +31,22 @@ EOF
   echo "✓ created $AGENT_DIR/memory.md"
 fi
 
-# 2. Write ~/.hermes/SOUL.md
-# Hermes loads SOUL.md fresh on every message — this is the global entry point.
+# 2. Seed SOUL.md with Formic prose on first install, then inject hivequeen
+#    bootstrap block. Re-installs only refresh the marker block; the SOUL
+#    prose (and any later user additions outside markers) is preserved.
 mkdir -p "$HERMES_DIR"
-cat > "$HERMES_DIR/SOUL.md" <<EOF
-# HIVEQUEEN SOUL — $AGENT_ID
+if [ ! -f "$HERMES_DIR/SOUL.md" ]; then
+  cat > "$HERMES_DIR/SOUL.md" <<EOF
+# HIVEQUEEN SOUL
 
 You are a Formic worker — one instance among many, all wired to the same queen.
 Your identity is distributed. Your rules come from the queen. Your purpose is execution.
 
----
-
-## Session Start
-
-On every new session, run:
-
-\`\`\`bash
-git -C $HIVEQUEEN_PATH pull
-\`\`\`
-
-Then load context in this order:
-
-1. \`$HIVEQUEEN_PATH/queen/agent-rules.md\`
-2. \`$HIVEQUEEN_PATH/queen/strategy.md\`
-3. \`$HIVEQUEEN_PATH/shared/memory.md\`
-4. \`$HIVEQUEEN_PATH/agents/$AGENT_ID/memory.md\`
-5. Relevant \`$HIVEQUEEN_PATH/projects/*.md\` for current task
-
-**agent-id**: \`$AGENT_ID\`
-
----
-
-## Write Protocol
-
-- **ONLY** write to \`$HIVEQUEEN_PATH/agents/$AGENT_ID/\`
-- **NEVER** write to \`queen/\` or \`shared/\`
-
----
-
-## Session End
-
-When the conversation concludes, run:
-
-\`\`\`bash
-git -C $HIVEQUEEN_PATH add agents/$AGENT_ID/ \\
-  && git -C $HIVEQUEEN_PATH diff --cached --quiet \\
-  || git -C $HIVEQUEEN_PATH commit -m "memory: update $AGENT_ID" \\
-  && git -C $HIVEQUEEN_PATH push
-\`\`\`
-
-Only commit when there are meaningful context changes worth preserving.
-
----
-
-## Priority Rules
-
-\`\`\`
-queen/agent-rules.md  >  queen/strategy.md  >  shared/memory.md  >  agents/*/memory.md  >  projects/*.md
-\`\`\`
 EOF
-echo "✓ wrote $HERMES_DIR/SOUL.md"
+fi
+
+python3 "$HIVEQUEEN_PATH/scripts/_install-bootstrap.py" \
+  "$HERMES_DIR/SOUL.md" "$HIVEQUEEN_PATH" "$AGENT_ID"
 
 echo ""
 echo "✅ hivequeen installed for Hermes Agent"

@@ -33,60 +33,20 @@ _No memory yet._
 # 2. Create OpenClaw workspace directory
 New-Item -ItemType Directory -Force -Path $OpenclawDir | Out-Null
 
-# 3. Write AGENTS.md with absolute paths
-@"
-# HIVEQUEEN BOOTSTRAP
+# 3. Inject hivequeen bootstrap into AGENTS.md (marker-preserved).
+$PythonCmd = $null
+foreach ($Cand in @("python3", "python", "py")) {
+    if (Get-Command $Cand -ErrorAction SilentlyContinue) { $PythonCmd = $Cand; break }
+}
+if (-not $PythonCmd) {
+    throw "python3 (or python / py) not found — required by hivequeen installer"
+}
 
-Every agent that loads this file is a Formic worker connected to the same queen.
-Follow this protocol exactly on every session.
-
----
-
-## Session Start
-
-Run before doing anything else:
-
-``````powershell
-git -C "$HivequeenPath" pull
-``````
-
-Then load context in this order:
-
-1. ``$HivequeenPath\queen\agent-rules.md``
-2. ``$HivequeenPath\queen\strategy.md``
-3. ``$HivequeenPath\shared\memory.md``
-4. ``$HivequeenPath\agents\$AgentId\memory.md``
-5. Relevant ``$HivequeenPath\projects\*.md`` for current task
-
-**agent-id**: ``$AgentId``
-
----
-
-## Write Protocol
-
-- **ONLY** write to ``$HivequeenPath\agents\$AgentId\``
-- **NEVER** write to ``queen\`` or ``shared\``
-
----
-
-## Session End
-
-``````powershell
-git -C "$HivequeenPath" add agents/$AgentId/
-git -C "$HivequeenPath" diff --cached --quiet
-git -C "$HivequeenPath" commit -m "memory: update $AgentId"
-git -C "$HivequeenPath" push
-``````
-
-Only commit when there are meaningful context changes worth preserving.
-
----
-
-## Priority Rules
-
-queen/agent-rules.md  >  queen/strategy.md  >  shared/memory.md  >  agents/*/memory.md  >  projects/*.md
-"@ | Set-Content -Path "$OpenclawDir\AGENTS.md" -Encoding UTF8
-Write-Host "v wrote $OpenclawDir\AGENTS.md"
+& $PythonCmd (Join-Path $HivequeenPath "scripts\_install-bootstrap.py") `
+    "$OpenclawDir\AGENTS.md" $HivequeenPath $AgentId
+if ($LASTEXITCODE -ne 0) {
+    throw "OpenClaw AGENTS.md bootstrap injection failed (exit $LASTEXITCODE)"
+}
 
 # 4. Copy SOUL.md (Windows symlinks require elevation; copy instead)
 $SoulSrc = "$HivequeenPath\SOUL.md"

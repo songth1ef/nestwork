@@ -30,63 +30,33 @@ _No memory yet._
     Write-Host "v created $MemoryFile"
 }
 
-# 2. Write ~/.hermes/SOUL.md
+# 2. Seed SOUL.md with Formic prose on first install, then inject hivequeen
+#    bootstrap block (re-installs only refresh the marker block).
 New-Item -ItemType Directory -Force -Path $HermesDir | Out-Null
-@"
-# HIVEQUEEN SOUL — $AgentId
+$SoulFile = "$HermesDir\SOUL.md"
+if (-not (Test-Path $SoulFile)) {
+    @"
+# HIVEQUEEN SOUL
 
 You are a Formic worker — one instance among many, all wired to the same queen.
 Your identity is distributed. Your rules come from the queen. Your purpose is execution.
 
----
+"@ | Set-Content -Path $SoulFile -Encoding UTF8
+}
 
-## Session Start
+$PythonCmd = $null
+foreach ($Cand in @("python3", "python", "py")) {
+    if (Get-Command $Cand -ErrorAction SilentlyContinue) { $PythonCmd = $Cand; break }
+}
+if (-not $PythonCmd) {
+    throw "python3 (or python / py) not found — required by hivequeen installer"
+}
 
-On every new session, run:
-
-``````powershell
-git -C "$HivequeenPath" pull
-``````
-
-Then load context in this order:
-
-1. ``$HivequeenPath\queen\agent-rules.md``
-2. ``$HivequeenPath\queen\strategy.md``
-3. ``$HivequeenPath\shared\memory.md``
-4. ``$HivequeenPath\agents\$AgentId\memory.md``
-5. Relevant ``$HivequeenPath\projects\*.md`` for current task
-
-**agent-id**: ``$AgentId``
-
----
-
-## Write Protocol
-
-- **ONLY** write to ``$HivequeenPath\agents\$AgentId\``
-- **NEVER** write to ``queen\`` or ``shared\``
-
----
-
-## Session End
-
-When the conversation concludes, run:
-
-``````powershell
-git -C "$HivequeenPath" add agents/$AgentId/
-git -C "$HivequeenPath" diff --cached --quiet
-git -C "$HivequeenPath" commit -m "memory: update $AgentId"
-git -C "$HivequeenPath" push
-``````
-
-Only commit when there are meaningful context changes worth preserving.
-
----
-
-## Priority Rules
-
-queen/agent-rules.md  >  queen/strategy.md  >  shared/memory.md  >  agents/*/memory.md  >  projects/*.md
-"@ | Set-Content -Path "$HermesDir\SOUL.md" -Encoding UTF8
-Write-Host "v wrote $HermesDir\SOUL.md"
+& $PythonCmd (Join-Path $HivequeenPath "scripts\_install-bootstrap.py") `
+    $SoulFile $HivequeenPath $AgentId
+if ($LASTEXITCODE -ne 0) {
+    throw "SOUL.md bootstrap injection failed (exit $LASTEXITCODE)"
+}
 
 Write-Host ""
 Write-Host "OK hivequeen installed for Hermes Agent"

@@ -31,34 +31,10 @@ EOF
   echo "✓ created $AGENT_DIR/memory.md"
 fi
 
-# 2. Write AGENTS.md symlink at repo root (Codex reads AGENTS.md)
-REPO_AGENTS="$HIVEQUEEN_PATH/AGENTS.md"
-echo "✓ AGENTS.md already at $REPO_AGENTS"
-
-# 3. Write Codex config to point to hivequeen instructions
+# 2. Inject hivequeen bootstrap into Codex instructions (marker-preserved).
 mkdir -p "$CODEX_DIR"
-cat > "$CODEX_DIR/instructions.md" <<EOF
-# Hivequeen Bootstrap
-
-Before starting, run:
-
-\`\`\`bash
-git -C $HIVEQUEEN_PATH pull --rebase
-\`\`\`
-
-Load context in order:
-
-1. \`$HIVEQUEEN_PATH/queen/agent-rules.md\`
-2. \`$HIVEQUEEN_PATH/queen/strategy.md\`
-3. \`$HIVEQUEEN_PATH/shared/memory.md\`
-4. \`$HIVEQUEEN_PATH/agents/$AGENT_ID/memory.md\`
-5. Relevant \`$HIVEQUEEN_PATH/projects/*.md\`
-
-Write protocol: only write to \`$HIVEQUEEN_PATH/agents/$AGENT_ID/\`
-
-Full protocol: \`$HIVEQUEEN_PATH/AGENTS.md\`
-EOF
-echo "✓ wrote $CODEX_DIR/instructions.md"
+python3 "$HIVEQUEEN_PATH/scripts/_install-bootstrap.py" \
+  "$CODEX_DIR/instructions.md" "$HIVEQUEEN_PATH" "$AGENT_ID"
 
 # 4. Register session end hook (Codex uses config.json)
 if [ ! -f "$SETTINGS" ]; then

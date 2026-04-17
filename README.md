@@ -175,7 +175,8 @@ hivequeen/
     │   ├── _match-file.py         stdin-based file matcher
     │   └── export-claude-mem.sh   optional claude-mem bridge
     └── maintenance/               ops
-        ├── compile.sh             aggregate agents/* into shared/
+        ├── compile.sh             aggregate agents/* into shared/ (mechanical)
+        ├── distill.py             LLM-oriented variant: print a merge prompt
         └── update.sh              pull upstream protocol layer
 ```
 

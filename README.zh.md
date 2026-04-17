@@ -174,7 +174,8 @@ hivequeen/
     │   ├── _match-file.py         stdin 文件匹配器
     │   └── export-claude-mem.sh   claude-mem 可选桥接
     └── maintenance/               运维
-        ├── compile.sh             聚合 agents/* 到 shared/
+        ├── compile.sh             聚合 agents/* 到 shared/（纯拼接）
+        ├── distill.py             LLM 版：打印记忆蒸馏 prompt
         └── update.sh              拉取 upstream 协议层
 ```
 

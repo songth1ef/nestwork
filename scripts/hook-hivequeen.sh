@@ -17,30 +17,16 @@ set -u
 PHASE="${1:-}"
 AGENT_ID="${2:-}"
 HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+MATCHER_SCRIPT="$HIVEQUEEN_PATH/scripts/_hook-match-file.py"
 
 [ -z "$PHASE" ] && exit 0
 [ -z "$AGENT_ID" ] && exit 0
 
 # ── Check whether the Write/Edit target is under agents/<id>/ ─────────────────
+# Reads hook JSON from THIS script's stdin and forwards to the matcher python.
+# Matcher exits 0 on match, 1 otherwise.
 match_agent_file() {
-  python3 - "$HIVEQUEEN_PATH" "$AGENT_ID" <<'PY'
-import json, sys, os
-hp, agent_id = sys.argv[1], sys.argv[2]
-try:
-    data = json.load(sys.stdin)
-except Exception:
-    sys.exit(1)
-fp = data.get('tool_input', {}).get('file_path', '')
-def norm(p):
-    p = p.replace('\\', '/')
-    # Windows drive letter: C:/... -> /c/...
-    if len(p) >= 2 and p[1] == ':':
-        p = '/' + p[0].lower() + p[2:]
-    return os.path.normpath(p).replace('\\', '/').rstrip('/')
-t = norm(fp)
-a = norm(os.path.join(hp, 'agents', agent_id))
-sys.exit(0 if t == a or t.startswith(a + '/') else 1)
-PY
+  python3 "$MATCHER_SCRIPT" "$HIVEQUEEN_PATH" "$AGENT_ID"
 }
 
 # ── git pull --rebase, abort on conflict ──────────────────────────────────────

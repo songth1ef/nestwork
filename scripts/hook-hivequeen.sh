@@ -40,11 +40,17 @@ pull_rebase() {
 }
 
 # ── commit + push with retry; warn on persistent conflict ─────────────────────
+#
+# IMPORTANT: scope all commits to agents/<agent-id>/ via an explicit pathspec.
+# Without it, `git commit` includes every staged file, so if the user (or a
+# prior tool call) left unrelated paths staged — e.g. `git checkout upstream
+# -- something` — they would get vacuumed into a "memory: update" commit.
 commit_push_retry() {
   cd "$HIVEQUEEN_PATH" || return 1
-  git add "agents/$AGENT_ID/" >/dev/null 2>&1 || return 1
-  git diff --cached --quiet && return 0
-  git commit -m "memory: update $AGENT_ID" -q || return 1
+  local agent_path="agents/$AGENT_ID"
+  git add "$agent_path/" >/dev/null 2>&1 || return 1
+  git diff --cached --quiet -- "$agent_path/" && return 0
+  git commit -m "memory: update $AGENT_ID" -q -- "$agent_path/" || return 1
   for i in 1 2 3; do
     if git push -q 2>/dev/null; then
       return 0
@@ -55,7 +61,7 @@ commit_push_retry() {
       echo "⚠ hivequeen: rebase 冲突，memory 未 push，需手动合并" >&2
       return 1
     fi
-    git commit -m "memory: update $AGENT_ID" -q || return 1
+    git commit -m "memory: update $AGENT_ID" -q -- "$agent_path/" || return 1
   done
   echo "⚠ hivequeen: push 重试 3 次失败" >&2
   return 1

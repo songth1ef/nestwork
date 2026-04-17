@@ -78,7 +78,7 @@ you enough to act — not to forbid asking when asking is actually correct.
 
 ## 3. Session End
 
-**If hooks are installed** (via `scripts/install-<tool>.sh`), per-write sync
+**If hooks are installed** (via `scripts/install/<tool>.sh`), per-write sync
 happens automatically: every Write/Edit under `agents/<agent-id>/` triggers
 `pull --rebase` before and `commit + push` after. The Stop hook is a
 safety net for writes that slipped past. **Do nothing extra.**

@@ -9,7 +9,7 @@ name: Sync hivequeen upstream
 # The bot keeps a single long-lived branch `sync/upstream`. Same-day reruns
 # update the branch in place; the PR stays open until merged.
 #
-# Review the diff before merging — this is your escape valve if upstream
+# Review the diff before merging -- this is your escape valve if upstream
 # ships a breaking protocol change.
 
 on:
@@ -62,7 +62,7 @@ jobs:
         run: |
           OPEN_PRS=$(gh pr list --head "$SYNC_BRANCH" --state open --json number -q '.[].number')
           for n in $OPEN_PRS; do
-            gh pr close "$n" --comment "Protocol layer is now in sync with upstream — closing."
+            gh pr close "$n" --comment "Protocol layer is now in sync with upstream -- closing."
           done
           git push origin --delete "$SYNC_BRANCH" 2>/dev/null || true
 
@@ -72,7 +72,7 @@ jobs:
           git checkout -B "$SYNC_BRANCH" origin/main
           git checkout upstream/"$UPSTREAM_BRANCH" -- $PROTOCOL_PATHS
           if git diff --cached --quiet; then
-            echo "No staged delta after checkout — bailing out cleanly."
+            echo "No staged delta after checkout -- bailing out cleanly."
             exit 0
           fi
           git commit -m "chore: sync hivequeen protocol from upstream"
@@ -85,21 +85,28 @@ jobs:
         run: |
           EXISTING=$(gh pr list --head "$SYNC_BRANCH" --state open --json number -q '.[0].number // empty')
           if [ -n "$EXISTING" ]; then
-            echo "PR #$EXISTING already open — branch updated in place."
+            echo "PR #$EXISTING already open -- branch updated in place."
             exit 0
           fi
+          # Build the PR body via a heredoc so we don't have to fight YAML's
+          # literal-block-scalar indentation rules with a multi-line `--body`.
+          # YAML strips the block-scalar indent before handing content to bash,
+          # so the heredoc lines below arrive unindented inside the runner.
+          cat > /tmp/pr_body.md <<BODY
+          Automated protocol-layer sync from upstream (${UPSTREAM_URL}).
+
+          **Scope** -- protocol files only:
+
+          \`\`\`
+          ${PROTOCOL_PATHS}
+          \`\`\`
+
+          **Untouched**: \`queen/\`, \`agents/\`, \`shared/\`, \`projects/\` -- those remain private.
+
+          Review the diff and merge when it looks good. If upstream ships something you do not want, close this PR; the bot will reopen only when upstream changes again.
+          BODY
           gh pr create \
             --base main \
             --head "$SYNC_BRANCH" \
             --title "chore: sync hivequeen upstream" \
-            --body "Automated protocol-layer sync from upstream ($UPSTREAM_URL).
-
-**Scope** — protocol files only:
-
-\`\`\`
-$PROTOCOL_PATHS
-\`\`\`
-
-**Untouched**: \`queen/\`, \`agents/\`, \`shared/\`, \`projects/\` — those remain private.
-
-Review the diff and merge when it looks good. If upstream ships something you do not want, close this PR; the bot will reopen only when upstream changes again."
+            --body-file /tmp/pr_body.md

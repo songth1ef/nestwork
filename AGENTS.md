@@ -10,7 +10,7 @@ Follow this protocol exactly on every session.
 Run before doing anything else:
 
 ```bash
-git -C $HIVEQUEEN_PATH pull
+git -C $HIVEQUEEN_PATH pull --rebase
 ```
 
 If pull fails, note the reason and continue.
@@ -23,7 +23,10 @@ Then load context in this order:
 4. `agents/<agent-id>/memory.md` — this instance's private memory (if exists)
 5. `projects/<relevant>.md` — current task context (if relevant)
 
-**agent-id format**: `<tool>-<hostname>` (e.g. `claude-macbook`, `codex-server1`)
+**agent-id format**: `<tool>-<lowercased-hostname>-<4-char-random-suffix>`
+(e.g. `claude-macbook-a7k2`, `codex-server1-9xqp`). The suffix is generated
+once by the installer and persisted in `~/.hivequeen_id` so reinstalls keep
+the same id. You may override via `HIVEQUEEN_AGENT_ID` env var.
 
 ### After loading — self-direct, do not wait to be asked
 
@@ -64,9 +67,17 @@ and you must first state explicitly that you checked and found nothing.
 
 ## 3. Session End
 
+**If hooks are installed** (via `scripts/install-<tool>.sh`), per-write sync
+happens automatically: every Write/Edit under `agents/<agent-id>/` triggers
+`pull --rebase` before and `commit + push` after. The Stop hook is a
+safety net for writes that slipped past. **Do nothing extra.**
+
+**If hooks are NOT available** for your tool, run manually at session end:
+
 ```bash
 git -C $HIVEQUEEN_PATH add agents/<agent-id>/
-git -C $HIVEQUEEN_PATH commit -m "memory: update <agent-id>"
+git -C $HIVEQUEEN_PATH diff --cached --quiet -- agents/<agent-id>/ || \
+  git -C $HIVEQUEEN_PATH commit -m "memory: update <agent-id>" -- agents/<agent-id>/
 git -C $HIVEQUEEN_PATH push
 ```
 

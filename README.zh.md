@@ -2,6 +2,8 @@
 
 [English](README.md) | 中文
 
+版本：v0.2.0 | 协议：2.0
+
 模板即继承，clone 即连接，所有 agent 共用同一个大脑。hivequeen 是 git 原生的 AI agent memory 协议，用于 Claude Code、Codex CLI、Gemini CLI 等 AI coding agents 的 persistent memory 与 shared context，无需插件，无需服务器。
 
 ## hivequeen 是什么？

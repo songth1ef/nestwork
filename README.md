@@ -2,6 +2,8 @@
 
 [中文](README.zh.md) | English
 
+Version: v0.2.0 | Protocol: 2.0
+
 Template it, clone it anywhere — your agents share one brain. A git-native memory protocol for AI agents, like Formic workers wired to their queen. No plugins, no servers. Just git.
 
 ## What is hivequeen?

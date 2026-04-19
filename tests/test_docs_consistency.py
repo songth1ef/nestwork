@@ -79,6 +79,16 @@ class DocsConsistencyTests(unittest.TestCase):
         self.assertIn("ai search systems", docs_index)
         self.assertIn("without a website", docs_index)
 
+    def test_repository_version_metadata_exists(self) -> None:
+        version = (REPO_ROOT / "VERSION").read_text(encoding="utf-8").strip()
+        changelog = (REPO_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+        readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+
+        self.assertEqual("0.2.0", version)
+        self.assertIn("## v0.2.0 - 2026-04-19", changelog)
+        self.assertIn("Version: v0.2.0", readme)
+        self.assertIn("Protocol: 2.0", readme)
+
 
 if __name__ == "__main__":
     unittest.main()

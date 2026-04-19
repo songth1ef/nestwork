@@ -57,7 +57,7 @@ if (-not (Test-Path $Settings)) {
 }
 
 $AgentRel = "agents/$HiveHost/$AgentId"
-$HookCmd = "cd `"$HivequeenPath`" && git pull --rebase --autostash -q && git add $AgentRel/ && (git diff --cached --quiet -- $AgentRel/ || git commit -m 'memory: update $HiveHost/$AgentId' -- $AgentRel/) && git push -q"
+$HookCmd = "Set-Location -LiteralPath `"$HivequeenPath`"; git pull --rebase --autostash -q; if (`$LASTEXITCODE -ne 0) { exit `$LASTEXITCODE }; git add $AgentRel/; if (`$LASTEXITCODE -ne 0) { exit `$LASTEXITCODE }; git diff --cached --quiet -- $AgentRel/; if (`$LASTEXITCODE -ne 0) { git commit -m 'memory: update $HiveHost/$AgentId' -- $AgentRel/; if (`$LASTEXITCODE -ne 0) { exit `$LASTEXITCODE } }; git push -q"
 
 $SettingsObj = Get-Content $Settings -Raw | ConvertFrom-Json
 

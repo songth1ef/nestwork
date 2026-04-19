@@ -54,7 +54,8 @@ echo "[ok] compiled -> $SHARED"
 # Commit and push
 cd "$HIVEQUEEN_PATH"
 git add shared/memory.md
-git diff --cached --quiet || git commit -m "memory: compile shared $(date -u +%Y-%m-%d)"
+git diff --cached --quiet -- shared/memory.md || \
+  git commit -m "memory: compile shared $(date -u +%Y-%m-%d)" -- shared/memory.md
 git push -q
 
 echo "OK shared memory compiled and pushed"

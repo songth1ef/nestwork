@@ -21,7 +21,7 @@ hivequeen 仓库（你的私有母体）
 
 ```
 session 开始  →  git pull  →  加载上下文
-session 结束  →  git commit agents/<id>/  →  git push
+session 结束  →  git commit agents/<host>/<agent-id>/  →  git push
 ```
 
 ---
@@ -195,7 +195,7 @@ hivequeen/
 |---|---|
 | `queen/agent-rules.md` | 80 |
 | `queen/strategy.md` | 80 |
-| `agents/<host>/<id>/memory.md` | 200 |
+| `agents/<host>/<agent-id>/memory.md` | 200 |
 | `shared/memory.md` | 500 |
 | `projects/<name>.md` | 150 |
 
@@ -229,7 +229,7 @@ agent 先读索引，按需跟进相关 topic 文件。
 | 路径 | 谁写 | 可能冲突？ |
 |---|---|---|
 | `queen/` | 你（人工） | 不会 |
-| `agents/<id>/` | 仅该 agent | 不会 |
+| `agents/<host>/<agent-id>/` | 仅该 agent | 正常记忆写入不会 |
 | `shared/` | 仅 `compile.sh` | 不会 |
 
 ---

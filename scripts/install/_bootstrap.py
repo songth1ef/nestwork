@@ -67,7 +67,8 @@ you ask -- and you must state that you checked and found nothing.
 
 ```bash
 git -C {hp} add agents/{host}/{aid}/
-git -C {hp} diff --cached --quiet || git -C {hp} commit -m "memory: update {host}/{aid}"
+git -C {hp} diff --cached --quiet -- agents/{host}/{aid}/ || \
+  git -C {hp} commit -m "memory: update {host}/{aid}" -- agents/{host}/{aid}/
 git -C {hp} push
 ```
 

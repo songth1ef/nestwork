@@ -11,7 +11,7 @@ Shell / PowerShell / Markdown / git
 
 ## 核心架构
 - `queen/` — 只读规则层，人工维护
-- `agents/<id>/` — 每个 agent 独占写入目录，零冲突
+- `agents/<host>/<agent-id>/` — 每个 agent 独占写入目录，降低正常记忆写入冲突
 - `shared/` — 从所有 agent 编译而来的共享记忆
 - `projects/` — 当前文件所在，项目级上下文
 
@@ -23,12 +23,12 @@ Shell / PowerShell / Markdown / git
 
 ## 待完成
 - [x] Gemini CLI 安装脚本
-- [x] compile.sh 的 LLM 提炼版本（目前是 `scripts/distill.py`）
+- [x] compile.sh 的 LLM 提炼版本（目前是 `scripts/maintenance/distill.py`）
 - [x] 更多工具的软链接安装支持
 
 ## 设计约束
 - 不做中心化服务，不引入外部依赖
-- agent 只能写 `agents/<自己的id>/`，不得写 `queen/` 或 `shared/`
+- agent 只能写 `agents/<自己的host>/<自己的id>/`，不得写 `queen/` 或 `shared/`
 - 文件超过行数限制时必须拆分为 topic 文件 + 索引
 
 ## 竞品对比关键点

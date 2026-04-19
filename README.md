@@ -17,11 +17,11 @@ hivequeen repo (your private queen)
 ```
 
 Every machine that clones your queen gets the same brain.
-Every agent instance writes only to its own `agents/<host>/<agent-id>/` directory — no conflicts, ever.
+Every agent instance writes only to its own `agents/<host>/<agent-id>/` directory, so normal memory writes stay isolated.
 
 ```
 Session start  →  git pull  →  load context
-Session end    →  git commit agents/<host>/<id>/  →  git push
+Session end    →  git commit agents/<host>/<agent-id>/  →  git push
 ```
 
 ---
@@ -197,7 +197,7 @@ Each file has a line limit. When exceeded, split into topic files and use an ind
 |---|---|
 | `queen/agent-rules.md` | 80 |
 | `queen/strategy.md` | 80 |
-| `agents/<host>/<id>/memory.md` | 200 |
+| `agents/<host>/<agent-id>/memory.md` | 200 |
 | `shared/memory.md` | 500 |
 | `projects/<name>.md` | 150 |
 
@@ -224,14 +224,14 @@ Agents read the index first, follow links only when the topic is relevant.
 
 ---
 
-## Why no conflicts?
+## Why memory writes stay isolated
 
-Each agent owns exactly one directory under `agents/`. No two agents ever write to the same file. Git conflicts are structurally impossible during normal operation.
+Each agent owns exactly one directory under `agents/`. No two agents should write to the same file during normal memory updates, so normal agent-memory commits avoid content conflicts by construction.
 
 | Path | Who writes | Conflict possible? |
 |---|---|---|
 | `queen/` | You (human) | No |
-| `agents/<host>/<id>/` | That agent only | No |
+| `agents/<host>/<agent-id>/` | That agent only | No for normal memory writes |
 | `shared/` | `compile.sh` only | No |
 
 ---

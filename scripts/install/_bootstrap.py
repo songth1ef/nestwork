@@ -82,6 +82,14 @@ See full protocol: `{hp}/AGENTS.md`
 """
 
 
+def strip_legacy_codex_bootstrap(content: str) -> str:
+    if not LEGACY_CODEX_BOOTSTRAP_RE.search(content):
+        return content
+    if BEGIN in content:
+        return content[content.index(BEGIN):].lstrip()
+    return ""
+
+
 def main() -> int:
     if len(sys.argv) < 5:
         print(
@@ -107,6 +115,7 @@ def main() -> int:
     if os.path.exists(out_path):
         with open(out_path, encoding="utf-8") as f:
             existing = f.read()
+    existing = strip_legacy_codex_bootstrap(existing)
 
     marker_pattern = re.compile(
         re.escape(BEGIN) + r".*?" + re.escape(END), re.DOTALL
@@ -115,10 +124,6 @@ def main() -> int:
     if marker_pattern.search(existing):
         # Replace only the marker block; keep user content outside intact.
         new_content = marker_pattern.sub(block.strip(), existing)
-    elif LEGACY_CODEX_BOOTSTRAP_RE.search(existing):
-        # Older Codex installs used an unmarked global startup block. Replace it
-        # so Codex does not load two competing long-term context repositories.
-        new_content = block
     elif existing.strip():
         # User already has unrelated content -- append the block after it.
         new_content = existing.rstrip() + "\n\n" + block

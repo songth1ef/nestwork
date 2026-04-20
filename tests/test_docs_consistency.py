@@ -72,6 +72,18 @@ class DocsConsistencyTests(unittest.TestCase):
         self.assertIn("docs/agents-md-best-practices.md", llms)
         self.assertIn("docs/shared-context-for-ai-coding-agents.md", llms)
 
+    def test_codex_docs_use_agents_md_as_primary_entrypoint(self) -> None:
+        paths = [
+            REPO_ROOT / "README.md",
+            REPO_ROOT / "README.zh.md",
+            REPO_ROOT / "docs" / "codex-persistent-memory.md",
+        ]
+
+        for path in paths:
+            with self.subTest(path=path.name):
+                content = path.read_text(encoding="utf-8")
+                self.assertIn("~/.codex/AGENTS.md", content)
+
     def test_docs_index_keeps_no_website_positioning(self) -> None:
         docs_index = (REPO_ROOT / "docs" / "README.md").read_text(encoding="utf-8").lower()
 

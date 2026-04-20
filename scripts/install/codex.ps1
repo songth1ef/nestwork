@@ -6,6 +6,8 @@ $ErrorActionPreference = "Stop"
 
 $HivequeenPath = (Resolve-Path "$PSScriptRoot\..\..").Path
 $CodexDir = "$env:USERPROFILE\.codex"
+$CodexAgents = "$CodexDir\AGENTS.md"
+$CodexInstructions = "$CodexDir\instructions.md"
 $Settings = "$CodexDir\config.json"
 
 $PythonCmd = $null
@@ -46,9 +48,14 @@ _No memory yet._
 # 2. Inject hivequeen bootstrap (marker-preserved).
 New-Item -ItemType Directory -Force -Path $CodexDir | Out-Null
 & $PythonCmd (Join-Path $HivequeenPath "scripts\install\_bootstrap.py") `
-    "$CodexDir\instructions.md" $HivequeenPath $HiveHost $AgentId
+    "$CodexAgents" $HivequeenPath $HiveHost $AgentId
 if ($LASTEXITCODE -ne 0) {
-    throw "Codex instructions bootstrap injection failed (exit $LASTEXITCODE)"
+    throw "Codex AGENTS.md bootstrap injection failed (exit $LASTEXITCODE)"
+}
+& $PythonCmd (Join-Path $HivequeenPath "scripts\install\_bootstrap.py") `
+    "$CodexInstructions" $HivequeenPath $HiveHost $AgentId
+if ($LASTEXITCODE -ne 0) {
+    throw "Codex instructions.md compatibility bootstrap injection failed (exit $LASTEXITCODE)"
 }
 
 # 3. Register session end hook in config.json

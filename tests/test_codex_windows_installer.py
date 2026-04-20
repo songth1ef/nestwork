@@ -9,6 +9,16 @@ CODEX_INSTALLER = REPO_ROOT / "scripts" / "install" / "codex.ps1"
 
 
 class CodexWindowsInstallerTests(unittest.TestCase):
+    def test_installer_bootstraps_codex_agents_md(self) -> None:
+        content = CODEX_INSTALLER.read_text(encoding="utf-8")
+
+        self.assertIn('$CodexAgents = "$CodexDir\\AGENTS.md"', content)
+        self.assertRegex(
+            content,
+            r'_bootstrap\.py"\)\s+`\s+"\$CodexAgents"',
+            msg="Codex installer should inject hivequeen bootstrap into ~/.codex/AGENTS.md",
+        )
+
     def test_end_hook_command_parses_in_windows_powershell(self) -> None:
         content = CODEX_INSTALLER.read_text(encoding="utf-8")
         match = re.search(r'\$HookCmd = "(?P<hook>(?:[^"`]|`.)*)"', content)

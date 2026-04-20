@@ -264,7 +264,7 @@ agent 先读索引，按需跟进相关 topic 文件。
 | 工具 | 厂商 | 入口文件 | 安装方式 |
 |---|---|---|---|
 | Claude Code | Anthropic | `~/.claude/CLAUDE.md` + hooks | `bash scripts/install/claude.sh` |
-| Codex CLI | OpenAI | `~/.codex/instructions.md` | `bash scripts/install/codex.sh` |
+| Codex CLI | OpenAI | `~/.codex/AGENTS.md` + `~/.codex/instructions.md` 兼容入口 | `bash scripts/install/codex.sh` |
 | Gemini CLI | Google | `~/.gemini/GEMINI.md` | `bash scripts/install/gemini.sh` |
 | OpenClaw | 开源 | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install/openclaw.sh` |
 | Hermes Agent | 开源 | `~/.hermes/SOUL.md` | `bash scripts/install/hermes.sh` |

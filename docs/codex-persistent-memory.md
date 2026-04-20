@@ -2,7 +2,7 @@
 
 ## Short answer
 
-hivequeen gives Codex CLI persistent memory by writing a startup protocol into `~/.codex/instructions.md` and configuring a session end hook in `~/.codex/config.json`.
+hivequeen gives Codex CLI persistent memory by writing a startup protocol into `~/.codex/AGENTS.md`, keeping `~/.codex/instructions.md` as a compatibility entrypoint, and configuring a session end hook in `~/.codex/config.json`.
 
 ## How it works with Codex CLI
 
@@ -10,8 +10,9 @@ The Codex installer:
 
 1. Resolves this machine's host and Codex agent id.
 2. Creates `agents/<host>/codex/memory.md`.
-3. Injects startup instructions into `~/.codex/instructions.md`.
-4. Registers a session end hook that commits and pushes Codex memory changes.
+3. Injects startup instructions into `~/.codex/AGENTS.md`.
+4. Also updates `~/.codex/instructions.md` for compatibility with older Codex setups.
+5. Registers a session end hook that commits and pushes Codex memory changes.
 
 Install on macOS or Linux:
 

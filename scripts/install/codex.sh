@@ -7,6 +7,8 @@ set -e
 
 HIVEQUEEN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 CODEX_DIR="$HOME/.codex"
+CODEX_AGENTS="$CODEX_DIR/AGENTS.md"
+CODEX_INSTRUCTIONS="$CODEX_DIR/instructions.md"
 SETTINGS="$CODEX_DIR/config.json"
 
 IDENTITY="$(python3 "$HIVEQUEEN_PATH/scripts/install/_identity.py" codex)"
@@ -34,10 +36,12 @@ EOF
   echo "[ok] created $AGENT_DIR/memory.md"
 fi
 
-# 2. Inject hivequeen bootstrap into Codex instructions (marker-preserved).
+# 2. Inject hivequeen bootstrap into Codex startup files (marker-preserved).
 mkdir -p "$CODEX_DIR"
 python3 "$HIVEQUEEN_PATH/scripts/install/_bootstrap.py" \
-  "$CODEX_DIR/instructions.md" "$HIVEQUEEN_PATH" "$HOST" "$AGENT_ID"
+  "$CODEX_AGENTS" "$HIVEQUEEN_PATH" "$HOST" "$AGENT_ID"
+python3 "$HIVEQUEEN_PATH/scripts/install/_bootstrap.py" \
+  "$CODEX_INSTRUCTIONS" "$HIVEQUEEN_PATH" "$HOST" "$AGENT_ID"
 
 # 4. Register session end hook (Codex uses config.json)
 if [ ! -f "$SETTINGS" ]; then

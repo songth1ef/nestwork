@@ -262,7 +262,7 @@ Each agent owns exactly one directory under `agents/`. No two agents should writ
 | Tool | Vendor | Entry file | Install |
 |---|---|---|---|
 | Claude Code | Anthropic | `~/.claude/CLAUDE.md` + hooks | `bash scripts/install/claude.sh` |
-| Codex CLI | OpenAI | `~/.codex/instructions.md` | `bash scripts/install/codex.sh` |
+| Codex CLI | OpenAI | `~/.codex/AGENTS.md` + `~/.codex/instructions.md` compatibility | `bash scripts/install/codex.sh` |
 | Gemini CLI | Google | `~/.gemini/GEMINI.md` | `bash scripts/install/gemini.sh` |
 | OpenClaw | open source | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install/openclaw.sh` |
 | Hermes Agent | open source | `~/.hermes/SOUL.md` | `bash scripts/install/hermes.sh` |

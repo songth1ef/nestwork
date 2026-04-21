@@ -30,12 +30,34 @@ from pathlib import Path
 
 
 TOKEN_PATTERNS = [
+    # API keys (OpenAI / Anthropic / generic `sk-`)
     re.compile(r"sk-[A-Za-z0-9_\-]{20,}"),
-    re.compile(r"ghp_[A-Za-z0-9]{20,}"),
-    re.compile(r"gho_[A-Za-z0-9]{20,}"),
+    re.compile(r"sk-ant-[A-Za-z0-9_\-]{20,}"),
+    # GitHub tokens
+    re.compile(r"gh[pousr]_[A-Za-z0-9]{20,}"),
     re.compile(r"github_pat_[A-Za-z0-9_]{20,}"),
+    # Bearer / generic header token
     re.compile(r"Bearer\s+[A-Za-z0-9\._\-]{20,}"),
+    # Slack tokens + webhooks
     re.compile(r"xox[baprs]-[A-Za-z0-9\-]{10,}"),
+    re.compile(r"https://hooks\.slack\.com/services/T[A-Z0-9]+/B[A-Z0-9]+/[A-Za-z0-9]+"),
+    # AWS access keys
+    re.compile(r"\b(?:AKIA|ASIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASCA)[0-9A-Z]{16}\b"),
+    # JWT (three base64url segments)
+    re.compile(r"eyJ[A-Za-z0-9_\-]+\.eyJ[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+"),
+    # npm / pypi / cargo tokens
+    re.compile(r"npm_[A-Za-z0-9]{30,}"),
+    re.compile(r"pypi-AgE[A-Za-z0-9_\-]{50,}"),
+    # Google API / OAuth
+    re.compile(r"AIza[0-9A-Za-z_\-]{35}"),
+    re.compile(r"ya29\.[0-9A-Za-z_\-]{20,}"),
+    # Private key PEM headers (redact the whole block's intent; lines follow)
+    re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----"),
+    re.compile(r"-----BEGIN OPENSSH PRIVATE KEY-----"),
+    # DB connection strings with embedded creds
+    re.compile(r"(?:mysql|postgres|postgresql|mongodb|redis|amqp)(?:\+[a-z]+)?://[^\s/@]+:[^\s/@]+@[^\s]+"),
+    # Inline "password = xxx" / "secret: xxx" / "token=xxx" (quoted or bare)
+    re.compile(r"(?i)(?:password|passwd|pwd|secret|token|api[_\- ]?key)\s*[:=]\s*['\"]?[A-Za-z0-9_\-./+=]{8,}['\"]?"),
 ]
 
 

@@ -295,12 +295,17 @@ Claude Code keeps prompt history and plan artefacts under `~/.claude/`.
 You can have them mirrored into `agents/<host>/<id>/local/` so they
 travel with your queen across machines.
 
-Opt-in per machine — no env var, no re-install needed after the first
-install. Create `~/.hivequeen/settings.json`:
+Opt-in per host — no env var, no re-install needed after the first
+install. Create `agents/<host>/settings.json` inside your queen (the
+host dir that matches this machine):
 
 ```json
 { "sync_local_history": true }
 ```
+
+Default is `false` (or file absent). The setting is versioned in git
+with the rest of your queen, so each machine's host dir tracks its
+own toggle.
 
 When enabled, the Claude Code Stop hook syncs:
 
@@ -309,9 +314,8 @@ When enabled, the Claude Code Stop hook syncs:
 | `~/.claude/history.jsonl` | `local/history.jsonl` | redacted: `pastedContents` dropped, `$HOME` paths and common token patterns (`sk-*`, `ghp_*`, `Bearer …`) scrubbed |
 | `~/.claude/plans/` | `local/plans/` | plan-mode artefacts, mirrored |
 
-Default is off (missing file or `false` → no-op). `todos/` and `tasks/`
-are intentionally excluded — >99% of them are empty UUID-per-session
-bookkeeping.
+`todos/` and `tasks/` are intentionally excluded — >99% of them are
+empty UUID-per-session bookkeeping.
 
 ### Via `install/generic.sh` (you confirm the config path)
 

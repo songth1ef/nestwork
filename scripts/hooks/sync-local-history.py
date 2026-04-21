@@ -5,7 +5,7 @@
 # Captures selected Claude Code runtime artefacts into the agent's memory dir
 # so they can be versioned in git alongside distilled memory.
 #
-# Scope (opt-in via ~/.hivequeen/settings.json → {"sync_local_history": true}):
+# Scope (opt-in via agents/<host>/settings.json → {"sync_local_history": true}):
 #   - ~/.claude/history.jsonl  -> local/history.jsonl  (redacted)
 #   - ~/.claude/plans/         -> local/plans/         (mirror)
 #
@@ -94,9 +94,8 @@ def mirror_dir(src: Path, dst: Path) -> int:
     return sum(1 for _ in dst.rglob("*") if _.is_file())
 
 
-def load_settings() -> dict:
-    """Read ~/.hivequeen/settings.json. Missing / malformed -> empty dict."""
-    path = Path.home() / ".hivequeen" / "settings.json"
+def load_settings(path: Path) -> dict:
+    """Read JSON settings file. Missing / malformed -> empty dict."""
     if not path.exists():
         return {}
     try:
@@ -108,9 +107,6 @@ def load_settings() -> dict:
 
 
 def main() -> int:
-    settings = load_settings()
-    if not settings.get("sync_local_history"):
-        return 0
     if len(sys.argv) < 4:
         print(
             "usage: sync-local-history.py <hivequeen_path> <host> <agent_id>",
@@ -121,6 +117,11 @@ def main() -> int:
     hivequeen_path = Path(sys.argv[1])
     host = sys.argv[2]
     agent_id = sys.argv[3]
+
+    settings_path = hivequeen_path / "agents" / host / "settings.json"
+    if not load_settings(settings_path).get("sync_local_history"):
+        return 0
+
     claude_home = Path.home() / ".claude"
     local_dir = hivequeen_path / "agents" / host / agent_id / "local"
     local_dir.mkdir(parents=True, exist_ok=True)

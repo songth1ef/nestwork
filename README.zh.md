@@ -293,12 +293,15 @@ bootstrap config 里写入的「会话结束提交」协议。
 Claude Code 会在 `~/.claude/` 下保留 prompt 历史和 plan 产物。
 可以把它们镜像进 `agents/<host>/<id>/local/`，让 queen 跨机器携带这份上下文。
 
-按机器独立启用，无需 env，也无需首次 install 之后重装。创建
-`~/.hivequeen/settings.json`：
+按 host 独立启用，无需 env，也无需首次 install 之后重装。在 queen 里
+为当前机器对应的 host 目录创建 `agents/<host>/settings.json`：
 
 ```json
 { "sync_local_history": true }
 ```
+
+默认 `false`（或文件不存在）。这个开关随 queen 一起进入 git 版本控制，
+所以每台机器的 host 目录各自保留自己的开关状态。
 
 启用后，Claude Code 的 Stop hook 会同步：
 
@@ -307,8 +310,8 @@ Claude Code 会在 `~/.claude/` 下保留 prompt 历史和 plan 产物。
 | `~/.claude/history.jsonl` | `local/history.jsonl` | 脱敏：删除 `pastedContents`，`$HOME` 路径归一化，常见 token（`sk-*`、`ghp_*`、`Bearer …`）替换为 `<REDACTED>` |
 | `~/.claude/plans/` | `local/plans/` | plan 模式产物，原样镜像 |
 
-默认关闭（配置文件不存在或 `false` → no-op）。`todos/` 和 `tasks/` 刻意排除
-——超过 99% 是按 session UUID 预分配的空文件，信号密度过低。
+`todos/` 和 `tasks/` 刻意排除 —— 超过 99% 是按 session UUID 预分配的空文件，
+信号密度过低。
 
 ### 通过 `install/generic.sh` 接入（需自行确认 config 路径）
 

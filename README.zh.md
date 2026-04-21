@@ -274,16 +274,19 @@ agent 先读索引，按需跟进相关 topic 文件。
 
 ## 支持的工具
 
-### 原生安装器（配置路径明确、已验证）
+### 原生安装器（配置路径明确）
 
-| 工具 | 厂商 | 入口文件 | 安装方式 |
-|---|---|---|---|
-| Claude Code | Anthropic | `~/.claude/CLAUDE.md` + hooks | `bash scripts/install/claude.sh` |
-| Codex CLI | OpenAI | `~/.codex/AGENTS.md` + `~/.codex/instructions.md` 兼容入口 | `bash scripts/install/codex.sh` |
-| Gemini CLI | Google | `~/.gemini/GEMINI.md` | `bash scripts/install/gemini.sh` |
-| OpenClaw | 开源 | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install/openclaw.sh` |
-| Hermes Agent | 开源 | `~/.hermes/SOUL.md` | `bash scripts/install/hermes.sh` |
-| Aider | 开源 | `~/.aider-hivequeen.md`（通过 `.aider.conf.yml` 的 `read:` 接入） | `bash scripts/install/aider.sh` |
+| 工具 | 厂商 | 入口文件 | 安装方式 | 适配状态 |
+|---|---|---|---|---|
+| Claude Code | Anthropic | `~/.claude/CLAUDE.md` + hooks | `bash scripts/install/claude.sh` | 已适配，个人正在使用 |
+| Codex CLI | OpenAI | `~/.codex/AGENTS.md` + `~/.codex/instructions.md` 兼容入口 | `bash scripts/install/codex.sh` | 已适配，个人正在使用 |
+| Gemini CLI | Google | `~/.gemini/GEMINI.md` | `bash scripts/install/gemini.sh` | 有安装入口，暂未个人使用和验证 |
+| OpenClaw | 开源 | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install/openclaw.sh` | 有安装入口，暂未个人使用和验证 |
+| Hermes Agent | 开源 | `~/.hermes/SOUL.md` | `bash scripts/install/hermes.sh` | 有安装入口，暂未个人使用和验证 |
+| Aider | 开源 | `~/.aider-hivequeen.md`（通过 `.aider.conf.yml` 的 `read:` 接入） | `bash scripts/install/aider.sh` | 有安装入口，暂未个人使用和验证 |
+
+当前真正主动适配的是 Claude Code 和 Codex CLI。其他安装器先作为后续适配的
+参考入口保留；用户可以自行适配，也可以让 LLM 根据目标工具当前配置格式辅助适配。
 
 只有 Claude Code 注册了 session hook，实现原子逐次写入同步。其他工具遵循
 bootstrap config 里写入的「会话结束提交」协议。

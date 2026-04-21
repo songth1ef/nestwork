@@ -274,16 +274,21 @@ Each agent owns exactly one directory under `agents/`. No two agents should writ
 
 ## Supported tools
 
-### Native installers (known config path, tested)
+### Native installers (known config path)
 
-| Tool | Vendor | Entry file | Install |
-|---|---|---|---|
-| Claude Code | Anthropic | `~/.claude/CLAUDE.md` + hooks | `bash scripts/install/claude.sh` |
-| Codex CLI | OpenAI | `~/.codex/AGENTS.md` + `~/.codex/instructions.md` compatibility | `bash scripts/install/codex.sh` |
-| Gemini CLI | Google | `~/.gemini/GEMINI.md` | `bash scripts/install/gemini.sh` |
-| OpenClaw | open source | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install/openclaw.sh` |
-| Hermes Agent | open source | `~/.hermes/SOUL.md` | `bash scripts/install/hermes.sh` |
-| Aider | open source | `~/.aider-hivequeen.md` (wired via `.aider.conf.yml` `read:`) | `bash scripts/install/aider.sh` |
+| Tool | Vendor | Entry file | Install | Adaptation status |
+|---|---|---|---|---|
+| Claude Code | Anthropic | `~/.claude/CLAUDE.md` + hooks | `bash scripts/install/claude.sh` | Adapted and personally used |
+| Codex CLI | OpenAI | `~/.codex/AGENTS.md` + `~/.codex/instructions.md` compatibility | `bash scripts/install/codex.sh` | Adapted and personally used |
+| Gemini CLI | Google | `~/.gemini/GEMINI.md` | `bash scripts/install/gemini.sh` | Installer exists; not personally used or verified yet |
+| OpenClaw | open source | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install/openclaw.sh` | Installer exists; not personally used or verified yet |
+| Hermes Agent | open source | `~/.hermes/SOUL.md` | `bash scripts/install/hermes.sh` | Installer exists; not personally used or verified yet |
+| Aider | open source | `~/.aider-hivequeen.md` (wired via `.aider.conf.yml` `read:`) | `bash scripts/install/aider.sh` | Installer exists; not personally used or verified yet |
+
+Only Claude Code and Codex CLI are actively adapted in this queen right now.
+Other installers are reference entry points for later adaptation; users can
+adapt them themselves, and LLMs can usually help map the protocol to each
+tool's current config format.
 
 Only Claude Code registers session hooks for atomic per-write memory sync.
 Other tools follow the session-end commit protocol written into their

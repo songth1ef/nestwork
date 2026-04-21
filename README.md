@@ -198,7 +198,9 @@ hivequeen/
     ├── hooks/                     runtime hooks
     │   ├── hivequeen.sh           pre/post/stop entry
     │   ├── _match-file.py         stdin-based file matcher
-    │   └── export-claude-mem.sh   optional claude-mem bridge
+    │   ├── export-claude-mem.sh   optional claude-mem bridge
+    │   ├── sync-local-history.sh  optional local-history capture (wrapper)
+    │   └── sync-local-history.py  optional local-history capture (worker)
     └── maintenance/               ops
         ├── compile.sh             aggregate agents/*/* into shared/ (mechanical)
         ├── distill.py             LLM-oriented variant: print a merge prompt
@@ -271,6 +273,30 @@ Each agent owns exactly one directory under `agents/`. No two agents should writ
 Only Claude Code registers session hooks for atomic per-write memory sync.
 Other tools follow the session-end commit protocol written into their
 bootstrap config.
+
+### Optional: capture local Claude Code history
+
+Claude Code keeps prompt history and plan artefacts under `~/.claude/`.
+You can have them mirrored into `agents/<host>/<id>/local/` so they
+travel with your queen across machines.
+
+Opt-in per machine — no env var, no re-install needed after the first
+install. Create `~/.hivequeen/settings.json`:
+
+```json
+{ "sync_local_history": true }
+```
+
+When enabled, the Claude Code Stop hook syncs:
+
+| Source | Target | Notes |
+|---|---|---|
+| `~/.claude/history.jsonl` | `local/history.jsonl` | redacted: `pastedContents` dropped, `$HOME` paths and common token patterns (`sk-*`, `ghp_*`, `Bearer …`) scrubbed |
+| `~/.claude/plans/` | `local/plans/` | plan-mode artefacts, mirrored |
+
+Default is off (missing file or `false` → no-op). `todos/` and `tasks/`
+are intentionally excluded — >99% of them are empty UUID-per-session
+bookkeeping.
 
 ### Via `install/generic.sh` (you confirm the config path)
 

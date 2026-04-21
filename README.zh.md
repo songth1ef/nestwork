@@ -200,7 +200,9 @@ hivequeen/
     ├── hooks/                     运行时 hook
     │   ├── hivequeen.sh           pre/post/stop 统一入口
     │   ├── _match-file.py         stdin 文件匹配器
-    │   └── export-claude-mem.sh   claude-mem 可选桥接
+    │   ├── export-claude-mem.sh   claude-mem 可选桥接
+    │   ├── sync-local-history.sh  本地历史同步（wrapper，可选）
+    │   └── sync-local-history.py  本地历史同步（worker，可选）
     └── maintenance/               运维
         ├── compile.sh             聚合 agents/* 到 shared/（纯拼接）
         ├── distill.py             LLM 版：打印记忆蒸馏 prompt
@@ -272,6 +274,28 @@ agent 先读索引，按需跟进相关 topic 文件。
 
 只有 Claude Code 注册了 session hook，实现原子逐次写入同步。其他工具遵循
 bootstrap config 里写入的「会话结束提交」协议。
+
+### 可选：捕获本地 Claude Code 历史
+
+Claude Code 会在 `~/.claude/` 下保留 prompt 历史和 plan 产物。
+可以把它们镜像进 `agents/<host>/<id>/local/`，让 queen 跨机器携带这份上下文。
+
+按机器独立启用，无需 env，也无需首次 install 之后重装。创建
+`~/.hivequeen/settings.json`：
+
+```json
+{ "sync_local_history": true }
+```
+
+启用后，Claude Code 的 Stop hook 会同步：
+
+| 源 | 目标 | 说明 |
+|---|---|---|
+| `~/.claude/history.jsonl` | `local/history.jsonl` | 脱敏：删除 `pastedContents`，`$HOME` 路径归一化，常见 token（`sk-*`、`ghp_*`、`Bearer …`）替换为 `<REDACTED>` |
+| `~/.claude/plans/` | `local/plans/` | plan 模式产物，原样镜像 |
+
+默认关闭（配置文件不存在或 `false` → no-op）。`todos/` 和 `tasks/` 刻意排除
+——超过 99% 是按 session UUID 预分配的空文件，信号密度过低。
 
 ### 通过 `install/generic.sh` 接入（需自行确认 config 路径）
 

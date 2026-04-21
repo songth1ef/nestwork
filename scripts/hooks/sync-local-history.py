@@ -8,8 +8,10 @@
 # Scope (opt-in via ~/.hivequeen/settings.json → {"sync_local_history": true}):
 #   - ~/.claude/history.jsonl  -> local/history.jsonl  (redacted)
 #   - ~/.claude/plans/         -> local/plans/         (mirror)
-#   - ~/.claude/todos/         -> local/todos/         (mirror)
-#   - ~/.claude/tasks/         -> local/tasks/         (mirror)
+#
+# Not captured (signal too sparse — UUID-per-session bookkeeping):
+#   - ~/.claude/todos/   (>99% files are empty "[]")
+#   - ~/.claude/tasks/   (subagent mid-flight state)
 #
 # Usage:
 #   sync-local-history.py <hivequeen_path> <host> <agent_id>
@@ -125,12 +127,16 @@ def main() -> int:
 
     n_hist = redact_history(claude_home / "history.jsonl", local_dir / "history.jsonl")
     n_plans = mirror_dir(claude_home / "plans", local_dir / "plans")
-    n_todos = mirror_dir(claude_home / "todos", local_dir / "todos")
-    n_tasks = mirror_dir(claude_home / "tasks", local_dir / "tasks")
+
+    # Purge previously-captured todos/tasks so old mirrors don't linger.
+    for stale in ("todos", "tasks"):
+        stale_path = local_dir / stale
+        if stale_path.exists():
+            shutil.rmtree(stale_path)
 
     print(
         f"[ok] sync-local-history -> {local_dir} "
-        f"(history={n_hist} plans={n_plans} todos={n_todos} tasks={n_tasks})"
+        f"(history={n_hist} plans={n_plans})"
     )
     return 0
 

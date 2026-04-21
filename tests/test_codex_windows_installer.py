@@ -6,6 +6,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CODEX_INSTALLER = REPO_ROOT / "scripts" / "install" / "codex.ps1"
+CODEX_INSTALLER_SH = REPO_ROOT / "scripts" / "install" / "codex.sh"
 
 
 class CodexWindowsInstallerTests(unittest.TestCase):
@@ -55,6 +56,19 @@ class CodexWindowsInstallerTests(unittest.TestCase):
                 f"stderr:\n{completed.stderr}"
             ),
         )
+
+    def test_end_hook_syncs_local_history_before_staging_memory(self) -> None:
+        content = CODEX_INSTALLER.read_text(encoding="utf-8")
+        hook_line = next(line for line in content.splitlines() if line.startswith("$HookCmd = "))
+
+        self.assertIn("sync-local-history.py", hook_line)
+        self.assertLess(hook_line.index("sync-local-history.py"), hook_line.index("git add $AgentRel/"))
+
+    def test_bash_end_hook_syncs_local_history_before_staging_memory(self) -> None:
+        content = CODEX_INSTALLER_SH.read_text(encoding="utf-8")
+
+        self.assertIn("sync-local-history.py", content)
+        self.assertLess(content.index("sync-local-history.py"), content.index("git add agents/{host}/{agent_id}/"))
 
 
 if __name__ == "__main__":

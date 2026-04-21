@@ -64,7 +64,7 @@ if (-not (Test-Path $Settings)) {
 }
 
 $AgentRel = "agents/$HiveHost/$AgentId"
-$HookCmd = "Set-Location -LiteralPath `"$HivequeenPath`"; git pull --rebase --autostash -q; if (`$LASTEXITCODE -ne 0) { exit `$LASTEXITCODE }; git add $AgentRel/; if (`$LASTEXITCODE -ne 0) { exit `$LASTEXITCODE }; git diff --cached --quiet -- $AgentRel/; if (`$LASTEXITCODE -ne 0) { git commit -m 'memory: update $HiveHost/$AgentId' -- $AgentRel/; if (`$LASTEXITCODE -ne 0) { exit `$LASTEXITCODE } }; git push -q"
+$HookCmd = "Set-Location -LiteralPath `"$HivequeenPath`"; git pull --rebase --autostash -q; if (`$LASTEXITCODE -ne 0) { exit `$LASTEXITCODE }; & `"$PythonCmd`" `"$HivequeenPath\scripts\hooks\sync-local-history.py`" `"$HivequeenPath`" $HiveHost $AgentId; if (`$LASTEXITCODE -ne 0) { exit `$LASTEXITCODE }; git add $AgentRel/; if (`$LASTEXITCODE -ne 0) { exit `$LASTEXITCODE }; git diff --cached --quiet -- $AgentRel/; if (`$LASTEXITCODE -ne 0) { git commit -m 'memory: update $HiveHost/$AgentId' -- $AgentRel/; if (`$LASTEXITCODE -ne 0) { exit `$LASTEXITCODE } }; git push -q"
 
 $SettingsObj = Get-Content $Settings -Raw | ConvertFrom-Json
 

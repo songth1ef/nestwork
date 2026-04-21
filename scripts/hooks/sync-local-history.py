@@ -2,12 +2,13 @@
 # -----------------------------------------------------------------------------
 # hivequeen local-history sync
 #
-# Captures selected Claude Code runtime artefacts into the agent's memory dir
+# Captures selected agent runtime artefacts into the agent's memory dir
 # so they can be versioned in git alongside distilled memory.
 #
 # Scope (opt-in via agents/<host>/settings.json → {"sync_local_history": true}):
 #   - ~/.claude/history.jsonl  -> local/history.jsonl  (redacted)
 #   - ~/.claude/plans/         -> local/plans/         (mirror)
+#   - ~/.codex/history.jsonl   -> local/history.jsonl  (redacted, Codex agents)
 #
 # Not captured (signal too sparse — UUID-per-session bookkeeping):
 #   - ~/.claude/todos/   (>99% files are empty "[]")
@@ -128,6 +129,13 @@ def load_settings(path: Path) -> dict:
         return {}
 
 
+def runtime_source(agent_id: str) -> tuple[str, Path, bool]:
+    """Return runtime name, home directory, and whether plan artefacts exist."""
+    if agent_id == "codex" or agent_id.startswith("codex-"):
+        return "codex", Path.home() / ".codex", False
+    return "claude", Path.home() / ".claude", True
+
+
 def main() -> int:
     if len(sys.argv) < 4:
         print(
@@ -144,12 +152,16 @@ def main() -> int:
     if not load_settings(settings_path).get("sync_local_history"):
         return 0
 
-    claude_home = Path.home() / ".claude"
+    runtime, runtime_home, sync_plans = runtime_source(agent_id)
     local_dir = hivequeen_path / "agents" / host / agent_id / "local"
     local_dir.mkdir(parents=True, exist_ok=True)
 
-    n_hist = redact_history(claude_home / "history.jsonl", local_dir / "history.jsonl")
-    n_plans = mirror_dir(claude_home / "plans", local_dir / "plans")
+    n_hist = redact_history(runtime_home / "history.jsonl", local_dir / "history.jsonl")
+    n_plans = mirror_dir(runtime_home / "plans", local_dir / "plans") if sync_plans else 0
+    if not sync_plans:
+        stale_plans = local_dir / "plans"
+        if stale_plans.exists():
+            shutil.rmtree(stale_plans)
 
     # Purge previously-captured todos/tasks so old mirrors don't linger.
     for stale in ("todos", "tasks"):
@@ -158,7 +170,7 @@ def main() -> int:
             shutil.rmtree(stale_path)
 
     print(
-        f"[ok] sync-local-history -> {local_dir} "
+        f"[ok] sync-local-history ({runtime}) -> {local_dir} "
         f"(history={n_hist} plans={n_plans})"
     )
     return 0

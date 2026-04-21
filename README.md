@@ -289,9 +289,10 @@ Only Claude Code registers session hooks for atomic per-write memory sync.
 Other tools follow the session-end commit protocol written into their
 bootstrap config.
 
-### Optional: capture local Claude Code history
+### Optional: capture local tool history
 
 Claude Code keeps prompt history and plan artefacts under `~/.claude/`.
+Codex CLI keeps prompt history under `~/.codex/`.
 You can have them mirrored into `agents/<host>/<id>/local/` so they
 travel with your queen across machines.
 
@@ -307,12 +308,13 @@ Default is `false` (or file absent). The setting is versioned in git
 with the rest of your queen, so each machine's host dir tracks its
 own toggle.
 
-When enabled, the Claude Code Stop hook syncs:
+When enabled, Claude Code and Codex session hooks sync:
 
 | Source | Target | Notes |
 |---|---|---|
 | `~/.claude/history.jsonl` | `local/history.jsonl` | redacted: `pastedContents` dropped, `$HOME` paths and common token patterns (`sk-*`, `ghp_*`, `Bearer …`) scrubbed |
 | `~/.claude/plans/` | `local/plans/` | plan-mode artefacts, mirrored |
+| `~/.codex/history.jsonl` | `local/history.jsonl` | Codex agents only; same redaction pass |
 
 `todos/` and `tasks/` are intentionally excluded — >99% of them are
 empty UUID-per-session bookkeeping.

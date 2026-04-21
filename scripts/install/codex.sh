@@ -62,6 +62,7 @@ with open(settings_path) as f:
 hook_cmd = (
     f"cd {hivequeen_path} && "
     f"git pull --rebase --autostash -q && "
+    f"python3 {hivequeen_path}/scripts/hooks/sync-local-history.py {hivequeen_path} {host} {agent_id} && "
     f"git add agents/{host}/{agent_id}/ && "
     f"(git diff --cached --quiet -- agents/{host}/{agent_id}/ || "
     f"git commit -m 'memory: update {host}/{agent_id}' -- agents/{host}/{agent_id}/) && "

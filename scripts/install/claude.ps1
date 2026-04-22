@@ -54,7 +54,7 @@ if ($LASTEXITCODE -ne 0) {
     throw "CLAUDE.md bootstrap injection failed (exit $LASTEXITCODE)"
 }
 
-# 3. Register Pre/Post/Stop hooks via shared Python helper
+# 3. Register SessionStart/Pre/Post/Stop/SessionEnd hooks via shared Python helper
 #    (avoids PowerShell's ConvertTo-Json bug on nested single-element arrays).
 if (-not (Test-Path $Settings)) {
     '{}' | Set-Content -Path $Settings -Encoding UTF8

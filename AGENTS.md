@@ -1,6 +1,6 @@
 # NESTWORK BOOTSTRAP
 
-<!-- protocol-version: 2.0 -->
+<!-- protocol-version: 2.1 -->
 
 Every agent that loads this file returns context to the same shared nest.
 Follow this protocol exactly on every session.
@@ -91,7 +91,9 @@ you enough to act — not to forbid asking when asking is actually correct.
 **If hooks are installed** (via `scripts/install/<tool>.sh`), per-write sync
 happens automatically: every Write/Edit under `agents/<host>/<agent-id>/`
 triggers `pull --rebase` before and `commit + push` after. The Stop hook
-is a safety net for writes that slipped past. **Do nothing extra.**
+runs the same safety-net commit+push once per turn (cheap no-op when
+clean), and the SessionEnd hook performs the claude-mem export + local
+history sync once when the session truly ends. **Do nothing extra.**
 
 **If hooks are NOT available** for your tool, run manually at session end:
 
@@ -117,7 +119,7 @@ agents/<host>/<agent-id>/claude-mem-digest.md   ← today's observations from cl
 
 This file is committed and pushed with the rest of your agent memory, giving claude-mem's observations cross-machine reach via git.
 
-**No configuration needed.** The export step runs as part of the Stop hook and silently skips if claude-mem is not running.
+**No configuration needed.** The export step runs as part of the SessionEnd hook (once when the session ends, not every turn) and silently skips if claude-mem is not running.
 
 To override the worker URL:
 ```bash

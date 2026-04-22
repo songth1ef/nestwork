@@ -2,8 +2,8 @@
 # -----------------------------------------------------------------------------
 # nestwork hook installer (shared by install-claude.sh and install-claude.ps1)
 #
-# Merges SessionStart / PreToolUse / PostToolUse / Stop hooks into Claude Code
-# settings.json.
+# Merges SessionStart / PreToolUse / PostToolUse / Stop / SessionEnd hooks
+# into Claude Code settings.json.
 # Safe to re-run: removes prior nestwork entries before inserting new ones.
 #
 # Usage:
@@ -80,10 +80,10 @@ def main() -> int:
     start_cmd = f"bash {session_start} {host} {agent_id}"
     pre_cmd  = f"bash {hook_script} pre {host} {agent_id}"
     post_cmd = f"bash {hook_script} post {host} {agent_id}"
-    stop_cmd = (
+    stop_cmd = f"bash {hook_script} stop {host} {agent_id}"
+    session_end_cmd = (
         f"bash {export_mem} {host} {agent_id}; "
-        f"bash {sync_local} {host} {agent_id}; "
-        f"bash {hook_script} stop {host} {agent_id}"
+        f"bash {sync_local} {host} {agent_id}"
     )
 
     os.makedirs(os.path.dirname(settings_path) or ".", exist_ok=True)
@@ -95,10 +95,11 @@ def main() -> int:
         settings = json.load(f)
 
     hooks = settings.setdefault("hooks", {})
-    upsert(hooks, "SessionStart", "",           start_cmd, host, agent_id)
-    upsert(hooks, "PreToolUse",   "Write|Edit", pre_cmd,   host, agent_id)
-    upsert(hooks, "PostToolUse",  "Write|Edit", post_cmd,  host, agent_id)
-    upsert(hooks, "Stop",         "",           stop_cmd,  host, agent_id)
+    upsert(hooks, "SessionStart", "",           start_cmd,       host, agent_id)
+    upsert(hooks, "PreToolUse",   "Write|Edit", pre_cmd,         host, agent_id)
+    upsert(hooks, "PostToolUse",  "Write|Edit", post_cmd,        host, agent_id)
+    upsert(hooks, "Stop",         "",           stop_cmd,        host, agent_id)
+    upsert(hooks, "SessionEnd",   "",           session_end_cmd, host, agent_id)
 
     with open(settings_path, "w", encoding="utf-8") as f:
         json.dump(settings, f, indent=2)
@@ -108,6 +109,7 @@ def main() -> int:
     print(f"  PreToolUse  (Write|Edit) -> {pre_cmd}")
     print(f"  PostToolUse (Write|Edit) -> {post_cmd}")
     print(f"  Stop                     -> {stop_cmd}")
+    print(f"  SessionEnd               -> {session_end_cmd}")
     return 0
 
 

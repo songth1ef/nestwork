@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.0 - 2026-04-22
+
+- Protocol v2.1: split Stop-hook workload. Stop now only runs the lightweight `nestwork.sh stop` safety-net commit+push; the heavier `export-claude-mem.sh` + `sync-local-history.sh` pair moved to a new SessionEnd hook so it runs once at true session end instead of every turn (including `/clear`, resume, compact).
+- `_hooks.py` registers the new `SessionEnd` event; existing installs are cleanly superseded on re-run (old Stop composite command is recognised and removed by `is_nestwork_hook`).
+- Additive-compatible: existing agents keep working until they re-run the installer.
+
 ## v0.2.0 - 2026-04-19
 
 - Introduced protocol v2 host/agent layout: `agents/<host>/<agent-id>/`.

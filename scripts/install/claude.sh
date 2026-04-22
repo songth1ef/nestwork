@@ -42,9 +42,11 @@ mkdir -p "$CLAUDE_DIR"
 python3 "$NESTWORK_PATH/scripts/install/_bootstrap.py" \
   "$CLAUDE_DIR/CLAUDE.md" "$NESTWORK_PATH" "$HOST" "$AGENT_ID"
 
-# 3. Register hooks: PreToolUse / PostToolUse / Stop
+# 3. Register hooks: SessionStart / PreToolUse / PostToolUse / Stop / SessionEnd
 #    Atomic per-write sync: pull before every memory Write/Edit,
-#    commit+push right after. Stop hook remains as safety net.
+#    commit+push right after. Stop hook is a per-turn safety net;
+#    SessionEnd runs claude-mem export + local-history sync once when the
+#    session truly ends (not on every /clear or compact).
 mkdir -p "$CLAUDE_DIR"
 
 if [ ! -f "$SETTINGS" ]; then

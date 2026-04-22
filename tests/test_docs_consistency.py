@@ -96,10 +96,10 @@ class DocsConsistencyTests(unittest.TestCase):
         changelog = (REPO_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
 
-        self.assertEqual("0.2.0", version)
-        self.assertIn("## v0.2.0 - 2026-04-19", changelog)
-        self.assertIn("Version: v0.2.0", readme)
-        self.assertIn("Protocol: 2.0", readme)
+        self.assertEqual("0.3.0", version)
+        self.assertIn("## v0.3.0 - 2026-04-22", changelog)
+        self.assertIn("Version: v0.3.0", readme)
+        self.assertIn("Protocol: 2.1", readme)
 
 
 if __name__ == "__main__":

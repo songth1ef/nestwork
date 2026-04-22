@@ -404,6 +404,12 @@ The `.github/workflows/sync-upstream.yml` in your queen runs daily at
 layer against the upstream template, and opens a PR to your `main`
 when upstream drifts. You review the diff and merge.
 
+PR create/update/reopen now uses the GitHub REST API instead of
+`gh pr ...` because some repositories reject GraphQL PR mutations from
+Actions. If your repo still blocks the default token, add an Actions
+secret named `NESTWORK_SYNC_TOKEN`; the workflow will prefer it
+automatically.
+
 GitHub blocks `GITHUB_TOKEN` from pushing workflow-file changes, so
 `.github/workflows/` is **not** touched by the CI path — use the
 manual path below for workflow updates.

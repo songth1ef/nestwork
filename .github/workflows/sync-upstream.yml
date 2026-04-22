@@ -11,6 +11,10 @@ name: Sync Nestwork upstream
 #
 # Review the diff before merging -- this is your escape valve if upstream
 # ships a breaking protocol change.
+#
+# PR mutations use the GitHub REST API instead of `gh pr ...` because some
+# repositories reject GraphQL createPullRequest calls from Actions even when
+# pull-request write permissions are enabled.
 
 on:
   schedule:

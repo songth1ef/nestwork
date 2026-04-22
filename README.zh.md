@@ -394,6 +394,11 @@ bash scripts/install/generic.sh <prefix> <config-path>
 运行一次（也可手动 **Run workflow**），对比协议层与 upstream 模板，
 发现差异就开 PR 到你的 `main`。你 review diff 后合并。
 
+现在 PR 的 create/update/reopen 走的是 GitHub REST API，不再依赖
+`gh pr ...` 的 GraphQL 路径，因为有些仓库即使开了 pull request 写权限，
+也会拒绝 Actions 发起的 GraphQL PR 变更。如果你的仓库仍然拦截默认 token，
+加一个名为 `NESTWORK_SYNC_TOKEN` 的 Actions secret，workflow 会自动优先使用。
+
 GitHub 禁止 `GITHUB_TOKEN` push 修改 workflow 文件的 commit，所以 CI
 路径**不覆盖** `.github/workflows/`，workflow 变更要走下面的手动路径。
 

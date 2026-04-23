@@ -172,13 +172,20 @@ bash ~/nestwork/scripts/install/aider.sh
 # 纯拼接：把 agents/*/memory.md 拼接，commit，push
 bash ~/nestwork/scripts/maintenance/compile.sh
 
-# LLM 版：打印一段蒸馏 prompt，喂给任一 agent 会话，
-# 让 agent 输出合并后的 shared/memory.md 再提交
+# LLM 版、与具体厂商无关：打印蒸馏 prompt，手动喂给任一 agent 会话
 python3 ~/nestwork/scripts/maintenance/distill.py
+
+# Codex 手动一键蒸馏：汇总所有 agent memory，写回 shared/memory.md，
+# 然后 commit、push
+python3 ~/nestwork/scripts/maintenance/distill.py --run-codex --profile chatgpt
+
+# 只预览候选 shared/memory.md，不落盘
+python3 ~/nestwork/scripts/maintenance/distill.py --run-codex --profile chatgpt --dry-run
 ```
 
-两种方式都不会修改原始的 agent memory。所有 agent 在下次 `git pull`
-时自动看到新的 `shared/memory.md`。
+这些方式都不会修改原始的 agent memory。`--run-codex` 只更新
+`shared/memory.md`，并使用协议规定的提交信息 `memory: distill shared`。
+所有 agent 在下次 `git pull` 时自动看到新的 `shared/memory.md`。
 
 ---
 
@@ -218,7 +225,7 @@ nestwork/
     │   └── sync-local-history.py  本地历史同步（worker，可选）
     └── maintenance/               运维
         ├── compile.sh             聚合 agents/* 到 shared/（纯拼接）
-        ├── distill.py             LLM 版：打印记忆蒸馏 prompt
+        ├── distill.py             打印 prompt，或手动触发 Codex 蒸馏
         ├── sync-claude-md.sh      从 AGENTS.md 重新生成 CLAUDE.md
         └── update.sh              拉取 upstream 协议层
 ```
@@ -268,7 +275,7 @@ agent 先读索引，按需跟进相关 topic 文件。
 |---|---|---|
 | `queen/` | 你（人工） | 不会 |
 | `agents/<host>/<agent-id>/` | 仅该 agent | 正常记忆写入不会 |
-| `shared/` | 仅 `compile.sh` | 不会 |
+| `shared/` | 仅显式 `compile.sh` / `distill.py --run-codex` | 正常 agent 写记忆时不会 |
 
 ---
 

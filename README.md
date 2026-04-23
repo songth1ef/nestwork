@@ -172,13 +172,22 @@ using one of two strategies:
 # Mechanical: concatenate every agents/*/*/memory.md, commit, push.
 bash ~/nestwork/scripts/maintenance/compile.sh
 
-# LLM-oriented: print a distillation prompt. Feed the output to any
-# agent session, then commit the agent's merged shared/memory.md.
+# LLM-oriented, provider-agnostic: print a distillation prompt and feed
+# it to any agent session manually.
 python3 ~/nestwork/scripts/maintenance/distill.py
+
+# Manual end-to-end with Codex: distill all agent memories, write
+# shared/memory.md, commit, push.
+python3 ~/nestwork/scripts/maintenance/distill.py --run-codex --profile chatgpt
+
+# Preview the candidate shared/memory.md without writing it.
+python3 ~/nestwork/scripts/maintenance/distill.py --run-codex --profile chatgpt --dry-run
 ```
 
-Both variants leave the input agent memories untouched. All agents pick
-the new `shared/memory.md` up on their next `git pull`.
+All variants leave the input agent memories untouched. `--run-codex`
+updates only `shared/memory.md` and uses the protocol commit message
+`memory: distill shared`. All agents pick the new `shared/memory.md` up
+on their next `git pull`.
 
 ---
 
@@ -218,7 +227,7 @@ nestwork/
     │   └── sync-local-history.py  optional local-history capture (worker)
     └── maintenance/               ops
         ├── compile.sh             aggregate agents/*/* into shared/ (mechanical)
-        ├── distill.py             LLM-oriented variant: print a merge prompt
+        ├── distill.py             print prompt or run manual Codex distillation
         ├── sync-claude-md.sh      regenerate CLAUDE.md from AGENTS.md
         └── update.sh              pull upstream protocol layer
 ```
@@ -268,7 +277,7 @@ Each agent owns exactly one directory under `agents/`. No two agents should writ
 |---|---|---|
 | `queen/` | You (human) | No |
 | `agents/<host>/<agent-id>/` | That agent only | No for normal memory writes |
-| `shared/` | `compile.sh` only | No |
+| `shared/` | Explicit `compile.sh` / `distill.py --run-codex` only | Not during normal agent writes |
 
 ---
 

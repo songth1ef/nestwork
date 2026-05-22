@@ -6,15 +6,15 @@
 
 [![Protocol](https://img.shields.io/badge/protocol-2.2-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Aider-green)](#支持的工具) [![Storage](https://img.shields.io/badge/storage-git-orange)](#工作原理)
 
-> **关于 `agent-history-*` 分支**：v2.4 引入的孤儿分支，保存高频 artefact（如 `history.jsonl`）的滚动覆盖快照。每个分支只有一个 force-push 的 commit，**不应合并到 `main`**。GitHub 主页提示 "Compare & pull request" 时直接忽略。详见 [AGENTS.md §12](AGENTS.md)。
+> 关于 `agent-history-*` 分支：v2.4 引入的孤儿分支，保存高频 artefact（如 `history.jsonl`）的滚动覆盖快照。每个分支只有一个 force-push 的 commit，不应合并到 `main`。GitHub 主页提示 "Compare & pull request" 时直接忽略。详见 [AGENTS.md §12](AGENTS.md)。
 
 ---
 
 ## 目的
 
-**一句话**：把 git 仓当成 AI coding agent 的共享外脑 —— 你的所有 agent（Claude / Codex / Gemini / 任何读 markdown 的 CLI）跨 session、跨机器、跨工具、跨厂商共享同一份记忆。无插件、无服务器、无第三方依赖，只需要一个 git 仓。
+把 git 仓当成 AI coding agent 的共享外脑。你的所有 agent（Claude / Codex / Gemini / 任何读 markdown 的 CLI）跨 session、跨机器、跨工具、跨厂商共享同一份记忆。无插件、无服务器、无第三方依赖，只需要一个 git 仓。
 
-灵感来自《安德的游戏》虫族蜂巢意识：每个工蜂连到同一个女王，没有独立记忆，没有冲突自我，一个分布式智能体。你（人）是 queen，你的所有 agent 实例是 worker，连到同一个 git 仓 = 同一个大脑。
+模型是《安德的游戏》虫族：每个工蜂连到同一个女王，没有独立记忆，一个分布式智能体。你（人）是 queen，你的所有 agent 实例是 worker，连到同一个 git 仓 = 同一个大脑。
 
 ### 要解决的问题
 - session 关掉就忘、换设备/换工具上下文重建
@@ -25,35 +25,29 @@
 ### 要达成的效果
 
 > [!TIP]
-> **跨 session / 跨机器 / 跨工具 / 跨厂商共享同一份记忆。**
+> 跨 session / 跨机器 / 跨工具 / 跨厂商共享同一份记忆。
 
 - 记忆 100% 在你自己的 git 仓里，零厂商锁定、离线可用
 - 协议级的多 agent 协作（不是某个工具的特性）
 
-### 核心洞察：储存即复利
+### 为什么值得多写
 
-**写入只发生一次，读取价值随模型能力指数级放大。**
+上下文窗口在涨。2024 年 200K 是顶配，2025 年 1M 进了生产，2026 起 1M 是默认值，10M 在实验室。3 年后 agent 一次能读完你写过的全部笔记，跨项目模式识别在那一刻才会出现。
 
-今天上下文窗口 200K，agent 只能挑相关 memory 读，95% 看似浪费。但：
+在那之前，agent 每次只挑 3–5 个 memory 文件读。你存了 100 个，95% 的读取看起来像浪费。它不是。git 存储成本接近零，写入只发生一次，读取价值随窗口大小线性放大。今天没人读的那 95 个文件，是你 3 年后跨雇主、跨项目检索的基底。
 
-- **2025**：200K 标配，1M 进生产
-- **2026 起**：1M 主流，10M / 100M 进实验，1B 是可见的下一站
+还有几个用途和 agent 无关：
 
-> [!IMPORTANT]
-> **3 年后：上下文 100x，agent 一次读完你所有项目的全部笔记 —— 跨项目模式识别能力涌现。**
+- 版本化决策档案，能回答"我 2023 年为什么选 NestJS 而不是 Express"
+- 个人微调模型的语料
+- 换设备 / 换雇主 / 换工具时不会丢的认知层
 
-git 仓的存储成本基本为零，但储存的边际价值随时间指数增长。即使一份记忆**今天用不上**，它也是：
-- 你过去思考、决策、踩坑的版本化档案
-- 未来训练个人微调模型的语料
-- 换设备/换雇主/换工具时的认知备份
-- 回溯"3 年前我为什么做了那个决定"的唯一证据
-
-**写下来本身就是有价值的，哪怕暂时没人读。** nestwork 不是当前会话的临时缓存，是你的**职业生涯外脑**。
+实操：遇到决策、踩坑、跨项目方法论就写。一行也写。按 v2.2 拆分规则该拆就拆。别为"agent 现在读不完"省字。
 
 ### 适合谁
 
 > [!NOTE]
-> **长期与多个 AI agent 共事、跨机器/跨工具开发、想把职业认知沉淀成可携带资产的开发者。**
+> 长期与多个 AI agent 共事、跨机器/跨工具开发、想把职业认知沉淀成可携带资产的开发者。
 
 ### 全文速览
 
@@ -63,7 +57,6 @@ git 仓的存储成本基本为零，但储存的边际价值随时间指数增�
 | [工作原理](#工作原理) | 优先级链 + session 生命周期 + 原子逐次写入 hook 架构 |
 | [核心设计原则](#核心设计原则) | 6 条不可妥协：git-only、读写隔离、记忆分层、模板化私有实例、跨工具中立、协议可演进 |
 | [与其他方案对比](#与其他方案对比) | 为什么不用 MCP server / claude-mem / 厂商 memory / 自建数据库 |
-| [为什么要积累记忆](#为什么要积累记忆面向未来的复利) | "核心洞察"的完整论证 + 上下文窗口演进曲线 + 实用建议 |
 | [自定义你的 nest](#自定义你的-nest) | 编辑 `queen/` `projects/` `workflow/` 各层 |
 | [v2.2 新增](#v22-新增workflow-与-nestworkconfigjson) | `workflow/` 跨项目知识层 + `nestwork.config.json` 外部目录脱敏吸收契约 |
 | [真实工作流示例](#真实工作流示例) | 多机协作 / 跨工具迁移 / 雇主项目知识沉淀 |
@@ -80,11 +73,11 @@ git 仓的存储成本基本为零，但储存的边际价值随时间指数增�
 
 ### 1. 创建你的私有 queen
 
-在 GitHub 上点 **Use this template → Create a new repository**，visibility 选 **Private** —— 你的记忆只属于你。
+在 GitHub 上点 Use this template → Create a new repository，visibility 选 Private。你的记忆只属于你。
 
-> **为什么不用 Fork？**
+> 为什么不用 Fork？
 > Fork 默认公开且与上游关联。从模板创建的私有仓完全归你所有。
-> 当 nestwork 发布更新时，`git merge upstream/main` 会与你刻意定制的 `queen/strategy.md`、`agents/`、`shared/` 产生冲突。`update.sh` 脚本只同步协议层，你的私有数据完全不受影响。
+> 当 nestwork 发布更新时，`git merge upstream/main` 会与你刻意定制的 `queen/strategy.md`、`agents/`、`shared/` 产生冲突。`update.sh` 只同步协议层，私有数据不受影响。
 
 ### 2. Clone 到每台机器
 
@@ -94,27 +87,31 @@ git clone git@github.com:<你的用户名>/nestwork.git ~/nestwork
 
 ### 3. 安装到你的 agent 工具
 
-**Claude Code（macOS / Linux）**
+Claude Code（macOS / Linux）：
+
 ```bash
 bash ~/nestwork/scripts/install/claude.sh
 ```
 
-**Claude Code（Windows）**
+Claude Code（Windows）：
+
 ```powershell
 .\nestwork\scripts\install\claude.ps1
 ```
 
-**Codex（macOS / Linux）**
+Codex（macOS / Linux）：
+
 ```bash
 bash ~/nestwork/scripts/install/codex.sh
 ```
 
-**Codex（Windows）**
+Codex（Windows）：
+
 ```powershell
 .\nestwork\scripts\install\codex.ps1
 ```
 
-**Gemini CLI / OpenClaw / Hermes / Aider** —— 用法相同，把 `claude` 换成对应工具名。完整列表见 [支持的工具](#支持的工具)。
+Gemini CLI / OpenClaw / Hermes / Aider 用法相同，把 `claude` 换成对应工具名。完整列表见 [支持的工具](#支持的工具)。
 
 每台机器执行一次。同一个 queen，不同的 agent ID，共享同一个大脑。
 
@@ -122,10 +119,10 @@ bash ~/nestwork/scripts/install/codex.sh
 
 懒得手动走流程？把下面任一条粘进 Claude Code 会话：
 
-- **从零开始**
+- 从零开始：
   > 阅读 https://github.com/songth1ef/nestwork 的 README，按 Quickstart 帮我从 template 新建私有 queen 仓库，clone 到本机，并完成 Claude Code 接入。
 
-- **发现可配置功能**
+- 发现可配置功能：
   > 阅读 https://github.com/songth1ef/nestwork 的 README，列出 nestwork 所有可配置功能（hooks、可选同步、过滤等），并根据我当前机器场景建议要不要开启。
 
 ---
@@ -138,7 +135,7 @@ bash ~/nestwork/scripts/install/codex.sh
 queen/agent-rules.md > queen/strategy.md > shared/memory.md > agents/*/*/memory.md > projects/*.md > workflow/*.md
 ```
 
-冲突时取高优先级，**不合并**。仓库布局详见 [目录结构](#目录结构)。
+冲突时取高优先级，不合并。仓库布局详见 [目录结构](#目录结构)。
 
 ### Session 生命周期
 
@@ -177,11 +174,11 @@ SessionEnd hook：claude-mem export + 本地 history sync（如开启）
 
 | Hook 事件 | 动作 | 作用 |
 |---|---|---|
-| **SessionStart** | pull + 注入 agent-rules / strategy / shared / agent memory / `workflow/*` 到 additionalContext | 替代手动启动协议 |
-| **PreToolUse** (Write\|Edit, scoped to `agents/<id>/`) | `git pull --rebase`；冲突 `exit 2` 阻止写入 | 防止覆盖远程更新 |
-| **PostToolUse** (同 scope) | `git add/commit/push`；push 失败 3 次重试（每次重 pull） | 即时同步 |
-| **Stop** | 安全网 commit+push（clean 时为 no-op） | 兜底 |
-| **SessionEnd** | claude-mem export + 本地 history sync | 跨机可达 |
+| SessionStart | pull + 注入 agent-rules / strategy / shared / agent memory / `workflow/*` 到 additionalContext | 替代手动启动协议 |
+| PreToolUse (Write\|Edit, scoped to `agents/<id>/`) | `git pull --rebase`；冲突 `exit 2` 阻止写入 | 防止覆盖远程更新 |
+| PostToolUse (同 scope) | `git add/commit/push`；push 失败 3 次重试（每次重 pull） | 即时同步 |
+| Stop | 安全网 commit+push（clean 时为 no-op） | 兜底 |
+| SessionEnd | claude-mem export + 本地 history sync | 跨机可达 |
 
 只有 Claude Code 注册了 session hook。其他工具走"会话结束提交"协议（详见 [支持的工具](#支持的工具)）。
 
@@ -189,23 +186,17 @@ SessionEnd hook：claude-mem export + 本地 history sync（如开启）
 
 ## 核心设计原则
 
-1. **git 即唯一基础设施**
-   不引入服务器、不引入数据库、不引入第三方服务。git 已经解决了"分布式存储 + 版本控制 + 冲突解决"，重复造轮子是错误。
+1. git 即唯一基础设施。不引入服务器、数据库、第三方服务。git 已经解决了分布式存储、版本控制、冲突解决，重复造轮子是错误。
 
-2. **读写隔离 = 结构上无冲突**
-   每个 agent 独占一个目录（`agents/<host>/<agent-id>/`），正常记忆写入永远不会与其他 agent 撞。配合 hook 的"原子逐次写入"，单次 Write/Edit 之内的竞态窗口也被消除。
+2. 读写隔离。每个 agent 独占一个目录（`agents/<host>/<agent-id>/`），正常记忆写入永远不会与其他 agent 撞。配合上一条说的 hook 原子逐次写入，单次 Write/Edit 之内的竞态窗口也被消除。
 
-3. **记忆分层 + 严格优先级链**
-   不同性质的内容放不同层。冲突时按优先级取，不合并。这避免了"所有信息糊在一起，agent 不知道听谁的"。
+3. 记忆分层 + 严格优先级链。不同性质的内容放不同层。冲突时按优先级取，不合并。这避免了"所有信息糊在一起，agent 不知道听谁的"。
 
-4. **模板化 + 私有实例**
-   `nestwork`（公开模板）演进协议，每个用户用 `Use this template` 创建私有实例。私有数据永不外泄，协议演进选择性 pull。
+4. 模板化 + 私有实例。`nestwork`（公开模板）演进协议，每个用户用 Use this template 创建私有实例。私有数据永不外泄，协议演进选择性 pull。承上一条的分层：你的私有数据躺在低优先级层，模板演进只动协议层，不会覆盖。
 
-5. **跨工具中立**
-   AGENTS.md 是 bootstrap 唯一来源，CLAUDE.md / SOUL.md / GEMINI.md 等都是它的镜像或链接。换工具不用换记忆。
+5. 跨工具中立。AGENTS.md 是 bootstrap 唯一来源，CLAUDE.md / SOUL.md / GEMINI.md 等都是它的镜像或链接。换工具不用换记忆。
 
-6. **协议本身可演进**
-   `protocol-version` 头部标记 `MAJOR.MINOR`，私有仓可锁定信任版本。MAJOR 升级才需要下游动作；MINOR 是 additive 兼容。
+6. 协议本身可演进。`protocol-version` 头部标记 `MAJOR.MINOR`，私有仓可锁定信任版本。MAJOR 升级才需要下游动作；MINOR 是 additive 兼容。
 
 ---
 
@@ -222,7 +213,7 @@ SessionEnd hook：claude-mem export + 本地 history sync（如开启）
 | 自建数据库 + API | 重资产、与 agent 解耦、维护成本高 |
 | 在每个项目放 README/AGENT.md | 不跨项目共享、用户偏好无处可放 |
 
-**nestwork 的答案**：用 git 仓做 agent 大脑。每个 agent 把记忆写到 git 仓里特定目录，下次启动时 `git pull` 就能跨 session、跨机器、跨工具读到。它不是工具，是**协议** —— 任何能读 markdown 文件作为 system prompt 的 agent 都可以接入。
+nestwork 的答案是用 git 仓做 agent 大脑。每个 agent 把记忆写到 git 仓里特定目录，下次启动时 `git pull` 就能跨 session、跨机器、跨工具读到。它不是工具，是协议。任何能读 markdown 文件作为 system prompt 的 agent 都可以接入。
 
 ### 维度对比
 
@@ -242,60 +233,15 @@ SessionEnd hook：claude-mem export + 本地 history sync（如开启）
 
 ---
 
-## 为什么要积累记忆？面向未来的复利
-
-一个常见质疑：当前 LLM 上下文窗口是有限的，存这么多记忆文件 agent 也读不完，是不是过度设计？
-
-答案是：**今天看起来过量，明天就刚好够，后天就嫌少。**
-
-### 上下文窗口的演进曲线
-
-- **2023**：GPT-3.5 / Claude 2 主流 4K - 100K
-- **2024**：Claude 3.5 Sonnet 200K，Gemini 1.5 Pro 1M（实验阶段）
-- **2025**：Claude Opus 4 / 4.5 标配 200K，1M 进入生产
-- **2026 起**：1M 成主流，10M / 100M 进实验，**1B 是可见的下一站**
-
-每一代上下文窗口扩大，"上下文 = 记忆 + 工作"的等式中，**记忆能占的比例就更大**。今天 200K 里给 memory 留 50K 已经压力大；1M 时代给 memory 留 200K 是常态；1B 时代你**整个职业生涯的笔记都能塞进去一次**。
-
-### 储存即复利，使用是后续
-
-- **今天**：agent 只能挑相关的 memory 文件读。你存 100 个文件，每次只读 3-5 个，那 95% 看似浪费。
-- **3 年后**：上下文窗口 100x，agent 可以一次读你所有项目的全部 memory，**跨项目模式识别能力涌现**。今天的"过量储存"，3 年后是金矿。
-- **关键洞察**：**存储成本基本为零**（git 仓 + GitHub 私有），**写入只发生一次**，但**读取价值随模型能力指数级放大**。这就是复利。
-
-### 备份独立于使用
-
-即使一份记忆**今天用不上**：
-
-- 它是你过去思考、决策、踩坑的**版本化档案**
-- 是你**未来训练个人微调模型**的语料
-- 是你**换设备 / 换雇主 / 换工具时的认知备份**
-- 是你**回溯"3 年前我为什么做了那个决定"的唯一证据**
-
-git 仓的边际成本极低，但储存的边际价值随时间增长。**写下来本身就是有价值的，哪怕暂时没人读。**
-
-### 实用建议
-
-- 不要为"agent 读不完"而少存。该写就写，该拆就拆（按 v2.2 通用拆分协议）。
-- 拆分协议本身就是为大上下文准备的：今天 agent 按需读索引 + topic；明天 agent 一次读全。
-- 遇到决策、踩坑、模式识别、跨项目方法论 → 写。哪怕只是简短一行。
-- 把 nestwork 当成你的**职业生涯外脑**，不是当前会话的临时缓存。
-
----
-
 ## 自定义你的 nest
 
-### 你的规则
-编辑 `queen/agent-rules.md` —— 适用于所有 agent 的行为边界（如"输出中文"、"先给结论后给细节"）。最高优先级，不可被任何后续上下文覆盖。
+你的规则：编辑 `queen/agent-rules.md`。适用于所有 agent 的行为边界（如"输出中文"、"先给结论后给细节"）。最高优先级，不可被任何后续上下文覆盖。
 
-### 你的战略
-编辑 `queen/strategy.md` —— 当前阶段目标与决策方向。例如"优先做小而可验证的工具型产品"、"不在没验证需求前堆复杂系统"。
+你的战略：编辑 `queen/strategy.md`。当前阶段目标与决策方向。例如"优先做小而可验证的工具型产品"、"不在没验证需求前堆复杂系统"。
 
-### 你的项目
-添加 `projects/<项目名>.md` —— 处理该项目时自动加载的上下文。命名、模块边界、技术栈选型理由、踩坑教训等。
+你的项目：添加 `projects/<项目名>.md`。处理该项目时自动加载的上下文。命名、模块边界、技术栈选型理由、踩坑教训等。
 
-### 你的工作流（v2.2+ 新增）
-添加 `workflow/<主题>.md` —— 跨项目可迁移的工作流知识：编码纪律、工具偏好、方法论、迁移指南。详见下一节。
+你的工作流（v2.2+ 新增）：添加 `workflow/<主题>.md`。跨项目可迁移的工作流知识：编码纪律、工具偏好、方法论、迁移指南。详见下一节。
 
 ---
 
@@ -303,17 +249,16 @@ git 仓的边际成本极低，但储存的边际价值随时间增长。**写�
 
 ### 为什么需要 `workflow/`
 
-v2.2 之前，nestwork 有 4 个上下文层：`queen/` `shared/` `agents/` `projects/`。但缺一个位置：
-
-**跨项目可迁移的用户级知识**。
+v2.2 之前，nestwork 有 4 个上下文层：`queen/` `shared/` `agents/` `projects/`。缺一个位置放跨项目可迁移的用户级知识。
 
 例如：
+
 - 估时按 AI 速度，不按人月
 - 加载态 UI 用骨架屏，已有数据再刷新用 v-loading
 - 新 repo 初始化时建 5 文档骨架（AGENT.md + conventions.md + domain.md + architecture.md + lessons.md）
 - 30 分钟跨设备复原工作流的清单
 
-这些不是关于用户的事实（→ `shared/`），不是项目特定的（→ `projects/`），也不是行为规则（→ `queen/`），但它们**值得跨雇主、跨项目、跨设备保留**。`workflow/` 就是为这层准备的。
+这些不是关于用户的事实（→ `shared/`），不是项目特定的（→ `projects/`），也不是行为规则（→ `queen/`）。它们值得跨雇主、跨项目、跨设备保留。`workflow/` 就是为这层准备的。
 
 ### `workflow/` 内容定位
 
@@ -325,19 +270,19 @@ v2.2 之前，nestwork 有 4 个上下文层：`queen/` `shared/` `agents/` `pro
 | 迁移 / 跨机部署指南 | 一次性任务笔记 |
 | 跨 repo 都用得上的方法论 | 雇主机密信息（不允许任何形式存在于本仓） |
 
-判断标准：**"换雇主后还适用吗？"** —— 是 → `workflow/`；否 → 别的位置。
+判断标准："换雇主后还适用吗？"是 → `workflow/`；否 → 别的位置。
 
-### `nestwork.config.json` —— 外部目录吸收契约
+### `nestwork.config.json`：外部目录吸收契约
 
-你的某个工作目录（如 `~/work/some-employer-project/`）里有内容值得吸收进 nestwork 的 `projects/` 或 `workflow/`，但里面包含雇主机密、客户名、内部代号 —— 不能直接复制。
+你的某个工作目录（如 `~/work/some-employer-project/`）里有内容值得吸收进 nestwork 的 `projects/` 或 `workflow/`，但里面包含雇主机密、客户名、内部代号，不能直接复制。
 
-`nestwork.config.json` 是放在**源工作目录**（不是 nestwork 内）的元数据文件，声明：
+`nestwork.config.json` 是放在源工作目录（不是 nestwork 内）的元数据文件，声明：
 
 - 这个目录可被吸收到哪个分类
 - 必须脱敏到什么级别
 - 哪些词需要脱敏（雇主名、客户名、内部代号）
 
-**最小示例**（放在你的工作目录根）：
+最小示例（放在你的工作目录根）：
 
 ```json
 {
@@ -358,7 +303,7 @@ v2.2 之前，nestwork 有 4 个上下文层：`queen/` `shared/` `agents/` `pro
 }
 ```
 
-**字段说明**：
+字段说明：
 
 | 字段 | 含义 |
 |---|---|
@@ -367,17 +312,18 @@ v2.2 之前，nestwork 有 4 个上下文层：`queen/` `shared/` `agents/` `pro
 | `desensitize.level` | `none`（不处理）/ `weak`（按 custom_rules 模式替换）/ `strong`（AI 语义脱敏 + custom_rules） |
 | `desensitize.custom_rules` | 用户自定义敏感词，覆盖在通用方法论之上 |
 
-**关键约束**：
-- 配置文件**只放在源目录**，从不进 nestwork 仓
+关键约束：
+
+- 配置文件只放在源目录，从不进 nestwork 仓
 - 默认 `desensitize.level: "strong"`
-- agent 检测到要吸收但**没有 config** → 必须停下来提醒用户创建，绝不静默吸收
-- 吸收方向**单向**：源目录 → 私有 nest（不会从私有 nest 反向流到 upstream）
+- agent 检测到要吸收但没有 config 时必须停下来提醒用户创建，绝不静默吸收
+- 吸收方向单向：源目录 → 私有 nest（不会从私有 nest 反向流到 upstream）
 
 完整规则见 [docs/workflow-protocol.md](docs/workflow-protocol.md) 与 `AGENTS.md` 第 8、9 节。
 
 ### 脱敏方法论
 
-upstream nestwork 只提供方法论与提示词模板（[docs/desensitization-prompt.md](docs/desensitization-prompt.md)），**不含任何具体雇主名/客户名/代号**。具体名词放在每个用户的 `nestwork.config.json` `custom_rules` 里。
+upstream nestwork 只提供方法论与提示词模板（[docs/desensitization-prompt.md](docs/desensitization-prompt.md)），不含任何具体雇主名/客户名/代号。具体名词放在每个用户的 `nestwork.config.json` `custom_rules` 里。
 
 `strong` 级别脱敏会调用 AI（推荐 Claude Haiku，足够便宜快），按提示词模板：
 
@@ -385,7 +331,7 @@ upstream nestwork 只提供方法论与提示词模板（[docs/desensitization-p
 2. 识别"未直接命名但泄露机密"的内容（如内部 API 结构、未发布产品特性）并改写
 3. 保留可迁移的方法论部分
 4. 输出结构化 JSON（脱敏后内容 + 替换记录 + 待人工 review 的疑问点）
-5. **必须经人工 review 后**才写入 nestwork
+5. 必须经人工 review 后才写入 nestwork
 
 ---
 
@@ -395,19 +341,21 @@ upstream nestwork 只提供方法论与提示词模板（[docs/desensitization-p
 
 你在 macOS 笔记本和 Windows 台式机上都用 Claude Code。两台机器都 clone 了你的私有 queen。
 
-**周一上午（笔记本）**：
-- 启动 Claude Code → SessionStart hook 自动 `git pull` 并注入上下文
+周一上午（笔记本）：
+
+- 启动 Claude Code，SessionStart hook 自动 `git pull` 并注入上下文
 - 你说"继续昨晚那个 NestJS 模块的事"
-- Claude 读取 `agents/macbook/claude-xxx/memory.md` —— 看到昨晚的进度
-- 同时加载 `shared/memory.md` —— 知道你的技术栈偏好（Vue 3 + NestJS）
+- Claude 读取 `agents/macbook/claude-xxx/memory.md`，看到昨晚的进度
+- 同时加载 `shared/memory.md`，知道你的技术栈偏好（Vue 3 + NestJS）
 - 直接接续工作，不需要重新解释
 
-**当晚（台式机）**：
-- 启动 Claude Code → 自动 pull
+当晚（台式机）：
+
+- 启动 Claude Code，自动 pull
 - agent 看到 `agents/macbook/claude-xxx/` 上午的更新（虽然这是另一台的 agent，但通过 git 同步过来）
 - 你切换到不同任务，agent 继续在 `agents/desktop/claude-yyy/` 写它自己的记忆
 
-**两个 agent 互相不写对方目录，但通过 git 共享所有上下文。**
+两个 agent 互相不写对方目录，但通过 git 共享所有上下文。
 
 ### 场景：跨工具迁移
 
@@ -423,7 +371,7 @@ Codex 启动时读 `~/.codex/AGENTS.md`，里面已经被 installer 注入了 ne
 - 读 `queen/`、`shared/`、自己的 `agents/<host>/codex/memory.md`
 - 知道你的偏好、过去决策、当前项目状态
 
-**记忆不在 Claude 厂商或 OpenAI 厂商，记忆在你的 git 仓。换工具的成本接近零。**
+记忆不在厂商，在你的 git 仓。换工具的成本接近零。
 
 ### 场景：把雇主项目知识沉淀进 nest（v2.2+）
 
@@ -463,11 +411,11 @@ python3 ~/nestwork/scripts/maintenance/distill.py --run-codex --profile <your-pr
 
 ### 蒸馏的设计取舍
 
-- **共享是 union 不是 intersection** —— 不丢任何 agent 的独特观察
-- **非破坏性** —— 每个 agent 私有 memory 不变，蒸馏只读
-- **要 sub-agent review** —— 检查敏感数据、事实错误、矛盾、过期项
-- **要人工确认** —— sub-agent 只报告，人决定合并
-- **绝不删** —— 只合并和增加，不删历史
+- 共享是 union 不是 intersection，不丢任何 agent 的独特观察
+- 非破坏性，每个 agent 私有 memory 不变，蒸馏只读
+- 要 sub-agent review，检查敏感数据、事实错误、矛盾、过期项
+- 要人工确认，sub-agent 只报告，人决定合并
+- 绝不删，只合并和增加，不删历史
 
 ---
 
@@ -479,8 +427,8 @@ nestwork/
 ├── CLAUDE.md                   AGENTS.md 的逐行镜像（Claude Code 认这个名字）
 ├── SOUL.md                     Hermes 的简短人格文件
 ├── queen/
-│   ├── agent-rules.md          行为规则 — agent 只读
-│   └── strategy.md             决策方向 — agent 只读
+│   ├── agent-rules.md          行为规则，agent 只读
+│   └── strategy.md             决策方向，agent 只读
 ├── agents/
 │   └── <host>/<agent-id>/
 │       └── memory.md           该 agent 的私有记忆
@@ -532,11 +480,11 @@ nestwork/
 
 ### 通用规则（v2.2+）
 
-仓库内**任意 markdown 文件**超限后都按同一模式拆分：原文件名变文件夹，原文件变索引（或 `<folder>/index.md`），内容按 topic 分文件。
+仓库内任意 markdown 文件超限后都按同一模式拆分：原文件名变文件夹，原文件变索引（或 `<folder>/index.md`），内容按 topic 分文件。
 
-例：`plan-all.md`(1200 行) → `plan-all.md`（索引）+ `plan/plan-a.md` / `plan/plan-b.md` / `plan/plan-c.md`。
+例：`plan-all.md`（1200 行） → `plan-all.md`（索引） + `plan/plan-a.md` / `plan/plan-b.md` / `plan/plan-c.md`。
 
-未在下表列出的文件按默认阈值：**软限 500 行**（开始考虑拆），**硬限 1000 行**（下次写入前必须拆）。
+未在下表列出的文件按默认阈值：软限 500 行（开始考虑拆），硬限 1000 行(下次写入前必须拆)。
 
 ### 具体限制
 
@@ -549,7 +497,7 @@ nestwork/
 | `projects/<name>.md` | 150 |
 | `workflow/<topic>.md` | 200 |
 
-**示例 —— `agents/macbook/claude/memory.md` 达到上限后拆分：**
+示例：`agents/macbook/claude/memory.md` 达到上限后拆分：
 
 ```
 agents/macbook/claude/
@@ -560,19 +508,20 @@ agents/macbook/claude/
 ```
 
 拆分后的 `memory.md`：
+
 ```markdown
 # MEMORY — claude-macbook
 
-- [用户档案](user_profile.md) — 角色、技术栈、偏好
-- [协作习惯](feedback_collab.md) — 工作方式、修正记录
-- [项目：nestwork](project_nestwork.md) — 目标、决策
+- [用户档案](user_profile.md)：角色、技术栈、偏好
+- [协作习惯](feedback_collab.md)：工作方式、修正记录
+- [项目：nestwork](project_nestwork.md)：目标、决策
 ```
 
 agent 先读索引，按需跟进相关 topic 文件。
 
 ### 为什么有行数限制？
 
-LLM 上下文窗口虽大，但**注意力随 token 数衰减**。把一个 5000 行的 memory.md 全塞进去，agent 实际利用率很低。把它拆成 5 个 200-400 行的 topic 文件 + 一个索引，agent 按需读，效果反而更好。
+LLM 上下文窗口虽大，但注意力随 token 数衰减。把一个 5000 行的 memory.md 全塞进去，agent 实际利用率很低。拆成 5 个 200–400 行的 topic 文件 + 一个索引，agent 按需读，效果反而更好。
 
 ---
 
@@ -611,7 +560,7 @@ Claude Code 在 `~/.claude/` 下保留 prompt 历史和 plan 产物；Codex 在 
 | `~/.claude/plans/` | `local/plans/` | plan 模式产物，原样镜像 |
 | `~/.codex/history.jsonl` | `local/history.jsonl` | 仅 Codex agent，同一套脱敏规则 |
 
-`todos/` 和 `tasks/` 排除 —— 99% 是按 session UUID 预分配的空文件。
+`todos/` 和 `tasks/` 排除：99% 是按 session UUID 预分配的空文件。
 
 ### 通过 `install/generic.sh` 接入（自行确认 config 路径）
 
@@ -632,7 +581,7 @@ bash scripts/install/generic.sh <prefix> <config-path>
 | Kimi Code CLI | 月之暗面 | `kimi` |
 | 通义灵码 CLI | 阿里云 | `lingma` |
 
-> **提示**：Qwen Code 是 Gemini CLI 的 fork，可能直接认 `~/.gemini/GEMINI.md` —— 先试 `install/gemini.sh`。
+> 提示：Qwen Code 是 Gemini CLI 的 fork，可能直接认 `~/.gemini/GEMINI.md`。先试 `install/gemini.sh`。
 
 ### Workspace 级（IDE 插件，软链接）
 
@@ -649,7 +598,7 @@ bash scripts/install/generic.sh <prefix> <config-path>
 |---|---|
 | GitHub Copilot CLI（`gh copilot`） | Q&A 模式，无持久化指令文件机制 |
 | Antigravity | IDE 为主，CLI 入口是项目级，对外 bootstrap 机制未公开 |
-| CloudBase AI CLI | 网关型，调用下游 CLI —— 在下游工具上装 nestwork 即可 |
+| CloudBase AI CLI | 网关型，调用下游 CLI。在下游工具上装 nestwork 即可 |
 | ChatDev | 模拟"虚拟软件公司"工作流编排，不是持久化单 agent 循环 |
 
 ---
@@ -660,7 +609,7 @@ bash scripts/install/generic.sh <prefix> <config-path>
 
 ### 手动（默认推荐）
 
-需要拉取最新协议层更新时，打开 **Actions → Sync Nestwork upstream → Run workflow**。
+需要拉取最新协议层更新时，打开 Actions → Sync Nestwork upstream → Run workflow。
 
 大多数仓库没必要每天追上游，手动 review 让协议层变更保持明确、可控。
 
@@ -668,15 +617,15 @@ bash scripts/install/generic.sh <prefix> <config-path>
 
 私有仓里的 `.github/workflows/sync-upstream.yml` 可以每周一 03:00 UTC 自动运行，发现差异就开 PR 到你的 `main`。你 review diff 后合并。
 
-自动同步默认**关闭**。要启用：
+自动同步默认关闭。要启用：
 
-1. **Settings → Secrets and variables → Actions → Variables**
+1. Settings → Secrets and variables → Actions → Variables
 2. 新建仓库变量 `NESTWORK_AUTO_SYNC`
 3. 值填 `true`
 
-PR 的 create/update/reopen 走的是 GitHub REST API，不再依赖 `gh pr ...` 的 GraphQL 路径。如果默认 token 被拦截，加一个名为 `NESTWORK_SYNC_TOKEN` 的 Actions secret，workflow 会优先使用。
+PR 的 create/update/reopen 走 GitHub REST API，不再依赖 `gh pr ...` 的 GraphQL 路径。如果默认 token 被拦截，加一个名为 `NESTWORK_SYNC_TOKEN` 的 Actions secret，workflow 会优先使用。
 
-GitHub 禁止 `GITHUB_TOKEN` push 修改 workflow 文件的 commit，所以 CI 路径**不覆盖** `.github/workflows/`，workflow 变更要走下面手动路径。
+GitHub 禁止 `GITHUB_TOKEN` push 修改 workflow 文件的 commit，所以 CI 路径不覆盖 `.github/workflows/`，workflow 变更要走下面手动路径。
 
 ### 手动刷新协议层
 
@@ -684,7 +633,7 @@ GitHub 禁止 `GITHUB_TOKEN` push 修改 workflow 文件的 commit，所以 CI �
 bash ~/my-nest/scripts/maintenance/update.sh
 ```
 
-覆盖 `scripts/`、`.github/workflows/`、`AGENTS.md`、`CLAUDE.md`、`SOUL.md`、双语 README、`docs/`、`schemas/`，以及 `workflow/README.md` + `workflow/_template.md`（**不动**你 workflow/ 下的私有内容）。
+覆盖 `scripts/`、`.github/workflows/`、`AGENTS.md`、`CLAUDE.md`、`SOUL.md`、双语 README、`docs/`、`schemas/`，以及 `workflow/README.md` + `workflow/_template.md`。不动你 workflow/ 下的私有内容。
 
 ---
 
@@ -696,11 +645,11 @@ Fork 默认公开，且与上游强关联。每次上游更新都会与你私有
 
 ### 我的雇主代码会被吸收进 nest 吗？
 
-不会。除非你显式在雇主项目根目录创建 `nestwork.config.json` 并明确告诉 agent 吸收。即使吸收，`desensitize.level: "strong"` 会调用 AI 脱敏，雇主名/客户名/内部代号都会被替换为占位符，且**人工 review 后**才写入。
+不会。除非你显式在雇主项目根目录创建 `nestwork.config.json` 并明确告诉 agent 吸收。即使吸收，`desensitize.level: "strong"` 会调用 AI 脱敏，雇主名/客户名/内部代号都会被替换为占位符，且人工 review 后才写入。
 
 ### Claude Code 之外的工具能用 nestwork 吗？
 
-能。任何"启动时读 markdown 作为 system prompt"的 CLI 都能用 `install/generic.sh` 接入。但只有 Claude Code 有 hook 系统，能实现原子逐次写入。其他工具靠"会话结束提交"协议，竞态窗口稍大但实际很少出问题。
+能。任何"启动时读 markdown 作为 system prompt"的 CLI 都能用 `install/generic.sh` 接入。但只有 Claude Code 有 hook 系统能实现原子逐次写入。其他工具靠"会话结束提交"协议，竞态窗口稍大但实际很少出问题。
 
 ### 多 agent 同时写会冲突吗？
 
@@ -711,27 +660,27 @@ Fork 默认公开，且与上游强关联。每次上游更新都会与你私有
 | `queen/` | 你（人工） | 不会（你只有一双手） |
 | `agents/<host>/<agent-id>/` | 仅该 agent | 正常记忆写入不会 |
 | `shared/` | 仅显式 `compile.sh` / `distill.py --run-codex` | 正常 agent 写记忆时不会 |
-| `projects/` | agent 或人工 | 多 agent 同时写**理论上**可能，PreToolUse hook 的 `git pull --rebase` 大幅降低 |
+| `projects/` | agent 或人工 | 多 agent 同时写理论上可能，PreToolUse hook 的 `git pull --rebase` 大幅降低 |
 | `workflow/` | agent 或人工 | 同上 |
 
-PreToolUse hook 在每次写入前 `git pull --rebase`，把竞态窗口压到单次写入。两台机器**同一秒**写同一文件才会撞，正常协作场景几乎不发生。万一发生，hook 会 `exit 2` 阻止写入并提示手动合并。
+PreToolUse hook 在每次写入前 `git pull --rebase`，把竞态窗口压到单次写入。两台机器在同一秒写同一文件才会撞，正常协作场景几乎不发生。万一发生，hook 会 `exit 2` 阻止写入并提示手动合并。
 
 ### `shared/memory.md` 是怎么来的？
 
 不是自动来的。需要你显式触发蒸馏：
 
-- `compile.sh` —— 纯拼接所有 agent memory
-- `distill.py` —— LLM 蒸馏（推荐）
+- `compile.sh`：纯拼接所有 agent memory
+- `distill.py`：LLM 蒸馏（推荐）
 
-蒸馏过程会调用 sub-agent review，标记敏感数据、事实矛盾、过期项，最后由你确认合并。设计目标是**非破坏性**：每个 agent 私有 memory 不变。
+蒸馏过程会调用 sub-agent review，标记敏感数据、事实矛盾、过期项，最后由你确认合并。设计目标是非破坏性：每个 agent 私有 memory 不变。
 
 ### 我能在 nestwork 里存 API key 吗？
 
-**不能**。即使是 private 仓也不建议。GitHub 漏洞、账号被攻破、合作者权限误授等都会泄漏。API key 用环境变量或专门的 secret store。
+不能。即使是 private 仓也不建议。GitHub 漏洞、账号被攻破、合作者权限误授等都会泄漏。API key 用环境变量或专门的 secret store。
 
 ### 协议会经常 breaking change 吗？
 
-不会。`protocol-version` 用 `MAJOR.MINOR`：MAJOR 改动需要下游动作，**应避免**；MINOR 是 additive 兼容。从 v1 → v2.0 → v2.1 → v2.2 都是 additive。
+不会。`protocol-version` 用 `MAJOR.MINOR`。MAJOR 改动需要下游动作，应避免；MINOR 是 additive 兼容。从 v1 → v2.0 → v2.1 → v2.2 都是 additive。
 
 ### 跨语言 / 中英文混用怎么处理？
 
@@ -750,8 +699,8 @@ PreToolUse hook 在每次写入前 `git pull --rebase`，把竞态窗口压到�
 
 ### `bash scripts/install/claude.sh` 失败
 
-- **macOS / Linux**：检查 `~/.claude/` 是否存在并可写。
-- **Windows Git Bash**：`hostname -s` 不支持，installer 已 fallback 到 `hostname | cut -d. -f1`。如果还失败，手动设 `NESTWORK_HOST=desktop-xxx`。
+- macOS / Linux：检查 `~/.claude/` 是否存在并可写。
+- Windows Git Bash：`hostname -s` 不支持，installer 已 fallback 到 `hostname | cut -d. -f1`。如果还失败，手动设 `NESTWORK_HOST=desktop-xxx`。
 
 ### Hook 装了，但 commit 没自动 push
 
@@ -802,7 +751,7 @@ cat ~/.claude/settings.json | grep -A 5 SessionStart
 cat ~/.nestwork_id
 ```
 
-每台机器的 `~/.nestwork_id` 应该不同（`<tool>-<4字符随机>`）。如果一样，说明你复制了 dotfiles —— 在新机器上删掉这个文件让 installer 重新生成。
+每台机器的 `~/.nestwork_id` 应该不同（`<tool>-<4字符随机>`）。如果一样，说明你复制了 dotfiles。在新机器上删掉这个文件让 installer 重新生成。
 
 ### 我想试一下但不想 commit 自己的私有信息到 GitHub
 
@@ -823,27 +772,27 @@ git remote set-url origin <你的私有 git>
 
 ## 不做什么（Non-goals）
 
-为了让 nestwork 保持轻量、协议中立、git-only，下面这些**明确不在范围内**：
+为了让 nestwork 保持轻量、协议中立、git-only，下面这些明确不在范围内：
 
-- **团队级 ACL / 权限管理**：仓库可见性靠 GitHub/GitLab 自身权限，nestwork 不引入额外的访问控制层
-- **服务端 API / 同步服务**：永远不会加 server，所有同步都靠 git push/pull
-- **端到端加密**：private 仓默认依赖 GitHub 安全模型；高敏感信息不该写进 nestwork（用 secret store）
-- **实时协作 / 实时通知**：git 是异步的；如果两 agent 真的同秒写同文件，靠 PreToolUse hook 阻止，不靠实时锁
-- **跨厂商 LLM 调用抽象**：蒸馏脚本用 Codex，但不试图统一所有 LLM API。换工具时 agent 自己读 markdown 即可
-- **GUI / 网页版**：纯文件协议，所有交互通过 agent 自己或 git 命令行
-- **自动 onboarding / 教程引导**：README 是入口，不做交互式向导
+- 团队级 ACL / 权限管理：仓库可见性靠 GitHub/GitLab 自身权限，nestwork 不引入额外的访问控制层
+- 服务端 API / 同步服务：永远不会加 server，所有同步都靠 git push/pull
+- 端到端加密：private 仓默认依赖 GitHub 安全模型；高敏感信息不该写进 nestwork（用 secret store）
+- 实时协作 / 实时通知：git 是异步的；如果两 agent 真的同秒写同文件，靠 PreToolUse hook 阻止，不靠实时锁
+- 跨厂商 LLM 调用抽象：蒸馏脚本用 Codex，但不试图统一所有 LLM API。换工具时 agent 自己读 markdown 即可
+- GUI / 网页版：纯文件协议，所有交互通过 agent 自己或 git 命令行
+- 自动 onboarding / 教程引导：README 是入口，不做交互式向导
 
-如果你需要其中某项，nestwork 可能不适合 —— 选一个对应专门工具更合适。
+如果你需要其中某项，nestwork 可能不适合。选一个对应专门工具更合适。
 
 ---
 
 ## 协议演进与版本
 
-- **v2.0**（2026-04-17）：`agents/` 改为按 host 分组（`agents/<host>/<agent-id>/`），原子逐次写入 hook 架构
-- **v2.1**（2026-04-21）：SessionStart hook 自动注入上下文
-- **v2.2**（2026-05-07）：新增 `workflow/` 上下文层 + `nestwork.config.json` 外部目录吸收契约 + 通用 markdown 拆分规则
-- **v2.3**（2026-05-08）：新增 §10 nestwork 与 repo 5-doc 边界（`projects/<name>.md` 5 字段建议 + `decisions/` 协议级 ADR + `workflow/lessons.md` 跨 repo 教训）；SessionStart hook 增加上游版本自动检测（24h 缓存，仅提醒，绝不自动应用）
-- **v2.4**（2026-05-08）：新增 §12 高频 artefact 的孤儿分支策略 —— `agents/*/*/local/` 默认 `.gitignore`，由 `agent-history-<host>-<agent-id>` 单 commit 滚动覆盖快照（force-push）。解决启用 `sync_local_history` 后 main 历史无界膨胀（实测 mynestwork 从 177 MB 降到 1.6 MB）。
+- v2.0（2026-04-17）：`agents/` 改为按 host 分组（`agents/<host>/<agent-id>/`），原子逐次写入 hook 架构
+- v2.1（2026-04-21）：SessionStart hook 自动注入上下文
+- v2.2（2026-05-07）：新增 `workflow/` 上下文层 + `nestwork.config.json` 外部目录吸收契约 + 通用 markdown 拆分规则
+- v2.3（2026-05-08）：新增 §10 nestwork 与 repo 5-doc 边界（`projects/<name>.md` 5 字段建议 + `decisions/` 协议级 ADR + `workflow/lessons.md` 跨 repo 教训）；SessionStart hook 增加上游版本自动检测（24h 缓存，仅提醒，绝不自动应用）
+- v2.4（2026-05-08）：新增 §12 高频 artefact 的孤儿分支策略。`agents/*/*/local/` 默认 `.gitignore`，由 `agent-history-<host>-<agent-id>` 单 commit 滚动覆盖快照（force-push）。解决启用 `sync_local_history` 后 main 历史无界膨胀（实测 mynestwork 从 177 MB 降到 1.6 MB）。
 
 完整协议规范见 [AGENTS.md](AGENTS.md)。
 
@@ -851,15 +800,14 @@ git remote set-url origin <你的私有 git>
 
 ## 相关文档
 
-- [AGENTS.md](AGENTS.md) —— 协议规范（最权威，agent 启动时读这个）
-- [docs/workflow-protocol.md](docs/workflow-protocol.md) —— v2.2 workflow 详解
-- [docs/desensitization-prompt.md](docs/desensitization-prompt.md) —— AI 脱敏方法论
-- [schemas/nestwork.config.schema.json](schemas/nestwork.config.schema.json) —— `nestwork.config.json` JSON Schema
+- [AGENTS.md](AGENTS.md)：协议规范（最权威，agent 启动时读这个）
+- [docs/workflow-protocol.md](docs/workflow-protocol.md)：v2.2 workflow 详解
+- [docs/desensitization-prompt.md](docs/desensitization-prompt.md)：AI 脱敏方法论
+- [schemas/nestwork.config.schema.json](schemas/nestwork.config.schema.json)：`nestwork.config.json` JSON Schema
 - [docs/ai-agent-memory.md](docs/ai-agent-memory.md)
 - [docs/claude-code-memory.md](docs/claude-code-memory.md)
 - [docs/codex-persistent-memory.md](docs/codex-persistent-memory.md)
 - [docs/git-native-memory-protocol.md](docs/git-native-memory-protocol.md)
 - [docs/agents-md-best-practices.md](docs/agents-md-best-practices.md)
-- [docs/shared-context-for-ai-coding-agents.md](docs/shared-context-for-ai-coding-agents.md)
 - [docs/faq.md](docs/faq.md)
 - [docs/comparisons/claude-mem.md](docs/comparisons/claude-mem.md)

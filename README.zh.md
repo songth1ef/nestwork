@@ -2,9 +2,9 @@
 
 [English](README.md) | 中文
 
-版本：v0.3.0 | 协议：2.2
+版本：v0.3.0 | 协议：2.4
 
-[![Protocol](https://img.shields.io/badge/protocol-2.2-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Aider-green)](#支持的工具) [![Storage](https://img.shields.io/badge/storage-git-orange)](#工作原理)
+[![Protocol](https://img.shields.io/badge/protocol-2.4-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Aider-green)](#支持的工具) [![Storage](https://img.shields.io/badge/storage-git-orange)](#工作原理)
 
 > 关于 `agent-history-*` 分支：v2.4 引入的孤儿分支，保存高频 artefact（如 `history.jsonl`）的滚动覆盖快照。每个分支只有一个 force-push 的 commit，不应合并到 `main`。GitHub 主页提示 "Compare & pull request" 时直接忽略。详见 [AGENTS.md §12](AGENTS.md)。
 
@@ -12,37 +12,31 @@
 
 ## 目的
 
-把 git 仓当成 AI coding agent 的共享外脑。你的所有 agent（Claude / Codex / Gemini / 任何读 markdown 的 CLI）跨 session、跨机器、跨工具、跨厂商共享同一份记忆。无插件、无服务器、无第三方依赖，只需要一个 git 仓。
-
-模型是《安德的游戏》虫族：每个工蜂连到同一个女王，没有独立记忆，一个分布式智能体。你（人）是 queen，你的所有 agent 实例是 worker，连到同一个 git 仓 = 同一个大脑。
+把 git 仓当成 AI coding agent 的共享外脑。你在公司电脑上配置过工作上下文，回家换个人电脑，或登录云服务器继续开发时，不必面对一个重新追问“你是谁、项目做到哪了”的空白 agent。Claude、Codex、Gemini 或任何读取 markdown 的 CLI，都可以跨 session、跨机器、跨工具、跨厂商读取同一份有版本记录的上下文。无插件、无服务器、无第三方依赖，只需要一个私有 git 仓。
 
 ### 要解决的问题
-- session 关掉就忘、换设备/换工具上下文重建
-- 多 agent 之间没有共享认知的协议层
+- 公司电脑上的 agent 已熟悉你的规则，个人电脑上的 agent 却要重新配置
+- 云开发服务器读不到其他设备已经记录的项目进度
+- 换 session 或换工具后，你不得不反复解释自己是谁、此前做过什么判断
 - 厂商私有 memory（OpenAI Memory 等）锁定生态、无法迁移
-- 团队场景下，"项目知识"没有可沉淀的位置
 
 ### 要达成的效果
 
 > [!TIP]
-> 跨 session / 跨机器 / 跨工具 / 跨厂商共享同一份记忆。
+> 在个人/公司设备、云服务器、不同 session 和不同工具之间，共享一份私有、可追溯的上下文来源。
 
 - 记忆 100% 在你自己的 git 仓里，零厂商锁定、离线可用
 - 协议级的多 agent 协作（不是某个工具的特性）
+- 你的稳定规则、偏好和项目进度能跟随到新打开的 agent 会话
 
-### 为什么值得多写
+### 哪些工作会连续起来
 
-上下文窗口在涨。2024 年 200K 是顶配，2025 年 1M 进了生产，2026 起 1M 是默认值，10M 在实验室。3 年后 agent 一次能读完你写过的全部笔记，跨项目模式识别在那一刻才会出现。
+- 在公司电脑上，agent 记录经过允许的项目进度与工作规则。
+- 回到家，新会话 pull 同一份上下文，不必重新建立身份和项目背景。
+- 在云服务器上，另一个 agent 能从有版本记录的项目状态和决策继续工作。
+- 长期来看，决策与可复用方法成为你自己控制、可搜索的资产，而不是困在单一厂商里的记忆。
 
-在那之前，agent 每次只挑 3–5 个 memory 文件读。你存了 100 个，95% 的读取看起来像浪费。它不是。git 存储成本接近零，写入只发生一次，读取价值随窗口大小线性放大。今天没人读的那 95 个文件，是你 3 年后跨雇主、跨项目检索的基底。
-
-还有几个用途和 agent 无关：
-
-- 版本化决策档案，能回答"我 2023 年为什么选 NestJS 而不是 Express"
-- 个人微调模型的语料
-- 换设备 / 换雇主 / 换工具时不会丢的认知层
-
-实操：遇到决策、踩坑、跨项目方法论就写。一行也写。按 v2.2 拆分规则该拆就拆。别为"agent 现在读不完"省字。
+实际使用时，只记录非敏感决策、教训与跨项目方法论。Nestwork 保存的是可携带上下文，不是密钥仓库，也不是未经审查的雇主机密存档。
 
 ### 适合谁
 
@@ -114,6 +108,12 @@ Codex（Windows）：
 Gemini CLI / OpenClaw / Hermes / Aider 用法相同，把 `claude` 换成对应工具名。完整列表见 [支持的工具](#支持的工具)。
 
 每台机器执行一次。同一个 queen，不同的 agent ID，共享同一个大脑。
+
+### 4. 验证跨设备连续性
+
+在你的私有 queen 中加入一条非敏感、容易识别的规则或项目状态，commit 并 push；随后在第二台电脑或云服务器上打开已接入的 agent，让它总结当前规则或项目状态。它应当先拉取仓库，再依据共享上下文作答，而不需要你重复设置背景。
+
+测试内容不要使用 API key、密钥或雇主机密信息。
 
 ### Prompt 示例
 
@@ -339,9 +339,9 @@ upstream nestwork 只提供方法论与提示词模板（[docs/desensitization-p
 
 ### 场景：多机器协作开发
 
-你在 macOS 笔记本和 Windows 台式机上都用 Claude Code。两台机器都 clone 了你的私有 queen。
+你在公司电脑、个人电脑，以及可选的云开发服务器上使用 Claude Code。每台机器都 clone 了你的私有 queen。
 
-周一上午（笔记本）：
+周一上午（公司电脑）：
 
 - 启动 Claude Code，SessionStart hook 自动 `git pull` 并注入上下文
 - 你说"继续昨晚那个 NestJS 模块的事"
@@ -349,7 +349,7 @@ upstream nestwork 只提供方法论与提示词模板（[docs/desensitization-p
 - 同时加载 `shared/memory.md`，知道你的技术栈偏好（Vue 3 + NestJS）
 - 直接接续工作，不需要重新解释
 
-当晚（台式机）：
+当晚（个人电脑或云服务器）：
 
 - 启动 Claude Code，自动 pull
 - agent 看到 `agents/macbook/claude-xxx/` 上午的更新（虽然这是另一台的 agent，但通过 git 同步过来）
@@ -521,7 +521,9 @@ agent 先读索引，按需跟进相关 topic 文件。
 
 ### 为什么有行数限制？
 
-LLM 上下文窗口虽大，但注意力随 token 数衰减。把一个 5000 行的 memory.md 全塞进去，agent 实际利用率很低。拆成 5 个 200–400 行的 topic 文件 + 一个索引，agent 按需读，效果反而更好。
+LLM 上下文窗口虽大，但注意力随 token 数衰减。把一个 5000 行的 `memory.md` 全塞进去，agent 实际利用率很低。拆成 topic 文件加索引，可以让 agent 只跟进相关上下文。
+
+下一步优化方向是生成式索引与按当前项目/topic 的选择性加载，让记忆库增长时，启动上下文不随之无限增长。
 
 ---
 

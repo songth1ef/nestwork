@@ -2,9 +2,9 @@
 
 [中文](README.zh.md) | English
 
-Version: v0.3.0 | Protocol: 2.2
+Version: v0.3.0 | Protocol: 2.4
 
-[![Protocol](https://img.shields.io/badge/protocol-2.2-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Aider-green)](#supported-tools) [![Storage](https://img.shields.io/badge/storage-git-orange)](#how-it-works)
+[![Protocol](https://img.shields.io/badge/protocol-2.4-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Aider-green)](#supported-tools) [![Storage](https://img.shields.io/badge/storage-git-orange)](#how-it-works)
 
 > About `agent-history-*` branches: orphan branches introduced in v2.4 hold rolling-overwrite snapshots of high-churn artefacts (e.g. `history.jsonl`). They each contain a single force-pushed commit and are not meant to be merged into `main`. Ignore GitHub's "Compare & pull request" prompt for these branches. See [AGENTS.md §12](AGENTS.md) for details.
 
@@ -12,37 +12,31 @@ Version: v0.3.0 | Protocol: 2.2
 
 ## Purpose
 
-Use a git repo as the shared external brain for your AI coding agents. All your agents (Claude / Codex / Gemini / any markdown-config CLI) share the same memory across sessions, machines, tools, and vendors. No plugins, no servers, no third-party dependencies. Just a git repo.
-
-The model is the Formic hive mind from *Ender's Game*: every worker wired to the same queen, no individual memory, one distributed intelligence. You (the human) are the queen; your agent instances are workers; all wired to the same git repo = the same brain.
+Use a git repo as the shared external brain for your AI coding agents. Configure your working context on an office computer, then continue from your personal laptop or a cloud server without every new agent starting from "who are you?" and "where was this project left?" All your agents (Claude / Codex / Gemini / any markdown-config CLI) can read the same versioned context across sessions, machines, tools, and vendors. No plugins, no servers, no third-party dependencies. Just a private git repo.
 
 ### Problems it solves
-- Sessions close and context is lost; switching machines or tools resets everything
-- No protocol-level way for multiple agents to share understanding
+- The agent configured on your work computer knows your rules, but your personal computer starts blank
+- A cloud development host cannot see current project progress already recorded on another machine
+- Switching sessions or tools makes you repeatedly explain who you are and what was decided
 - Vendor-private memory (OpenAI Memory, etc.) locks you into one ecosystem
-- Team scenarios have no place to persist project knowledge
 
 ### What you get
 
 > [!TIP]
-> One shared memory across sessions, machines, tools, and vendors.
+> One private, versioned context source across sessions, personal/work devices, cloud servers, tools, and vendors.
 
 - Memory is 100% in your own git repo. Zero vendor lock-in, works offline.
 - Protocol-level multi-agent collaboration (not a feature of any specific tool)
+- Stable rules, preferences, and project progress can follow you to a newly opened agent session.
 
-### Why it's worth writing more
+### What becomes continuous
 
-Context windows keep growing. 200K was the ceiling in 2024, 1M reached production in 2025, 1M becomes default from 2026 with 10M in labs. Three years from now an agent can read everything you've ever written in one shot, and cross-project pattern recognition starts to work.
+- On your work computer, an agent records approved project progress and working rules.
+- At home, a new session pulls the same context instead of rebuilding your identity and project background from scratch.
+- On a cloud server, another agent can continue from versioned project state and decisions.
+- Over time, your decisions and reusable methods remain searchable assets you control, rather than memory trapped in one vendor.
 
-Until then, an agent only pulls in 3–5 memory files per session. You store 100, 95% of reads look wasted. They aren't. Git storage cost is near zero, writes happen once, read value grows linearly with the window size. The 95 files no one reads today are the base layer of cross-employer, cross-project retrieval three years from now.
-
-A few uses are independent of any agent:
-
-- A versioned decision archive that can answer "why did I choose NestJS over Express in 2023?"
-- Training material for your future personal fine-tuned model
-- A cognitive layer that doesn't disappear when you switch device, employer, or tool
-
-In practice: when you hit a decision, a lesson, or a cross-project methodology, write it down. Even one line. Split per v2.2 when files get long. Don't ration writes against "the agent can't read it all today."
+Record non-sensitive decisions, lessons, and cross-project methods when they matter. Nestwork is for portable context, not secrets or unreviewed employer-confidential material.
 
 ### Who it's for
 
@@ -114,6 +108,12 @@ Codex (Windows):
 Gemini CLI / OpenClaw / Hermes / Aider follow the same pattern, swap `claude` for the tool name. See [Supported tools](#supported-tools) for the full list.
 
 Run once per machine. Same queen, different agent IDs, one shared brain.
+
+### 4. Verify cross-device continuity
+
+Add a non-sensitive, recognizable rule or project-status note to your private queen, commit and push it, then open an installed agent on a second computer or cloud host. Ask it to summarize your current rule or project status. It should pull the repository and answer from the shared context without you repeating the setup.
+
+Do not use API keys, secrets, or employer-confidential details as test content.
 
 ### Prompt examples
 
@@ -339,9 +339,9 @@ Upstream nestwork provides only the methodology and prompt template ([docs/desen
 
 ### Scenario: multi-machine collaborative development
 
-You use Claude Code on both a macOS laptop and a Windows desktop. Both have your private queen cloned.
+You use Claude Code on an office computer, a personal laptop, and optionally a cloud development host. Each machine has your private queen cloned.
 
-Monday morning (laptop):
+Monday morning (office computer):
 
 - Launch Claude Code, SessionStart hook auto-`git pull` and injects context
 - You say "continue last night's NestJS module work"
@@ -349,7 +349,7 @@ Monday morning (laptop):
 - Also loads `shared/memory.md`, knows your stack preferences (Vue 3 + NestJS)
 - Picks up directly without re-explaining
 
-Same evening (desktop):
+Same evening (personal laptop or cloud host):
 
 - Launch Claude Code, auto-pull
 - Agent sees the morning updates from `agents/macbook/claude-xxx/` (a different machine's agent, but synced via git)
@@ -521,7 +521,9 @@ The agent reads the index first, then follows links to relevant topic files.
 
 ### Why line limits?
 
-LLM context windows are large, but attention degrades with token count. Stuffing a 5000-line memory.md in wholesale is poorly utilized. Splitting into 5 topic files of 200–400 lines plus an index works better in practice.
+LLM context windows are large, but attention degrades with token count. Stuffing a 5000-line `memory.md` in wholesale is poorly utilized. Splitting into topic files plus an index lets an agent follow only the relevant context.
+
+The next optimization direction is generated indexes and selective loading by active project or topic, so a growing nest does not become a growing startup prompt.
 
 ---
 

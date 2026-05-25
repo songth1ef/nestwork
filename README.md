@@ -36,7 +36,19 @@ Use a git repo as the shared external brain for your AI coding agents. Configure
 - On a cloud server, another agent can continue from versioned project state and decisions.
 - Over time, your decisions and reusable methods remain searchable assets you control, rather than memory trapped in one vendor.
 
-Record non-sensitive decisions, lessons, and cross-project methods when they matter. Nestwork is for portable context, not secrets or unreviewed employer-confidential material.
+### Why it's worth writing more
+
+Context windows keep growing. 200K was the ceiling in 2024, 1M reached production in 2025, 1M becomes default from 2026 with 10M in labs. Three years from now an agent can read everything you've ever written in one shot, and cross-project pattern recognition starts to work.
+
+Until then, an agent only pulls in 3–5 memory files per session. You store 100, 95% of reads look wasted. They aren't. Git storage cost is near zero, writes happen once, read value grows linearly with the window size. The 95 files no one reads today are the base layer of cross-employer, cross-project retrieval three years from now.
+
+A few uses are independent of any agent:
+
+- A versioned decision archive that can answer "why did I choose NestJS over Express in 2023?"
+- Training material for your future personal fine-tuned model
+- A cognitive layer that doesn't disappear when you switch device, employer, or tool
+
+In practice: when you hit a non-sensitive decision, a lesson, or a cross-project methodology, write it down. Even one line. Split per v2.2 when files get long. Don't ration writes against "the agent can't read it all today." Nestwork is for portable context, not secrets or unreviewed employer-confidential material.
 
 ### Who it's for
 

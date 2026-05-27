@@ -771,13 +771,14 @@ If missing, re-run the installer: `bash scripts/install/claude.sh`.
 
 ### Agent ID is inconsistent across machines
 
-Check `~/.nestwork_id`:
+Check the shared host and this tool's identity file:
 
 ```bash
-cat ~/.nestwork_id
+cat ~/.nestwork_host
+cat ~/.nestwork_id_codex       # or ~/.nestwork_id_claude
 ```
 
-Each machine's `~/.nestwork_id` should differ (`<tool>-<4-char-random>`). If they're the same, you copied dotfiles. Delete the file on the new machine and let the installer regenerate.
+Each tool has its own identity file on a machine. If a suffixed identity such as `claude-xxxx` was copied to another machine, delete that tool-specific file on the new machine and let the installer regenerate it. Legacy `~/.nestwork_id` files are imported automatically.
 
 ### I want to try it without committing my private data to GitHub
 

@@ -1,34 +1,17 @@
 #!/usr/bin/env python3
 # -----------------------------------------------------------------------------
-# nestwork identity resolver (protocol v2.0)
+# nestwork identity resolver
 #
-# Returns (host, agent-id) for this machine, creating them on first run and
-# caching on disk so reinstalls keep the same identity. One file:
+# Returns (host, agent-id) for this machine, caching a shared host plus one
+# agent id per tool so installing Codex cannot overwrite a Claude identity.
 #
-#   ~/.nestwork_id              two lines:
-#                                1. lowercased short hostname
-#                                2. per-tool agent id (e.g. "claude-a7k2")
+# Current files:
+#   ~/.nestwork_host                 lowercased short hostname
+#   ~/.nestwork_id_<tool>            agent id for that tool
+#                                     (e.g. claude-a7k2, codex)
 #
-# Usage:
-#   _identity.py <tool> [--with-suffix]
-#
-#   <tool>            prefix used for the agent-id (claude / codex / ...)
-#   --with-suffix     append a 4-char random suffix, persisted across reinstalls
-#
-# Env overrides (highest priority, not persisted):
-#   NESTWORK_HOST       override host segment
-#   NESTWORK_AGENT_ID   override full agent-id
-#
-# Output: prints two lines to stdout
-#   <host>
-#   <agent-id>
-#
-# Legacy migration:
-# - if ~/.nestwork_host exists and ~/.nestwork_id is one line, merge both into
-#   the v2 single-file format.
-# - if ~/.nestwork_id contains an old v1 three-segment id
-#   (<tool>-<host>-<suffix>), extract <host> to ~/.nestwork_host and rewrite
-#   ~/.nestwork_id as two lines: <host>, <tool>-<suffix>.
+# Legacy ~/.nestwork_id and hivequeen identity files are read for migration,
+# but never overwritten by this version.
 # -----------------------------------------------------------------------------
 
 import os
@@ -40,14 +23,21 @@ import sys
 
 HOME = os.path.expanduser("~")
 HOST_FILE = os.path.join(HOME, ".nestwork_host")
-ID_FILE   = os.path.join(HOME, ".nestwork_id")
-LEGACY_HOST_FILE = os.path.join(HOME, "." + "hive" + "queen_host")
-LEGACY_ID_FILE = os.path.join(HOME, "." + "hive" + "queen_id")
+LEGACY_ID_FILE = os.path.join(HOME, ".nestwork_id")
+LEGACY_HIVE_HOST_FILE = os.path.join(HOME, "." + "hive" + "queen_host")
+LEGACY_HIVE_ID_FILE = os.path.join(HOME, "." + "hive" + "queen_id")
+
+# v1 ids look like: <tool>-<host>-<4-char-suffix>.
+LEGACY_ID_RE = re.compile(r"^([a-z]+)-([a-z0-9][a-z0-9-]*?)-([a-z0-9]{4})$")
+
+
+def tool_id_file(tool: str) -> str:
+    return os.path.join(HOME, f".nestwork_id_{tool}")
 
 
 def compute_host() -> str:
-    h = socket.gethostname() or "unknown"
-    return h.split(".")[0].lower()
+    host = socket.gethostname() or "unknown"
+    return host.split(".")[0].lower()
 
 
 def random_suffix(n: int = 4) -> str:
@@ -57,97 +47,85 @@ def random_suffix(n: int = 4) -> str:
 
 def read_one_line(path: str) -> str:
     try:
-        with open(path, encoding="utf-8") as f:
-            return f.read().strip()
+        with open(path, encoding="utf-8") as file:
+            return file.read().strip()
     except FileNotFoundError:
         return ""
 
 
-def write_one_line(path: str, value: str) -> None:
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(value + "\n")
-
-
 def read_lines(path: str) -> list[str]:
     try:
-        with open(path, encoding="utf-8") as f:
-            return [line.strip() for line in f.read().splitlines() if line.strip()]
+        with open(path, encoding="utf-8") as file:
+            return [line.strip() for line in file.read().splitlines() if line.strip()]
     except FileNotFoundError:
         return []
 
 
-def write_identity(host: str, agent_id: str) -> None:
-    with open(ID_FILE, "w", encoding="utf-8") as f:
-        f.write(host + "\n")
-        f.write(agent_id + "\n")
+def write_one_line(path: str, value: str) -> None:
+    with open(path, "w", encoding="utf-8") as file:
+        file.write(value + "\n")
 
 
-# v1 legacy ids look like: <tool>-<host>-<4-char-suffix>
-# Heuristic: exactly three segments split by '-', final segment is [a-z0-9]{4}.
-LEGACY_ID_RE = re.compile(r"^([a-z]+)-([a-z0-9][a-z0-9-]*?)-([a-z0-9]{4})$")
+def import_agent_id(agent_id: str) -> None:
+    match = LEGACY_ID_RE.match(agent_id)
+    if match:
+        tool, host, suffix = match.groups()
+        if not read_one_line(HOST_FILE):
+            write_one_line(HOST_FILE, host)
+        agent_id = f"{tool}-{suffix}"
+    else:
+        tool = agent_id.split("-", 1)[0]
+    path = tool_id_file(tool)
+    if agent_id and not read_one_line(path):
+        write_one_line(path, agent_id)
 
 
-def migrate_legacy_if_needed(tool: str) -> None:
-    """Normalize legacy identity files into the single v2 two-line file."""
-    if not os.path.exists(ID_FILE):
-        legacy_identity = read_lines(LEGACY_ID_FILE)
-        legacy_host = read_one_line(LEGACY_HOST_FILE)
-        if len(legacy_identity) >= 2:
-            write_identity(legacy_identity[0], legacy_identity[1])
-        elif legacy_host and len(legacy_identity) == 1:
-            write_identity(legacy_host, legacy_identity[0])
+def migrate_legacy_if_needed() -> None:
+    """Import pre-per-tool identity formats without destroying their source."""
+    legacy = read_lines(LEGACY_ID_FILE)
+    legacy_host = read_one_line(HOST_FILE)
+    if len(legacy) >= 2:
+        if not legacy_host:
+            write_one_line(HOST_FILE, legacy[0].lower())
+        import_agent_id(legacy[1])
+    elif len(legacy) == 1:
+        import_agent_id(legacy[0])
 
-    host = read_one_line(HOST_FILE)
-    identity = read_lines(ID_FILE)
-
-    if host and len(identity) == 1:
-        write_identity(host, identity[0])
-        return
-
-    if len(identity) != 1:
-        return
-
-    legacy = identity[0]
-    m = LEGACY_ID_RE.match(legacy)
-    if not m:
-        return
-
-    legacy_tool, legacy_host, legacy_suffix = m.group(1), m.group(2), m.group(3)
-    agent_id = f"{tool}-{legacy_suffix}" if legacy_tool == tool else legacy
-    write_identity(legacy_host, agent_id)
+    hive = read_lines(LEGACY_HIVE_ID_FILE)
+    hive_host = read_one_line(LEGACY_HIVE_HOST_FILE)
+    if len(hive) >= 2:
+        if not read_one_line(HOST_FILE):
+            write_one_line(HOST_FILE, hive[0].lower())
+        import_agent_id(hive[1])
+    elif hive_host and len(hive) == 1:
+        if not read_one_line(HOST_FILE):
+            write_one_line(HOST_FILE, hive_host.lower())
+        import_agent_id(hive[0])
 
 
 def resolve_host() -> str:
-    env = os.environ.get("NESTWORK_HOST", "").strip()
-    if not env:
-        env = os.environ.get("HIVE" + "QUEEN_HOST", "").strip()
-    if env:
-        return env.lower()
-    identity = read_lines(ID_FILE)
-    if len(identity) >= 2:
-        return identity[0]
-    host = compute_host()
-    return host
+    override = os.environ.get("NESTWORK_HOST", "").strip()
+    if not override:
+        override = os.environ.get("HIVE" + "QUEEN_HOST", "").strip()
+    if override:
+        return override.lower()
+    return read_one_line(HOST_FILE) or compute_host()
 
 
 def resolve_agent_id(tool: str, with_suffix: bool) -> str:
-    env = os.environ.get("NESTWORK_AGENT_ID", "").strip()
-    if not env:
-        env = os.environ.get("HIVE" + "QUEEN_AGENT_ID", "").strip()
-    if env:
-        return env
-    identity = read_lines(ID_FILE)
-    cached = identity[1] if len(identity) >= 2 else ""
+    override = os.environ.get("NESTWORK_AGENT_ID", "").strip()
+    if not override:
+        override = os.environ.get("HIVE" + "QUEEN_AGENT_ID", "").strip()
+    if override:
+        return override
+    cached = read_one_line(tool_id_file(tool))
     if not with_suffix:
         return tool
-    if cached and cached.startswith(tool + "-") and LEGACY_ID_RE.match(cached) is None:
-        # v2 format: <tool>-<suffix>
+    if cached.startswith(tool + "-") and LEGACY_ID_RE.match(cached) is None:
         return cached
-    if cached and cached == tool:
+    if cached == tool:
         return cached
-    new_id = f"{tool}-{random_suffix()}"
-    write_one_line(ID_FILE, new_id)
-    return new_id
+    return f"{tool}-{random_suffix()}"
 
 
 def main() -> int:
@@ -156,20 +134,19 @@ def main() -> int:
         return 2
     tool = sys.argv[1].strip().lower()
     with_suffix = "--with-suffix" in sys.argv[2:]
+    migrate_legacy_if_needed()
 
-    migrate_legacy_if_needed(tool)
-
-    host     = resolve_host()
+    host = resolve_host()
     agent_id = resolve_agent_id(tool, with_suffix)
-
-    has_env_override = (
+    has_override = (
         os.environ.get("NESTWORK_HOST", "").strip()
         or os.environ.get("NESTWORK_AGENT_ID", "").strip()
         or os.environ.get("HIVE" + "QUEEN_HOST", "").strip()
         or os.environ.get("HIVE" + "QUEEN_AGENT_ID", "").strip()
     )
-    if not has_env_override:
-        write_identity(host, agent_id)
+    if not has_override:
+        write_one_line(HOST_FILE, host)
+        write_one_line(tool_id_file(tool), agent_id)
 
     print(host)
     print(agent_id)

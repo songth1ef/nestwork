@@ -57,8 +57,10 @@ treat one-per-host as the norm (e.g. `codex`, `gemini`). The host segment
 is **in the path**, not in the id.
 
 **host format**: lowercased short hostname. Installer persists host in
-`~/.nestwork_host` and agent-id in `~/.nestwork_id` so reinstalls keep
-the same identity. Override via
+`~/.nestwork_host` and each tool's agent-id in `~/.nestwork_id_<tool>`
+(for example `~/.nestwork_id_claude` and `~/.nestwork_id_codex`) so
+installing one tool never replaces another tool's identity. Older
+`~/.nestwork_id` files are imported automatically. Override via
 `NESTWORK_HOST` and/or `NESTWORK_AGENT_ID` env vars.
 
 ### After loading — orient first, then propose or ask

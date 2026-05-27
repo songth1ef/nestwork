@@ -771,13 +771,14 @@ cat ~/.claude/settings.json | grep -A 5 SessionStart
 
 ### 跨机器看到的 agent ID 不一致
 
-检查 `~/.nestwork_id`：
+检查共享 host 与当前工具的 identity 文件：
 
 ```bash
-cat ~/.nestwork_id
+cat ~/.nestwork_host
+cat ~/.nestwork_id_codex       # 或 ~/.nestwork_id_claude
 ```
 
-每台机器的 `~/.nestwork_id` 应该不同（`<tool>-<4字符随机>`）。如果一样，说明你复制了 dotfiles。在新机器上删掉这个文件让 installer 重新生成。
+同一台机器上的每个工具分别拥有 identity 文件。如果带随机后缀的 identity（如 `claude-xxxx`）被复制到另一台机器，请在新机器删除对应工具的文件，让 installer 重新生成。旧版 `~/.nestwork_id` 会自动导入。
 
 ### 我想试一下但不想 commit 自己的私有信息到 GitHub
 

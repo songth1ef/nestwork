@@ -34,19 +34,22 @@ BLOCK_TEMPLATE = """\
 {begin}
 # Nestwork Startup Protocol
 
-Before starting analysis, planning, or implementation, run:
+The SessionStart hook auto-runs `git -C {hp} pull --rebase` and injects
+`agent-rules.md` plus a `READ-ON-START` manifest into the session context.
 
-```bash
-git -C {hp} pull --rebase
-```
+Because Claude Code truncates SessionStart hook stdout near 2KB, larger
+context files are NOT inlined -- the manifest lists them with absolute
+paths. Before your first reply you MUST Read each READ-ON-START path:
 
-Then load context from nestwork in this order:
+1. `{hp}/queen/strategy.md`              -- READ-ON-START (current direction)
+2. `{hp}/shared/memory.md`               -- READ-ON-START (cross-agent facts)
+3. `{hp}/agents/{host}/{aid}/memory.md`  -- READ-ON-START (your private memory)
+4. `{hp}/workflow/*.md`                  -- READ-ON-DEMAND (when task-relevant)
+5. `{hp}/projects/<name>.md`             -- READ-ON-DEMAND (current task scope)
 
-1. `{hp}/queen/agent-rules.md`
-2. `{hp}/queen/strategy.md`
-3. `{hp}/shared/memory.md`
-4. `{hp}/agents/{host}/{aid}/memory.md`
-5. Relevant `{hp}/projects/*.md` for current task
+Skipping a READ-ON-START file is a protocol violation: `agent-rules.md`
+requires you to "say so -- do not guess" when context is missing, and the
+manifest exists precisely because that context is not in your window yet.
 
 ## After loading -- self-direct, do not ask
 

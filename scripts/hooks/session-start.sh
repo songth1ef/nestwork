@@ -1,15 +1,22 @@
 #!/usr/bin/env bash
 # -----------------------------------------------------------------------------
-# nestwork SessionStart hook
+# nestwork SessionStart hook (v2.5: tiered loading)
 #
 # Usage (registered by installer in Claude Code settings.json):
 #   session-start.sh <host> <agent-id>
 #
 # Behavior:
 #   - Pull latest nestwork (rebase, autostash) so context is fresh.
-#   - Emit the canonical context bundle to stdout: agent-rules, strategy,
-#     shared memory, this agent's private memory. Claude Code injects stdout
-#     into the session as additional context.
+#   - Emit a *small* context skeleton (<~1.8KB) that Claude Code's SessionStart
+#     hook will reliably inject without truncation:
+#       1. bundle header
+#       2. agent-rules full text (highest priority, smallest file)
+#       3. READ-ON-START manifest pointing to strategy / shared / agent memory
+#       4. READ-ON-DEMAND manifest pointing to workflow/*.md
+#   - The agent is required (by CLAUDE.md / AGENTS.md) to Read the manifest
+#     paths before its first response. Large files are pulled in via the agent's
+#     Read tool, not via stdout, because Claude Code truncates hook stdout
+#     around 2KB regardless of plain-text or JSON-mode output.
 #   - Always exit 0. SessionStart must never block session startup.
 # -----------------------------------------------------------------------------
 
@@ -23,6 +30,16 @@ NESTWORK_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 cd "$NESTWORK_PATH" || exit 0
 
+# Native-format path for the manifest. On Git Bash / MSYS the pwd above yields
+# `/f/code/...`, which the agent's Read tool on Windows cannot resolve. cygpath
+# -m converts to mixed format (`F:/code/...`); on POSIX hosts cygpath is absent
+# and we keep the original POSIX path.
+if command -v cygpath >/dev/null 2>&1; then
+  NESTWORK_PATH_NATIVE="$(cygpath -m "$NESTWORK_PATH" 2>/dev/null || printf '%s' "$NESTWORK_PATH")"
+else
+  NESTWORK_PATH_NATIVE="$NESTWORK_PATH"
+fi
+
 # Refresh, but never block on failure (offline, conflict, etc.)
 git pull --rebase --autostash -q 2>/dev/null || git rebase --abort 2>/dev/null || true
 
@@ -34,27 +51,35 @@ emit_file() {
   fi
 }
 
-printf 'nestwork context bundle for %s/%s\n' "$HOST_ID" "$AGENT_ID"
-emit_file "agent-rules"   "queen/agent-rules.md"
-emit_file "strategy"      "queen/strategy.md"
-emit_file "shared memory" "shared/memory.md"
-emit_file "agent memory"  "agents/$HOST_ID/$AGENT_ID/memory.md"
+# Compact manifest entry: one path per line, absolute, no purpose annotation
+# (the section header carries that semantic). Skip missing files silently.
+manifest_line() {
+  local rel="$1"
+  if [ -f "$NESTWORK_PATH/$rel" ]; then
+    printf -- '- %s/%s\n' "$NESTWORK_PATH_NATIVE" "$rel"
+  fi
+}
 
-# workflow/: portable user-level knowledge (lowest-priority context layer,
-# AGENTS.md §8). Always-relevant across sessions, so injected here rather
-# than left for on-demand Read. Skip _template.md (authoring scaffold, not
-# content).
+printf 'nestwork context bundle for %s/%s\n' "$HOST_ID" "$AGENT_ID"
+emit_file "agent-rules" "queen/agent-rules.md"
+
+printf '\n=== READ-ON-START (MANDATORY before first reply; see CLAUDE.md) ===\n'
+manifest_line "queen/strategy.md"
+manifest_line "shared/memory.md"
+manifest_line "agents/$HOST_ID/$AGENT_ID/memory.md"
+
+printf '\n=== READ-ON-DEMAND (when task-relevant) ===\n'
 if [ -d workflow ]; then
   for f in workflow/*.md; do
     [ -f "$f" ] || continue
     base="$(basename "$f")"
     [ "$base" = "_template.md" ] && continue
-    emit_file "workflow/${base%.md}" "$f"
+    manifest_line "$f"
   done
 fi
 
 # Upstream protocol-version check (AGENTS.md §11, v2.3+).
-# Advisory only: emit a notice if upstream MAJOR.MINOR is greater than local.
+# Compressed to one line so a triggered advisory does not blow the ~2KB budget.
 # 24h cache to avoid hitting the network every session start. Never blocks.
 check_upstream_version() {
   local cache_dir="${HOME:-/tmp}/.cache/nestwork"
@@ -67,7 +92,6 @@ check_upstream_version() {
   local_ver="$(grep -oE 'protocol-version: [0-9]+\.[0-9]+' AGENTS.md 2>/dev/null | awk '{print $2}')"
   [ -z "$local_ver" ] && return 0
 
-  # Use cache if fresh (< 24h)
   if [ -f "$cache_file" ]; then
     local cached_ts="" cached_ver=""
     read -r cached_ts cached_ver < "$cache_file" 2>/dev/null || true
@@ -77,7 +101,6 @@ check_upstream_version() {
     fi
   fi
 
-  # Fetch if cache cold/stale; fail silently on network errors
   if [ -z "$upstream_ver" ]; then
     upstream_ver="$(curl -sf -m 3 "$upstream_url" 2>/dev/null \
       | grep -oE 'protocol-version: [0-9]+\.[0-9]+' \
@@ -91,17 +114,11 @@ check_upstream_version() {
   [ -z "$upstream_ver" ] && return 0
   [ "$upstream_ver" = "$local_ver" ] && return 0
 
-  # Compare with sort -V; advise only when upstream is strictly newer.
   local newer
   newer="$(printf '%s\n%s\n' "$local_ver" "$upstream_ver" | sort -V | tail -n1)"
   if [ "$newer" = "$upstream_ver" ]; then
-    printf '\n=== upstream protocol check ===\n'
-    printf 'Local protocol-version: %s\n' "$local_ver"
-    printf 'Upstream protocol-version: %s (newer)\n' "$upstream_ver"
-    printf '\n[!IMPORTANT] A newer nestwork protocol is available.\n'
-    printf 'Action: ask the agent to run `bash scripts/maintenance/update.sh`.\n'
-    printf 'The updater shows incoming changes and prompts before applying. Your\n'
-    printf 'private data (agents/, queen/, shared/, projects/) is never touched.\n'
+    printf '\n[!] nestwork upstream protocol-version %s available (local %s) -- run `bash scripts/maintenance/update.sh` to review.\n' \
+      "$upstream_ver" "$local_ver"
   fi
 }
 check_upstream_version || true

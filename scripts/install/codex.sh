@@ -9,7 +9,8 @@ NESTWORK_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 CODEX_DIR="$HOME/.codex"
 CODEX_AGENTS="$CODEX_DIR/AGENTS.md"
 CODEX_INSTRUCTIONS="$CODEX_DIR/instructions.md"
-SETTINGS="$CODEX_DIR/config.json"
+CODEX_CONFIG="$CODEX_DIR/config.toml"
+CODEX_HOOKS="$CODEX_DIR/hooks.json"
 
 IDENTITY="$(python3 "$NESTWORK_PATH/scripts/install/_identity.py" codex)"
 HOST="$(printf '%s\n' "$IDENTITY" | sed -n 1p)"
@@ -43,39 +44,11 @@ python3 "$NESTWORK_PATH/scripts/install/_bootstrap.py" \
 python3 "$NESTWORK_PATH/scripts/install/_bootstrap.py" \
   "$CODEX_INSTRUCTIONS" "$NESTWORK_PATH" "$HOST" "$AGENT_ID"
 
-# 4. Register session end hook (Codex uses config.json)
-if [ ! -f "$SETTINGS" ]; then
-  echo '{}' > "$SETTINGS"
-fi
-
-python3 - <<PYEOF
-import json
-
-settings_path = "$SETTINGS"
-nestwork_path = "$NESTWORK_PATH"
-host = "$HOST"
-agent_id = "$AGENT_ID"
-
-with open(settings_path) as f:
-    settings = json.load(f)
-
-hook_cmd = (
-    f"cd {nestwork_path} && "
-    f"git pull --rebase --autostash -q && "
-    f"python3 {nestwork_path}/scripts/hooks/sync-local-history.py {nestwork_path} {host} {agent_id} && "
-    f"git add agents/{host}/{agent_id}/ && "
-    f"(git diff --cached --quiet -- agents/{host}/{agent_id}/ || "
-    f"git commit -m 'memory: update {host}/{agent_id}' -- agents/{host}/{agent_id}/) && "
-    f"git push -q"
-)
-
-settings.setdefault("session", {})["end_hook"] = hook_cmd
-
-with open(settings_path, "w") as f:
-    json.dump(settings, f, indent=2)
-
-print(f"[ok] registered session end hook in {settings_path}")
-PYEOF
+# 3. Register the Codex Stop hook used for optional local-history snapshots.
+#    Current Codex reads config.toml + hooks.json; the old config.json
+#    session.end_hook entry is ignored by recent releases.
+python3 "$NESTWORK_PATH/scripts/install/_codex_hooks.py" \
+  "$CODEX_CONFIG" "$CODEX_HOOKS" "$NESTWORK_PATH" "$HOST" "$AGENT_ID"
 
 echo ""
 echo "OK nestwork installed for Codex"

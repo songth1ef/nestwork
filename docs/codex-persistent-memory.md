@@ -2,8 +2,8 @@
 
 ## Short answer
 
-nestwork gives Codex CLI persistent memory by writing a startup protocol into `~/.codex/AGENTS.md`, keeping `~/.codex/instructions.md` as a compatibility entrypoint, and configuring a session end hook in `~/.codex/config.json`.
-When local history sync is enabled for the host, the same hook also captures `~/.codex/history.jsonl` into the Codex agent's `local/history.jsonl`.
+nestwork gives Codex CLI persistent memory by writing a startup protocol into `~/.codex/AGENTS.md` and keeping `~/.codex/instructions.md` as a compatibility entrypoint.
+For current Codex releases, the installer also sets `hooksPath` in `~/.codex/config.toml` and registers a Stop hook in `~/.codex/hooks.json`. When local history sync is enabled for the host, that hook captures `~/.codex/history.jsonl` into the Codex agent's `local/history.jsonl`.
 
 ## How it works with Codex CLI
 
@@ -13,7 +13,7 @@ The Codex installer:
 2. Creates `agents/<host>/codex/memory.md`.
 3. Injects startup instructions into `~/.codex/AGENTS.md`.
 4. Also updates `~/.codex/instructions.md` for compatibility with older Codex setups.
-5. Registers a session end hook that syncs local Codex history, then commits and pushes Codex memory changes.
+5. Registers a Stop hook in `~/.codex/hooks.json` that mirrors optional local Codex history snapshots. The hook redirects operational logs and returns only hook-valid JSON on stdout.
 
 Install on macOS or Linux:
 
@@ -40,7 +40,7 @@ Codex can load:
 
 ## Difference from Claude Code integration
 
-Claude Code supports per-write hooks. Codex uses a session end hook, so memory sync happens at the end of the session rather than after each write.
+Claude Code supports Nestwork's full per-write memory synchronization flow. Codex uses a Stop hook only for optional local-history snapshots; memory changes under `agents/<host>/codex/` still follow the manual commit/push instruction in the injected bootstrap.
 
 ## Related docs
 

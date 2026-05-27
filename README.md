@@ -202,7 +202,7 @@ The race window shrinks from "the whole session" to "a single write." Multiple a
 | Stop | Safety-net commit+push (no-op when clean) | Backstop |
 | SessionEnd | claude-mem export + local history sync | Cross-machine reach |
 
-Only Claude Code registers session hooks. Other tools follow the "commit on session end" protocol (see [Supported tools](#supported-tools)).
+Only Claude Code registers the full atomic per-write synchronization hooks. Codex registers a Stop hook only for optional local-history snapshots; Codex memory edits still follow the manual commit/push bootstrap protocol. Other tools follow their bootstrap protocol (see [Supported tools](#supported-tools)).
 
 ---
 
@@ -392,6 +392,7 @@ Codex starts up, reads `~/.codex/AGENTS.md` (the installer injected the nestwork
 - pull your queen
 - read `queen/`, `shared/`, and its own `agents/<host>/codex/memory.md`
 - know your preferences, past decisions, current project state
+- use a `~/.codex/config.toml` + `~/.codex/hooks.json` Stop hook for optional local-history snapshots when enabled
 
 Memory isn't in any vendor; it's in your git repo. The cost of switching tools is near zero.
 
@@ -482,6 +483,7 @@ nestwork/
     │   ├── aider.{sh,ps1}
     │   ├── generic.{sh,ps1}       Any markdown-config CLI
     │   ├── _bootstrap.py          Shared bootstrap injector
+    │   ├── _codex_hooks.py        Codex config.toml + hooks.json registrar
     │   └── _hooks.py              Shared hook registrar (Claude Code)
     ├── hooks/                     Runtime hooks
     │   ├── nestwork.sh            Unified pre/post/stop entrypoint
@@ -562,7 +564,7 @@ The next optimization direction is generated indexes and selective loading by ac
 | Hermes Agent | Open source | `~/.hermes/SOUL.md` | `bash scripts/install/hermes.sh` | Entry exists, untested by author |
 | Aider | Open source | `~/.aider-nestwork.md` (via `.aider.conf.yml` `read:`) | `bash scripts/install/aider.sh` | Entry exists, untested by author |
 
-Only Claude Code registers session hooks for atomic per-write. Other tools follow the "commit on session end" protocol baked into the bootstrap config.
+Only Claude Code registers the full atomic per-write synchronization hooks. Codex registers a Stop hook for optional local-history snapshots through `~/.codex/config.toml` + `~/.codex/hooks.json`; Codex memory edits still follow the manual commit/push bootstrap protocol. Other tools follow their bootstrap protocol.
 
 ### Optional: capture local tool history
 

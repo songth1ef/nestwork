@@ -8,7 +8,8 @@ $NestworkPath = (Resolve-Path "$PSScriptRoot\..\..").Path
 $CodexDir = "$env:USERPROFILE\.codex"
 $CodexAgents = "$CodexDir\AGENTS.md"
 $CodexInstructions = "$CodexDir\instructions.md"
-$Settings = "$CodexDir\config.json"
+$CodexConfig = "$CodexDir\config.toml"
+$CodexHooks = "$CodexDir\hooks.json"
 
 $PythonCmd = $null
 foreach ($Cand in @("python3", "python", "py")) {
@@ -58,23 +59,16 @@ if ($LASTEXITCODE -ne 0) {
     throw "Codex instructions.md compatibility bootstrap injection failed (exit $LASTEXITCODE)"
 }
 
-# 3. Register session end hook in config.json
-if (-not (Test-Path $Settings)) {
-    '{}' | Set-Content -Path $Settings -Encoding UTF8
+# 3. Register the Codex Stop hook used for optional local-history snapshots.
+#    Current Codex reads config.toml + hooks.json; the old config.json
+#    session.end_hook entry is ignored by recent releases.
+$env:NESTWORK_CODEX_PLATFORM = "windows"
+& $PythonCmd (Join-Path $NestworkPath "scripts\install\_codex_hooks.py") `
+    "$CodexConfig" "$CodexHooks" $NestworkPath $NestHost $AgentId
+if ($LASTEXITCODE -ne 0) {
+    throw "Codex hook registration failed (exit $LASTEXITCODE)"
 }
-
-$AgentRel = "agents/$NestHost/$AgentId"
-$HookCmd = "Set-Location -LiteralPath `"$NestworkPath`"; git pull --rebase --autostash -q; if (`$LASTEXITCODE -ne 0) { exit `$LASTEXITCODE }; & `"$PythonCmd`" `"$NestworkPath\scripts\hooks\sync-local-history.py`" `"$NestworkPath`" $NestHost $AgentId; if (`$LASTEXITCODE -ne 0) { exit `$LASTEXITCODE }; git add $AgentRel/; if (`$LASTEXITCODE -ne 0) { exit `$LASTEXITCODE }; git diff --cached --quiet -- $AgentRel/; if (`$LASTEXITCODE -ne 0) { git commit -m 'memory: update $NestHost/$AgentId' -- $AgentRel/; if (`$LASTEXITCODE -ne 0) { exit `$LASTEXITCODE } }; git push -q"
-
-$SettingsObj = Get-Content $Settings -Raw | ConvertFrom-Json
-
-if (-not $SettingsObj.session) {
-    $SettingsObj | Add-Member -NotePropertyName session -NotePropertyValue @{}
-}
-$SettingsObj.session | Add-Member -NotePropertyName end_hook -NotePropertyValue $HookCmd -Force
-
-$SettingsObj | ConvertTo-Json -Depth 10 | Set-Content -Path $Settings -Encoding UTF8
-Write-Host "v registered session end hook in $Settings"
+Remove-Item Env:\NESTWORK_CODEX_PLATFORM
 
 Write-Host ""
 Write-Host "OK nestwork installed for Codex"

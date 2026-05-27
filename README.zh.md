@@ -202,7 +202,7 @@ SessionEnd hook：claude-mem export + 本地 history sync（如开启）
 | Stop | 安全网 commit+push（clean 时为 no-op） | 兜底 |
 | SessionEnd | claude-mem export + 本地 history sync | 跨机可达 |
 
-只有 Claude Code 注册了 session hook。其他工具走"会话结束提交"协议（详见 [支持的工具](#支持的工具)）。
+只有 Claude Code 注册完整的原子逐次写入同步 hooks。Codex 只注册用于可选本地 history 快照的 Stop hook；Codex memory 编辑仍按 bootstrap 的手动 commit/push 协议处理。其他工具按各自 bootstrap 协议运行（详见 [支持的工具](#支持的工具)）。
 
 ---
 
@@ -392,6 +392,7 @@ Codex 启动时读 `~/.codex/AGENTS.md`，里面已经被 installer 注入了 ne
 - pull 你的 queen
 - 读 `queen/`、`shared/`、自己的 `agents/<host>/codex/memory.md`
 - 知道你的偏好、过去决策、当前项目状态
+- 启用时通过 `~/.codex/config.toml` + `~/.codex/hooks.json` 的 Stop hook 同步可选的本地 history 快照
 
 记忆不在厂商，在你的 git 仓。换工具的成本接近零。
 
@@ -482,6 +483,7 @@ nestwork/
     │   ├── aider.{sh,ps1}
     │   ├── generic.{sh,ps1}       任何 markdown-config CLI
     │   ├── _bootstrap.py          共享 bootstrap 注入器
+    │   ├── _codex_hooks.py        Codex config.toml + hooks.json 注册器
     │   └── _hooks.py              共享 hook 注册器（Claude Code）
     ├── hooks/                     运行时 hook
     │   ├── nestwork.sh            pre/post/stop 统一入口
@@ -562,7 +564,7 @@ LLM 上下文窗口虽大，但注意力随 token 数衰减。把一个 5000 行
 | Hermes Agent | 开源 | `~/.hermes/SOUL.md` | `bash scripts/install/hermes.sh` | 有入口，未亲测 |
 | Aider | 开源 | `~/.aider-nestwork.md`（通过 `.aider.conf.yml` `read:` 接入） | `bash scripts/install/aider.sh` | 有入口，未亲测 |
 
-只有 Claude Code 注册了 session hook 实现原子逐次写入。其他工具遵循 bootstrap config 里写入的"会话结束提交"协议。
+只有 Claude Code 注册完整的原子逐次写入同步 hooks。Codex 会通过 `~/.codex/config.toml` + `~/.codex/hooks.json` 注册用于可选本地 history 快照的 Stop hook；Codex memory 编辑仍按 bootstrap 中的手动 commit/push 协议处理。其他工具按各自 bootstrap 协议运行。
 
 ### 可选：捕获本地工具历史
 

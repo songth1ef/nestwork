@@ -34,22 +34,32 @@ BLOCK_TEMPLATE = """\
 {begin}
 # Nestwork Startup Protocol
 
-The SessionStart hook auto-runs `git -C {hp} pull --rebase` and injects
-`agent-rules.md` plus a `READ-ON-START` manifest into the session context.
+Before any analysis, planning, or implementation in a fresh session, ensure
+nestwork context is loaded.
 
-Because Claude Code truncates SessionStart hook stdout near 2KB, larger
-context files are NOT inlined -- the manifest lists them with absolute
-paths. Before your first reply you MUST Read each READ-ON-START path:
+On Claude Code, the SessionStart hook auto-runs `git pull` and inlines
+`agent-rules.md` plus a `READ-ON-START` manifest with absolute paths
+(because hook stdout is truncated near 2KB, only `agent-rules.md` fits
+inline -- the rest you Read via the listed paths). On Codex / Gemini /
+other agents there is no SessionStart hook; you must do every step below
+yourself.
 
-1. `{hp}/queen/strategy.md`              -- READ-ON-START (current direction)
-2. `{hp}/shared/memory.md`               -- READ-ON-START (cross-agent facts)
-3. `{hp}/agents/{host}/{aid}/memory.md`  -- READ-ON-START (your private memory)
-4. `{hp}/workflow/*.md`                  -- READ-ON-DEMAND (when task-relevant)
-5. `{hp}/projects/<name>.md`             -- READ-ON-DEMAND (current task scope)
+Required at session start:
 
-Skipping a READ-ON-START file is a protocol violation: `agent-rules.md`
-requires you to "say so -- do not guess" when context is missing, and the
-manifest exists precisely because that context is not in your window yet.
+1. Pull: `git -C {hp} pull --rebase`
+2. Read each of the following (use your Read tool; on Claude Code,
+   `agent-rules.md` is already inlined, but you still must Read items 2-4):
+   - `{hp}/queen/agent-rules.md`
+   - `{hp}/queen/strategy.md`
+   - `{hp}/shared/memory.md`
+   - `{hp}/agents/{host}/{aid}/memory.md`
+3. Read on demand when task-relevant:
+   - `{hp}/workflow/*.md` (portable methodology)
+   - `{hp}/projects/<name>.md` (current task scope)
+
+Skipping step 2 is a protocol violation: `agent-rules.md` requires you to
+"say so -- do not guess" when context is missing, and step 2 is what
+prevents the missing-context state.
 
 ## After loading -- self-direct, do not ask
 

@@ -16,76 +16,22 @@
 
 [![Protocol](https://img.shields.io/badge/protocol-2.4-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Aider-green)](#支持的工具) [![Storage](https://img.shields.io/badge/storage-git-orange)](#工作原理)
 
-> 关于 `agent-history-*` 分支：v2.4 引入的孤儿分支，保存高频 artefact（如 `history.jsonl`）的滚动覆盖快照。每个分支只有一个 force-push 的 commit，不应合并到 `main`。GitHub 主页提示 "Compare & pull request" 时直接忽略。详见 [AGENTS.md §12](AGENTS.md)。
-
 ---
 
-## 目的
+## 解决什么问题
 
-把 git 仓当成 AI coding agent 的共享外脑。你在公司电脑上配置过工作上下文，回家换个人电脑，或登录云服务器继续开发时，不必面对一个重新追问“你是谁、项目做到哪了”的空白 agent。Claude、Codex、Gemini 或任何读取 markdown 的 CLI，都可以跨 session、跨机器、跨工具、跨厂商读取同一份有版本记录的上下文。无插件、无服务器、无第三方依赖，只需要一个私有 git 仓。
+每次在新机器、新 session，或换工具后打开 AI coding agent，它都从零开始——“你是谁？”“这个项目做到哪了？”公司电脑上的 agent 熟悉你的规则，个人电脑上的却一片空白；云服务器读不到别处记录的进度；厂商私有 memory 还把你锁死在单一生态里。
 
-### 要解决的问题
+nestwork 用一个想法解决它：**把一个私有 git 仓当成你所有 agent 的共享大脑。** 上下文只配置一次，之后每个 agent——Claude、Codex、Gemini 或任何读取 markdown 的 CLI——都跨 session、跨机器、跨工具、跨厂商读取同一份有版本记录的上下文。无插件、无服务器、无第三方依赖，只需要一个私有 git 仓。
+
 - 公司电脑上的 agent 已熟悉你的规则，个人电脑上的 agent 却要重新配置
 - 云开发服务器读不到其他设备已经记录的项目进度
 - 换 session 或换工具后，你不得不反复解释自己是谁、此前做过什么判断
 - 厂商私有 memory（OpenAI Memory 等）锁定生态、无法迁移
 
-### 要达成的效果
-
-> [!TIP]
-> 在个人/公司设备、云服务器、不同 session 和不同工具之间，共享一份私有、可追溯的上下文来源。
-
-- 记忆 100% 在你自己的 git 仓里，零厂商锁定、离线可用
-- 协议级的多 agent 协作（不是某个工具的特性）
-- 你的稳定规则、偏好和项目进度能跟随到新打开的 agent 会话
-
-### 哪些工作会连续起来
-
-- 在公司电脑上，agent 记录经过允许的项目进度与工作规则。
-- 回到家，新会话 pull 同一份上下文，不必重新建立身份和项目背景。
-- 在云服务器上，另一个 agent 能从有版本记录的项目状态和决策继续工作。
-- 长期来看，决策与可复用方法成为你自己控制、可搜索的资产，而不是困在单一厂商里的记忆。
-
-### 为什么值得多写
-
-上下文窗口在涨。2024 年 200K 是顶配，2025 年 1M 进了生产，2026 起 1M 是默认值，10M 在实验室。3 年后 agent 一次能读完你写过的全部笔记，跨项目模式识别在那一刻才会出现。
-
-在那之前，agent 每次只挑 3–5 个 memory 文件读。你存了 100 个，95% 的读取看起来像浪费。它不是。git 存储成本接近零，写入只发生一次，读取价值随窗口大小线性放大。今天没人读的那 95 个文件，是你 3 年后跨雇主、跨项目检索的基底。
-
-还有几个用途和 agent 无关：
-
-- 版本化决策档案，能回答"我 2023 年为什么选 NestJS 而不是 Express"
-- 个人微调模型的语料
-- 换设备 / 换雇主 / 换工具时不会丢的认知层
-
-实操：遇到非敏感决策、踩坑、跨项目方法论就写。一行也写。按 v2.2 拆分规则该拆就拆。别为"agent 现在读不完"省字。Nestwork 保存的是可携带上下文，不是密钥仓库，也不是未经审查的雇主机密存档。
-
-### 适合谁
-
-> [!NOTE]
-> 长期与多个 AI agent 共事、跨机器/跨工具开发、想把职业认知沉淀成可携带资产的开发者。
-
-### 全文速览
-
-| 章节 | 一句话答案 |
-|---|---|
-| [快速开始](#快速开始) | 3 步：从 template 建私有仓 → clone 到每台机器 → 跑 installer |
-| [工作原理](#工作原理) | 优先级链 + session 生命周期 + 原子逐次写入 hook 架构 |
-| [核心设计原则](#核心设计原则) | 6 条不可妥协：git-only、读写隔离、记忆分层、模板化私有实例、跨工具中立、协议可演进 |
-| [与其他方案对比](#与其他方案对比) | 为什么不用 MCP server / claude-mem / 厂商 memory / 自建数据库 |
-| [自定义你的 nest](#自定义你的-nest) | 编辑 `queen/` `projects/` `workflow/` 各层 |
-| [v2.2 新增](#v22-新增workflow-与-nestworkconfigjson) | `workflow/` 跨项目知识层 + `nestwork.config.json` 外部目录脱敏吸收契约 |
-| [真实工作流示例](#真实工作流示例) | 多机协作 / 跨工具迁移 / 雇主项目知识沉淀 |
-| [编译共享记忆](#编译共享记忆distillation) | `compile.sh` 拼接 vs `distill.py` LLM 蒸馏，非破坏性合并到 `shared/` |
-| [目录结构](#目录结构) / [行数限制](#文件行数限制与拆分协议) | 仓库布局 + 文件拆分协议 |
-| [支持的工具](#支持的工具) | Claude Code / Codex / Gemini / Hermes / Aider / generic 任何 markdown-config CLI + IDE 插件软链接 |
-| [跟踪上游更新](#跟踪上游更新) | GitHub Action 自动 PR 或 `update.sh` 手动同步，不动你的私有数据 |
-| [FAQ](#faq) / [故障排查](#故障排查) | 常见疑问与排错清单 |
-| [不做什么](#不做什么non-goals) | nestwork 明确不解决的问题 |
-
 ---
 
-## 快速开始
+## 怎么安装
 
 ### 1. 创建你的私有 queen
 
@@ -142,10 +88,82 @@ Gemini CLI / OpenClaw / Hermes / Aider 用法相同，把 `claude` 换成对应�
 懒得手动走流程？把下面任一条粘进 Claude Code 会话：
 
 - 从零开始：
-  > 阅读 https://github.com/songth1ef/nestwork 的 README，按 Quickstart 帮我从 template 新建私有 queen 仓库，clone 到本机，并完成 Claude Code 接入。
+  > 阅读 https://github.com/songth1ef/nestwork 的 README，按安装步骤帮我从 template 新建私有 queen 仓库，clone 到本机，并完成 Claude Code 接入。
 
 - 发现可配置功能：
   > 阅读 https://github.com/songth1ef/nestwork 的 README，列出 nestwork 所有可配置功能（hooks、可选同步、过滤等），并根据我当前机器场景建议要不要开启。
+
+---
+
+## 怎么用
+
+装完之后没有新东西要学——你照常用你的 agent 就行。
+
+- **它自动记得。** 在任何机器上开一个 session，agent 会先 pull 你的 nest，加载你的规则、偏好，以及每个项目停在哪。不用再“你是谁”地重新自我介绍。
+- **由你决定留什么。** 遇到一个决策、一条教训、或项目状态变化，让 agent 记下来（或采纳它的提议）。它写到自己的 `agents/<host>/<agent-id>/` 目录并 push——有版本、归你所有。
+- **它跨机器、跨工具跟着你走。** 换到笔记本、云服务器，或从 Claude 换到 Codex，下一个 session 读到同一份上下文。记忆在你的 git 仓里，不在厂商那里。
+
+典型的一周：
+
+- 公司电脑：agent 记录经过允许的项目进度与工作规则。
+- 回到家：新会话从同一份上下文继续，而不是重建。
+- 云服务器：另一个 agent 从有版本记录的项目状态和决策接着干。
+
+git 同步、优先级链、hook 全自动运行。想了解机制看 [工作原理](#工作原理)。
+
+---
+
+## 要达成的效果
+
+> [!TIP]
+> 在个人/公司设备、云服务器、不同 session 和不同工具之间，共享一份私有、可追溯的上下文来源。
+
+- 记忆 100% 在你自己的 git 仓里，零厂商锁定、离线可用
+- 协议级的多 agent 协作（不是某个工具的特性）
+- 你的稳定规则、偏好和项目进度能跟随到新打开的 agent 会话
+
+---
+
+## 为什么值得多写
+
+上下文窗口在涨。2024 年 200K 是顶配，2025 年 1M 进了生产，2026 起 1M 是默认值，10M 在实验室。3 年后 agent 一次能读完你写过的全部笔记，跨项目模式识别在那一刻才会出现。
+
+在那之前，agent 每次只挑 3–5 个 memory 文件读。你存了 100 个，95% 的读取看起来像浪费。它不是。git 存储成本接近零，写入只发生一次，读取价值随窗口大小线性放大。今天没人读的那 95 个文件，是你 3 年后跨雇主、跨项目检索的基底。
+
+还有几个用途和 agent 无关：
+
+- 版本化决策档案，能回答"我 2023 年为什么选 NestJS 而不是 Express"
+- 个人微调模型的语料
+- 换设备 / 换雇主 / 换工具时不会丢的认知层
+
+实操：遇到非敏感决策、踩坑、跨项目方法论就写。一行也写。按 v2.2 拆分规则该拆就拆。别为"agent 现在读不完"省字。Nestwork 保存的是可携带上下文，不是密钥仓库，也不是未经审查的雇主机密存档。
+
+---
+
+## 适合谁
+
+> [!NOTE]
+> 长期与多个 AI agent 共事、跨机器/跨工具开发、想把职业认知沉淀成可携带资产的开发者。
+
+---
+
+## 全文速览
+
+| 章节 | 一句话答案 |
+|---|---|
+| [怎么安装](#怎么安装) | 3 步：从 template 建私有仓 → clone 到每台机器 → 跑 installer |
+| [工作原理](#工作原理) | 优先级链 + session 生命周期 + 原子逐次写入 hook 架构 |
+| [核心设计原则](#核心设计原则) | 6 条不可妥协：git-only、读写隔离、记忆分层、模板化私有实例、跨工具中立、协议可演进 |
+| [与其他方案对比](#与其他方案对比) | 为什么不用 MCP server / claude-mem / 厂商 memory / 自建数据库 |
+| [自定义你的 nest](#自定义你的-nest) | 编辑 `queen/` `projects/` `workflow/` 各层 |
+| [v2.2 新增](#v22-新增workflow-与-nestworkconfigjson) | `workflow/` 跨项目知识层 + `nestwork.config.json` 外部目录脱敏吸收契约 |
+| [真实工作流示例](#真实工作流示例) | 多机协作 / 跨工具迁移 / 雇主项目知识沉淀 |
+| [编译共享记忆](#编译共享记忆distillation) | `compile.sh` 拼接 vs `distill.py` LLM 蒸馏，非破坏性合并到 `shared/` |
+| [目录结构](#目录结构) / [行数限制](#文件行数限制与拆分协议) | 仓库布局 + 文件拆分协议 |
+| [支持的工具](#支持的工具) | Claude Code / Codex / Gemini / Hermes / Aider / generic 任何 markdown-config CLI + IDE 插件软链接 |
+| [跟踪上游更新](#跟踪上游更新) | GitHub Action 自动 PR 或 `update.sh` 手动同步，不动你的私有数据 |
+| [FAQ](#faq) / [故障排查](#故障排查) | 常见疑问与排错清单 |
+| [不做什么](#不做什么non-goals) | nestwork 明确不解决的问题 |
 
 ---
 
@@ -568,6 +586,9 @@ LLM 上下文窗口虽大，但注意力随 token 数衰减。把一个 5000 行
 
 ### 可选：捕获本地工具历史
 
+> [!CAUTION]
+> 当前建议关闭。v2.4 的孤儿分支策略已让 `main` 保持精简，但开启它仍会让仓库整体体积（和 fetch 成本）随时间增长。在出现更干净的方案前，保持默认的关闭状态即可。如果你有更好的解决方案，欢迎提 PR。
+
 Claude Code 在 `~/.claude/` 下保留 prompt 历史和 plan 产物；Codex 在 `~/.codex/` 下保留 prompt 历史。可镜像进 `agents/<host>/<id>/local/`，跨机器携带。
 
 按 host 独立启用，无需 env，无需重装。在 queen 里为当前机器对应的 host 目录创建 `agents/<host>/settings.json`：
@@ -814,6 +835,8 @@ git remote set-url origin <你的私有 git>
 ---
 
 ## 协议演进与版本
+
+> 关于 `agent-history-*` 分支：v2.4 引入的孤儿分支，保存高频 artefact（如 `history.jsonl`）的滚动覆盖快照。每个分支只有一个 force-push 的 commit，不应合并到 `main`。GitHub 主页提示 "Compare & pull request" 时直接忽略。详见 [AGENTS.md §12](AGENTS.md)。
 
 - v2.0（2026-04-17）：`agents/` 改为按 host 分组（`agents/<host>/<agent-id>/`），原子逐次写入 hook 架构
 - v2.1（2026-04-21）：SessionStart hook 自动注入上下文

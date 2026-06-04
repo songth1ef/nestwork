@@ -16,76 +16,22 @@ Version: v0.3.0 | Protocol: 2.4
 
 [![Protocol](https://img.shields.io/badge/protocol-2.4-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Aider-green)](#supported-tools) [![Storage](https://img.shields.io/badge/storage-git-orange)](#how-it-works)
 
-> About `agent-history-*` branches: orphan branches introduced in v2.4 hold rolling-overwrite snapshots of high-churn artefacts (e.g. `history.jsonl`). They each contain a single force-pushed commit and are not meant to be merged into `main`. Ignore GitHub's "Compare & pull request" prompt for these branches. See [AGENTS.md §12](AGENTS.md) for details.
-
 ---
 
-## Purpose
+## What problem it solves
 
-Use a git repo as the shared external brain for your AI coding agents. Configure your working context on an office computer, then continue from your personal laptop or a cloud server without every new agent starting from "who are you?" and "where was this project left?" All your agents (Claude / Codex / Gemini / any markdown-config CLI) can read the same versioned context across sessions, machines, tools, and vendors. No plugins, no servers, no third-party dependencies. Just a private git repo.
+Every time you open an AI coding agent on a new machine, in a new session, or after switching tools, it starts from zero — "who are you?", "where was this project left?" The agent on your work computer knows your rules; the one on your laptop doesn't. A cloud host can't see progress recorded elsewhere. And vendor-private memory locks you into one ecosystem.
 
-### Problems it solves
-- The agent configured on your work computer knows your rules, but your personal computer starts blank
-- A cloud development host cannot see current project progress already recorded on another machine
-- Switching sessions or tools makes you repeatedly explain who you are and what was decided
+nestwork fixes this with one idea: **use a private git repo as the shared brain for all your agents.** Configure your context once, then every agent — Claude, Codex, Gemini, or any markdown-config CLI — reads the same versioned context across sessions, machines, tools, and vendors. No plugins, no servers, no third-party dependencies. Just a private git repo.
+
+- The agent on your work computer knows your rules, but your personal computer starts blank
+- A cloud development host cannot see project progress already recorded on another machine
+- Switching sessions or tools makes you repeatedly re-explain who you are and what was decided
 - Vendor-private memory (OpenAI Memory, etc.) locks you into one ecosystem
 
-### What you get
-
-> [!TIP]
-> One private, versioned context source across sessions, personal/work devices, cloud servers, tools, and vendors.
-
-- Memory is 100% in your own git repo. Zero vendor lock-in, works offline.
-- Protocol-level multi-agent collaboration (not a feature of any specific tool)
-- Stable rules, preferences, and project progress can follow you to a newly opened agent session.
-
-### What becomes continuous
-
-- On your work computer, an agent records approved project progress and working rules.
-- At home, a new session pulls the same context instead of rebuilding your identity and project background from scratch.
-- On a cloud server, another agent can continue from versioned project state and decisions.
-- Over time, your decisions and reusable methods remain searchable assets you control, rather than memory trapped in one vendor.
-
-### Why it's worth writing more
-
-Context windows keep growing. 200K was the ceiling in 2024, 1M reached production in 2025, 1M becomes default from 2026 with 10M in labs. Three years from now an agent can read everything you've ever written in one shot, and cross-project pattern recognition starts to work.
-
-Until then, an agent only pulls in 3–5 memory files per session. You store 100, 95% of reads look wasted. They aren't. Git storage cost is near zero, writes happen once, read value grows linearly with the window size. The 95 files no one reads today are the base layer of cross-employer, cross-project retrieval three years from now.
-
-A few uses are independent of any agent:
-
-- A versioned decision archive that can answer "why did I choose NestJS over Express in 2023?"
-- Training material for your future personal fine-tuned model
-- A cognitive layer that doesn't disappear when you switch device, employer, or tool
-
-In practice: when you hit a non-sensitive decision, a lesson, or a cross-project methodology, write it down. Even one line. Split per v2.2 when files get long. Don't ration writes against "the agent can't read it all today." Nestwork is for portable context, not secrets or unreviewed employer-confidential material.
-
-### Who it's for
-
-> [!NOTE]
-> Developers who work long-term with multiple AI agents, develop across machines/tools, and want to crystallize career knowledge into portable assets.
-
-### At-a-glance summary
-
-| Section | One-line answer |
-|---|---|
-| [Quickstart](#quickstart) | 3 steps: create private repo from template → clone to each machine → run installer |
-| [How it works](#how-it-works) | Priority chain + session lifecycle + atomic per-write hook architecture |
-| [Core design principles](#core-design-principles) | 6 non-negotiables: git-only, read/write isolation, layered memory, template + private instance, tool-neutral, evolvable protocol |
-| [Comparison with other approaches](#comparison-with-other-approaches) | Why not MCP server / claude-mem / vendor memory / self-hosted DB |
-| [Customize your nest](#customize-your-nest) | Edit `queen/` `projects/` `workflow/` layers |
-| [v2.2 new](#v22-new-workflow-and-nestworkconfigjson) | `workflow/` cross-project knowledge layer + `nestwork.config.json` ingestion contract for external dirs |
-| [Real workflow examples](#real-workflow-examples) | Multi-machine collaboration / tool migration / employer-project knowledge ingestion |
-| [Compile shared memory](#compile-shared-memory-distillation) | `compile.sh` concat vs `distill.py` LLM distillation, non-destructive merge into `shared/` |
-| [Directory structure](#directory-structure) / [Line limits](#file-size-limits-and-split-protocol) | Repo layout + file split protocol |
-| [Supported tools](#supported-tools) | Claude Code / Codex / Gemini / Hermes / Aider / generic any markdown-config CLI + IDE plugin symlinks |
-| [Staying up to date](#staying-up-to-date) | GitHub Action auto-PR or `update.sh` manual sync, never touches your private data |
-| [FAQ](#faq) / [Troubleshooting](#troubleshooting) | Common questions and debugging recipes |
-| [Non-goals](#non-goals) | What nestwork explicitly will not do |
-
 ---
 
-## Quickstart
+## Install
 
 ### 1. Create your private queen
 
@@ -142,10 +88,82 @@ Do not use API keys, secrets, or employer-confidential details as test content.
 Don't want to follow the steps manually? Paste either of these into a Claude Code session:
 
 - From scratch:
-  > Read the README at https://github.com/songth1ef/nestwork. Following the Quickstart, help me create a private queen repo from the template, clone it locally, and finish Claude Code setup.
+  > Read the README at https://github.com/songth1ef/nestwork. Following the install steps, help me create a private queen repo from the template, clone it locally, and finish Claude Code setup.
 
 - Discover configurable features:
   > Read the README at https://github.com/songth1ef/nestwork. List all configurable nestwork features (hooks, optional sync, filters, etc.) and recommend whether to enable each based on my current machine context.
+
+---
+
+## How to use
+
+After install, there's nothing new to learn — you use your agent the way you already do.
+
+- **It remembers, automatically.** Open a session on any machine and the agent pulls your nest, loading your rules, preferences, and where each project was left. No "who are you?" re-introduction.
+- **You decide what's kept.** When you reach a decision, a lesson, or a change in project status, tell the agent to record it (or accept its suggestion to). It writes to its own `agents/<host>/<agent-id>/` directory and pushes — versioned, and yours.
+- **It follows you across machines and tools.** Move to your laptop, a cloud host, or from Claude to Codex; the next session reads the same context. Memory lives in your git repo, not a vendor.
+
+In a typical week:
+
+- Office computer: an agent records approved project progress and working rules.
+- At home: a new session continues from the same context instead of rebuilding it.
+- Cloud server: another agent picks up from versioned project state and decisions.
+
+The git sync, the priority chain, and the hooks all run automatically. See [How it works](#how-it-works) for the mechanics.
+
+---
+
+## What you get
+
+> [!TIP]
+> One private, versioned context source across sessions, personal/work devices, cloud servers, tools, and vendors.
+
+- Memory is 100% in your own git repo. Zero vendor lock-in, works offline.
+- Protocol-level multi-agent collaboration (not a feature of any specific tool)
+- Stable rules, preferences, and project progress can follow you to a newly opened agent session.
+
+---
+
+## Why it's worth writing more
+
+Context windows keep growing. 200K was the ceiling in 2024, 1M reached production in 2025, 1M becomes default from 2026 with 10M in labs. Three years from now an agent can read everything you've ever written in one shot, and cross-project pattern recognition starts to work.
+
+Until then, an agent only pulls in 3–5 memory files per session. You store 100, 95% of reads look wasted. They aren't. Git storage cost is near zero, writes happen once, read value grows linearly with the window size. The 95 files no one reads today are the base layer of cross-employer, cross-project retrieval three years from now.
+
+A few uses are independent of any agent:
+
+- A versioned decision archive that can answer "why did I choose NestJS over Express in 2023?"
+- Training material for your future personal fine-tuned model
+- A cognitive layer that doesn't disappear when you switch device, employer, or tool
+
+In practice: when you hit a non-sensitive decision, a lesson, or a cross-project methodology, write it down. Even one line. Split per v2.2 when files get long. Don't ration writes against "the agent can't read it all today." Nestwork is for portable context, not secrets or unreviewed employer-confidential material.
+
+---
+
+## Who it's for
+
+> [!NOTE]
+> Developers who work long-term with multiple AI agents, develop across machines/tools, and want to crystallize career knowledge into portable assets.
+
+---
+
+## At-a-glance summary
+
+| Section | One-line answer |
+|---|---|
+| [Install](#install) | 3 steps: create private repo from template → clone to each machine → run installer |
+| [How it works](#how-it-works) | Priority chain + session lifecycle + atomic per-write hook architecture |
+| [Core design principles](#core-design-principles) | 6 non-negotiables: git-only, read/write isolation, layered memory, template + private instance, tool-neutral, evolvable protocol |
+| [Comparison with other approaches](#comparison-with-other-approaches) | Why not MCP server / claude-mem / vendor memory / self-hosted DB |
+| [Customize your nest](#customize-your-nest) | Edit `queen/` `projects/` `workflow/` layers |
+| [v2.2 new](#v22-new-workflow-and-nestworkconfigjson) | `workflow/` cross-project knowledge layer + `nestwork.config.json` ingestion contract for external dirs |
+| [Real workflow examples](#real-workflow-examples) | Multi-machine collaboration / tool migration / employer-project knowledge ingestion |
+| [Compile shared memory](#compile-shared-memory-distillation) | `compile.sh` concat vs `distill.py` LLM distillation, non-destructive merge into `shared/` |
+| [Directory structure](#directory-structure) / [Line limits](#file-size-limits-and-split-protocol) | Repo layout + file split protocol |
+| [Supported tools](#supported-tools) | Claude Code / Codex / Gemini / Hermes / Aider / generic any markdown-config CLI + IDE plugin symlinks |
+| [Staying up to date](#staying-up-to-date) | GitHub Action auto-PR or `update.sh` manual sync, never touches your private data |
+| [FAQ](#faq) / [Troubleshooting](#troubleshooting) | Common questions and debugging recipes |
+| [Non-goals](#non-goals) | What nestwork explicitly will not do |
 
 ---
 
@@ -568,6 +586,9 @@ Only Claude Code registers the full atomic per-write synchronization hooks. Code
 
 ### Optional: capture local tool history
 
+> [!CAUTION]
+> Recommended off for now. v2.4's orphan-branch strategy keeps `main` lean, but enabling this still grows your repo's overall footprint (and fetch cost) over time. Until a cleaner approach lands, leave it disabled — which is the default. If you have a better solution, a PR is welcome.
+
 Claude Code keeps prompt history and plan artifacts under `~/.claude/`; Codex keeps prompt history under `~/.codex/`. These can be mirrored into `agents/<host>/<id>/local/` for cross-machine portability.
 
 Enabled per-host, no env vars or reinstall needed. Create `agents/<host>/settings.json` for the current machine's host directory in your queen:
@@ -814,6 +835,8 @@ If you need any of the above, nestwork may not be the right fit. Pick a dedicate
 ---
 
 ## Protocol evolution
+
+> Note on `agent-history-*` branches: orphan branches introduced in v2.4 hold rolling-overwrite snapshots of high-churn artefacts (e.g. `history.jsonl`). They each contain a single force-pushed commit and are not meant to be merged into `main`. Ignore GitHub's "Compare & pull request" prompt for these branches. See [AGENTS.md §12](AGENTS.md) for details.
 
 - v2.0 (2026-04-17): `agents/` reorganized by host (`agents/<host>/<agent-id>/`); atomic per-write hook architecture
 - v2.1 (2026-04-21): SessionStart hook auto-injects context

@@ -419,6 +419,12 @@ User remains in control: the hook only emits an advisory; nothing is auto-applie
 
 ## 12. High-churn artefacts: per-agent orphan branches (v2.4+)
 
+> [!CAUTION]
+> `sync_local_history` is recommended **off** for now (it is off by default).
+> The orphan-branch strategy below keeps `main` lean, but enabling the feature
+> still grows your repo's overall footprint and fetch cost over time. Leave it
+> disabled until a cleaner approach lands — a PR is welcome.
+
 Some artefacts mirrored into `agents/<host>/<id>/local/` (e.g.
 `history.jsonl` from `sync_local_history`) are **high-frequency, large, and
 poorly delta-compressed**. Committing them to `main` causes the main branch

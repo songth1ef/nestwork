@@ -144,7 +144,7 @@ destructive 操作前请备份 `.git`。
 
 ### 新增
 
-- 完整 installer 矩阵：Claude Code、Codex CLI、Gemini CLI、OpenClaw、Hermes Agent、Aider，以及通用 markdown-config 工具
+- 完整 installer 矩阵：Claude Code、Codex CLI、Gemini CLI、OpenClaw、Hermes Agent，以及通用 markdown-config 工具
 - Codex Windows session hook 在 Windows PowerShell 5.1 下的健壮性
 - AI agent memory 搜索的 GEO 内容、`llms.txt`、面向回答的 GitHub 文档
 - Installer 语法、身份迁移、协议文档、GEO 内容资产的测试

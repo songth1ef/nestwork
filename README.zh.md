@@ -14,7 +14,7 @@
 
 版本：v0.3.0 | 协议：2.4
 
-[![Protocol](https://img.shields.io/badge/protocol-2.4-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Aider-green)](#支持的工具) [![Storage](https://img.shields.io/badge/storage-git-orange)](#工作原理)
+[![Protocol](https://img.shields.io/badge/protocol-2.4-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Hermes-green)](#支持的工具) [![Storage](https://img.shields.io/badge/storage-git-orange)](#工作原理)
 
 ---
 
@@ -73,7 +73,7 @@ Codex（Windows）：
 .\nestwork\scripts\install\codex.ps1
 ```
 
-Gemini CLI / OpenClaw / Hermes / Aider 用法相同，把 `claude` 换成对应工具名。完整列表见 [支持的工具](#支持的工具)。
+Gemini CLI / OpenClaw / Hermes 用法相同，把 `claude` 换成对应工具名。完整列表见 [支持的工具](#支持的工具)。
 
 每台机器执行一次。同一个 queen，不同的 agent ID，共享同一个大脑。
 
@@ -160,7 +160,7 @@ git 同步、优先级链、hook 全自动运行。想了解机制看 [工作原
 | [真实工作流示例](#真实工作流示例) | 多机协作 / 跨工具迁移 / 雇主项目知识沉淀 |
 | [编译共享记忆](#编译共享记忆distillation) | `compile.sh` 拼接 vs `distill.py` LLM 蒸馏，非破坏性合并到 `shared/` |
 | [目录结构](#目录结构) / [行数限制](#文件行数限制与拆分协议) | 仓库布局 + 文件拆分协议 |
-| [支持的工具](#支持的工具) | Claude Code / Codex / Gemini / Hermes / Aider / generic 任何 markdown-config CLI + IDE 插件软链接 |
+| [支持的工具](#支持的工具) | Claude Code / Codex / Gemini / Hermes / generic 任何 markdown-config CLI + IDE 插件软链接 |
 | [跟踪上游更新](#跟踪上游更新) | GitHub Action 自动 PR 或 `update.sh` 手动同步，不动你的私有数据 |
 | [FAQ](#faq) / [故障排查](#故障排查) | 常见疑问与排错清单 |
 | [不做什么](#不做什么non-goals) | nestwork 明确不解决的问题 |
@@ -498,7 +498,6 @@ nestwork/
     │   ├── gemini.{sh,ps1}
     │   ├── hermes.{sh,ps1}
     │   ├── openclaw.{sh,ps1}
-    │   ├── aider.{sh,ps1}
     │   ├── generic.{sh,ps1}       任何 markdown-config CLI
     │   ├── _bootstrap.py          共享 bootstrap 注入器
     │   ├── _codex_hooks.py        Codex config.toml + hooks.json 注册器
@@ -580,7 +579,6 @@ LLM 上下文窗口虽大，但注意力随 token 数衰减。把一个 5000 行
 | Gemini CLI | Google | `~/.gemini/GEMINI.md` | `bash scripts/install/gemini.sh` | 有入口，未亲测 |
 | OpenClaw | 开源 | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install/openclaw.sh` | 有入口，未亲测 |
 | Hermes Agent | 开源 | `~/.hermes/SOUL.md` | `bash scripts/install/hermes.sh` | 有入口，未亲测 |
-| Aider | 开源 | `~/.aider-nestwork.md`（通过 `.aider.conf.yml` `read:` 接入） | `bash scripts/install/aider.sh` | 有入口，未亲测 |
 
 只有 Claude Code 注册完整的原子逐次写入同步 hooks。Codex 会通过 `~/.codex/config.toml` + `~/.codex/hooks.json` 注册用于可选本地 history 快照的 Stop hook；Codex memory 编辑仍按 bootstrap 中的手动 commit/push 协议处理。其他工具按各自 bootstrap 协议运行。
 

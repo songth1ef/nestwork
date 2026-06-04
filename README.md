@@ -14,7 +14,7 @@
 
 Version: v0.3.0 | Protocol: 2.4
 
-[![Protocol](https://img.shields.io/badge/protocol-2.4-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Aider-green)](#supported-tools) [![Storage](https://img.shields.io/badge/storage-git-orange)](#how-it-works)
+[![Protocol](https://img.shields.io/badge/protocol-2.4-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Hermes-green)](#supported-tools) [![Storage](https://img.shields.io/badge/storage-git-orange)](#how-it-works)
 
 ---
 
@@ -73,7 +73,7 @@ Codex (Windows):
 .\nestwork\scripts\install\codex.ps1
 ```
 
-Gemini CLI / OpenClaw / Hermes / Aider follow the same pattern, swap `claude` for the tool name. See [Supported tools](#supported-tools) for the full list.
+Gemini CLI / OpenClaw / Hermes follow the same pattern, swap `claude` for the tool name. See [Supported tools](#supported-tools) for the full list.
 
 Run once per machine. Same queen, different agent IDs, one shared brain.
 
@@ -160,7 +160,7 @@ In practice: when you hit a non-sensitive decision, a lesson, or a cross-project
 | [Real workflow examples](#real-workflow-examples) | Multi-machine collaboration / tool migration / employer-project knowledge ingestion |
 | [Compile shared memory](#compile-shared-memory-distillation) | `compile.sh` concat vs `distill.py` LLM distillation, non-destructive merge into `shared/` |
 | [Directory structure](#directory-structure) / [Line limits](#file-size-limits-and-split-protocol) | Repo layout + file split protocol |
-| [Supported tools](#supported-tools) | Claude Code / Codex / Gemini / Hermes / Aider / generic any markdown-config CLI + IDE plugin symlinks |
+| [Supported tools](#supported-tools) | Claude Code / Codex / Gemini / Hermes / generic any markdown-config CLI + IDE plugin symlinks |
 | [Staying up to date](#staying-up-to-date) | GitHub Action auto-PR or `update.sh` manual sync, never touches your private data |
 | [FAQ](#faq) / [Troubleshooting](#troubleshooting) | Common questions and debugging recipes |
 | [Non-goals](#non-goals) | What nestwork explicitly will not do |
@@ -498,7 +498,6 @@ nestwork/
     │   ├── gemini.{sh,ps1}
     │   ├── hermes.{sh,ps1}
     │   ├── openclaw.{sh,ps1}
-    │   ├── aider.{sh,ps1}
     │   ├── generic.{sh,ps1}       Any markdown-config CLI
     │   ├── _bootstrap.py          Shared bootstrap injector
     │   ├── _codex_hooks.py        Codex config.toml + hooks.json registrar
@@ -580,7 +579,6 @@ The next optimization direction is generated indexes and selective loading by ac
 | Gemini CLI | Google | `~/.gemini/GEMINI.md` | `bash scripts/install/gemini.sh` | Entry exists, untested by author |
 | OpenClaw | Open source | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install/openclaw.sh` | Entry exists, untested by author |
 | Hermes Agent | Open source | `~/.hermes/SOUL.md` | `bash scripts/install/hermes.sh` | Entry exists, untested by author |
-| Aider | Open source | `~/.aider-nestwork.md` (via `.aider.conf.yml` `read:`) | `bash scripts/install/aider.sh` | Entry exists, untested by author |
 
 Only Claude Code registers the full atomic per-write synchronization hooks. Codex registers a Stop hook for optional local-history snapshots through `~/.codex/config.toml` + `~/.codex/hooks.json`; Codex memory edits still follow the manual commit/push bootstrap protocol. Other tools follow their bootstrap protocol.
 

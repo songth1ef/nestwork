@@ -106,7 +106,7 @@ Adds a portable workflow context layer and a contract for ingesting external wor
 ## v0.2.0 - 2026-04-19
 
 - Introduced protocol v2 host/agent layout: `agents/<host>/<agent-id>/`.
-- Added and hardened installers for Claude Code, Codex CLI, Gemini CLI, OpenClaw, Hermes Agent, Aider, and generic markdown-config tools.
+- Added and hardened installers for Claude Code, Codex CLI, Gemini CLI, OpenClaw, Hermes Agent, and generic markdown-config tools.
 - Aligned identity persistence with the protocol v2 two-line `~/.nestwork_id` format.
 - Hardened Codex Windows session hook generation for Windows PowerShell 5.1.
 - Added answer-ready GitHub docs, `llms.txt`, and repository-first GEO content for AI agent memory searches.

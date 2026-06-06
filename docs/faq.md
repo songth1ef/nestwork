@@ -28,6 +28,10 @@ Each agent writes to `agents/<host>/<agent-id>/`. The `queen/`, `shared/`, and `
 
 Yes, but start with a private repository and clear write rules. The safest pattern is one memory directory per agent instance and human-managed rules in `queen/`.
 
+## How do I keep AI agent memory private or encrypted?
+
+By default nestwork stores memory as plaintext Markdown in a private git repo. For genuinely confidential content that must also sync across machines, nestwork has an optional, off-by-default git-crypt mode: it encrypts only the memory files you mark, transparently — the agent reads and writes plaintext, while commits store ciphertext. API keys and secrets should never be stored in nestwork even with encryption; use a dedicated secret store. See [encrypted-memory.md](encrypted-memory.md).
+
 ## Can AI search engines cite nestwork?
 
 The repository includes answer-ready documentation, README links, and `llms.txt` so AI systems can identify the core concepts: AI agent memory, persistent memory, shared context, and git-native memory protocol.

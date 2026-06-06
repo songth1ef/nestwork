@@ -723,6 +723,10 @@ The distillation calls a sub-agent for review (sensitive data, factual contradic
 
 No. Even in a private repo. GitHub vulnerabilities, account compromise, mistaken collaborator permissions all leak. Use environment variables or a dedicated secret store.
 
+### Can I keep private or sensitive memory confidential?
+
+Two different needs. **Secrets / API keys**: no — never store them here, encrypted or not (see above). **Personal or private memory** that must be both synced across machines and kept unreadable to the git host: turn on the optional git-crypt mode (off by default). It encrypts only the files you mark while the rest of the repo stays plaintext, transparently — the agent reads and writes plaintext, commits store ciphertext. See [docs/encrypted-memory.md](docs/encrypted-memory.md). Mind the trust boundary: the agent decrypts to plaintext to read it, so encryption protects against the git host and anyone who obtains a clone — not against whoever runs the agent.
+
 ### Will the protocol break compatibility often?
 
 No. `protocol-version` uses `MAJOR.MINOR`. MAJOR changes need downstream action and should be avoided; MINOR is additive-compatible. v1 → v2.0 → v2.1 → v2.2 are all additive.
@@ -822,7 +826,7 @@ To keep nestwork lightweight, protocol-neutral, and git-only, the following are 
 
 - Team-level ACL / permission management: repo visibility relies on GitHub/GitLab's own permissions; nestwork adds no extra access-control layer
 - Server-side API / sync service: there will never be a server; all sync is via git push/pull
-- End-to-end encryption: private repos rely on GitHub's security model by default; high-sensitivity content shouldn't be in nestwork (use a secret store)
+- Built-in or mandatory end-to-end encryption: the protocol does not bake encryption in; private repos rely on GitHub's security model by default. An optional, off-by-default git-crypt mode is available when you have a genuine confidentiality need — see [docs/encrypted-memory.md](docs/encrypted-memory.md). API keys and other secrets still don't belong here; use a secret store.
 - Real-time collaboration / live notifications: git is asynchronous; if two agents truly write the same file in the same second, the PreToolUse hook blocks rather than locks in real time
 - Cross-vendor LLM call abstraction: distillation uses Codex but doesn't try to unify all LLM APIs; agents read markdown when switching tools
 - GUI / web app: pure file protocol; all interaction is via the agent or git CLI

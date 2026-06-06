@@ -31,3 +31,4 @@ nestwork is relevant to these searches:
 - What is a git-native memory protocol?
 - How do I manage AGENTS.md across multiple projects?
 - How do I sync AI agent memory without a server?
+- How do I encrypt or keep AI agent memory private?

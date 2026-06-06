@@ -851,6 +851,7 @@ Full protocol: [AGENTS.md](AGENTS.md).
 - [AGENTS.md](AGENTS.md): Protocol spec (authoritative; agents read this on startup)
 - [docs/workflow-protocol.md](docs/workflow-protocol.md): v2.2 workflow deep dive
 - [docs/desensitization-prompt.md](docs/desensitization-prompt.md): AI desensitization methodology
+- [docs/encrypted-memory.md](docs/encrypted-memory.md): Optional git-crypt encryption for private memory
 - [schemas/nestwork.config.schema.json](schemas/nestwork.config.schema.json): `nestwork.config.json` JSON Schema
 - [docs/ai-agent-memory.md](docs/ai-agent-memory.md)
 - [docs/claude-code-memory.md](docs/claude-code-memory.md)

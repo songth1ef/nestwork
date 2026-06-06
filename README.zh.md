@@ -851,6 +851,7 @@ git remote set-url origin <你的私有 git>
 - [AGENTS.md](AGENTS.md)：协议规范（最权威，agent 启动时读这个）
 - [docs/workflow-protocol.md](docs/workflow-protocol.md)：v2.2 workflow 详解
 - [docs/desensitization-prompt.md](docs/desensitization-prompt.md)：AI 脱敏方法论
+- [docs/encrypted-memory.md](docs/encrypted-memory.md)：用 git-crypt 加密私密记忆（可选）
 - [schemas/nestwork.config.schema.json](schemas/nestwork.config.schema.json)：`nestwork.config.json` JSON Schema
 - [docs/ai-agent-memory.md](docs/ai-agent-memory.md)
 - [docs/claude-code-memory.md](docs/claude-code-memory.md)

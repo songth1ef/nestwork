@@ -8,6 +8,7 @@ These docs are designed for the GitHub repository itself, not for a separate web
 - [Claude Code memory](claude-code-memory.md)
 - [Codex persistent memory](codex-persistent-memory.md)
 - [Git-native memory protocol](git-native-memory-protocol.md)
+- [Encrypted memory (optional git-crypt mode)](encrypted-memory.md)
 - [AGENTS.md best practices](agents-md-best-practices.md)
 - [Shared context for AI coding agents](shared-context-for-ai-coding-agents.md)
 - [FAQ](faq.md)

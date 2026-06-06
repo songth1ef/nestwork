@@ -723,6 +723,10 @@ PreToolUse hook 在每次写入前 `git pull --rebase`，把竞态窗口压到�
 
 不能。即使是 private 仓也不建议。GitHub 漏洞、账号被攻破、合作者权限误授等都会泄漏。API key 用环境变量或专门的 secret store。
 
+### 私密 / 敏感记忆怎么保持机密？
+
+两种不同需求。**密钥 / API key**：不行——无论加不加密都别存这里（见上条）。**个人隐私类记忆**，若既要多机同步、又要对 git 托管方不可读：开启可选的 git-crypt 模式（默认关闭）。它只加密你标记的文件、其余仓库保持明文，且透明——agent 照常读写明文，commit 存的是密文。见 [docs/encrypted-memory.md](docs/encrypted-memory.md)。注意信任边界：agent 要解密成明文才能读，所以加密挡的是 git 托管方和任何拿到 clone 的人，挡不了运行 agent 的那方。
+
 ### 协议会经常 breaking change 吗？
 
 不会。`protocol-version` 用 `MAJOR.MINOR`。MAJOR 改动需要下游动作，应避免；MINOR 是 additive 兼容。从 v1 → v2.0 → v2.1 → v2.2 都是 additive。
@@ -822,7 +826,7 @@ git remote set-url origin <你的私有 git>
 
 - 团队级 ACL / 权限管理：仓库可见性靠 GitHub/GitLab 自身权限，nestwork 不引入额外的访问控制层
 - 服务端 API / 同步服务：永远不会加 server，所有同步都靠 git push/pull
-- 端到端加密：private 仓默认依赖 GitHub 安全模型；高敏感信息不该写进 nestwork（用 secret store）
+- 内建或强制的端到端加密：协议本身不内建加密，private 仓默认依赖 GitHub 安全模型。确有机密性需求时，可选用默认关闭的 git-crypt 模式——见 [docs/encrypted-memory.md](docs/encrypted-memory.md)。API key 等密钥仍不该写进来，用 secret store。
 - 实时协作 / 实时通知：git 是异步的；如果两 agent 真的同秒写同文件，靠 PreToolUse hook 阻止，不靠实时锁
 - 跨厂商 LLM 调用抽象：蒸馏脚本用 Codex，但不试图统一所有 LLM API。换工具时 agent 自己读 markdown 即可
 - GUI / 网页版：纯文件协议，所有交互通过 agent 自己或 git 命令行

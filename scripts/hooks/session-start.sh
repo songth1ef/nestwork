@@ -43,6 +43,15 @@ fi
 # Refresh, but never block on failure (offline, conflict, etc.)
 git pull --rebase --autostash -q 2>/dev/null || git rebase --abort 2>/dev/null || true
 
+# Agent mailbox (Tier 1): refresh this agent's unread-message snapshot into its
+# git-ignored local/ dir, so it can be surfaced via the manifest below without
+# spending the hook's ~2KB stdout budget (the agent Reads the file, like memory).
+# Deletes the snapshot when there is nothing unread. Never blocks startup.
+if [ -f scripts/comms/read.sh ]; then
+  NESTWORK_SELF="$HOST_ID/$AGENT_ID" \
+    bash scripts/comms/read.sh --write "agents/$HOST_ID/$AGENT_ID/local/inbox.md" 2>/dev/null || true
+fi
+
 emit_file() {
   local label="$1" path="$2"
   if [ -f "$path" ]; then
@@ -67,6 +76,7 @@ printf '\n=== READ-ON-START (MANDATORY before first reply; see CLAUDE.md) ===\n'
 manifest_line "queen/strategy.md"
 manifest_line "shared/memory.md"
 manifest_line "agents/$HOST_ID/$AGENT_ID/memory.md"
+manifest_line "agents/$HOST_ID/$AGENT_ID/local/inbox.md"
 
 printf '\n=== READ-ON-DEMAND (when task-relevant) ===\n'
 if [ -d workflow ]; then

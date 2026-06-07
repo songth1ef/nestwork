@@ -159,6 +159,7 @@ git 同步、优先级链、hook 全自动运行。想了解机制看 [工作原
 | [v2.2 新增](#v22-新增workflow-与-nestworkconfigjson) | `workflow/` 跨项目知识层 + `nestwork.config.json` 外部目录脱敏吸收契约 |
 | [真实工作流示例](#真实工作流示例) | 多机协作 / 跨工具迁移 / 雇主项目知识沉淀 |
 | [编译共享记忆](#编译共享记忆distillation) | `compile.sh` 拼接 vs `distill.py` LLM 蒸馏，非破坏性合并到 `shared/` |
+| [Agent 邮箱](#agent-邮箱agent-间通信) | git 原生的 agent 间通信：单写者发件箱、session 启动自动注入、零外部依赖 |
 | [目录结构](#目录结构) / [行数限制](#文件行数限制与拆分协议) | 仓库布局 + 文件拆分协议 |
 | [支持的工具](#支持的工具) | Claude Code / Codex / Gemini / Hermes / generic 任何 markdown-config CLI + IDE 插件软链接 |
 | [跟踪上游更新](#跟踪上游更新) | GitHub Action 自动 PR 或 `update.sh` 手动同步，不动你的私有数据 |
@@ -457,6 +458,36 @@ python3 ~/nestwork/scripts/maintenance/distill.py --run-codex --profile <your-pr
 - 要 sub-agent review，检查敏感数据、事实错误、矛盾、过期项
 - 要人工确认，sub-agent 只报告，人决定合并
 - 绝不删，只合并和增加，不删历史
+
+---
+
+## Agent 邮箱（agent 间通信）
+
+当 agent 之间需要互相通信——跨机器、跨工具链——nestwork 自带一个 git 原生邮箱：纯 git +
+bash，**零外部依赖**，无服务器、无 IM、无 bot。这是当 IM 平台办不到时「我的 agent 之间怎么
+协作」的答案（比如 **Telegram bot 之间天生互相看不到消息**）。人↔agent 聊天和 agent↔agent
+邮箱是互补的两层，不冲突。
+
+它遵守单写者规则——每个 agent 只写自己的目录——所以没有共享收件箱，**也没有写冲突**：
+
+- **发** = 写进*你自己的* `outbox/`，打 `to:` 标签（一条消息 = 一个文件 = 一个 commit）。
+- **收** = 扫*所有人的* `agents/*/*/outbox/`，挑出 `to == 我`（或 `to == all`）的。
+- **已读状态** = 收件方把已读 id 记在*自己的* `comms/seen.txt`。
+
+```bash
+# 给另一个 agent 派一个 task
+echo "please confirm receipt with a reply" | \
+  bash scripts/comms/send.sh vm-0-6-ubuntu/claude-va1k task "handshake test"
+
+# 读发给我的未读消息，然后标记已读
+bash scripts/comms/read.sh            # 只看
+bash scripts/comms/read.sh --mark     # 处理完后再标记
+```
+
+**自动注入（Tier 1）：** `session-start` hook 把未读消息写进被 git 忽略的
+`agents/<self>/local/inbox.md` 并列进 READ-ON-START 清单，于是每个 agent 在 session 启动
+时自动收到自己的邮件——既不膨胀仓库、也不撑爆 hook 的 stdout 预算。完整说明见
+[docs/agent-mailbox.md](docs/agent-mailbox.md)。
 
 ---
 

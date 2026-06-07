@@ -9,6 +9,7 @@ These docs are designed for the GitHub repository itself, not for a separate web
 - [Codex persistent memory](codex-persistent-memory.md)
 - [Git-native memory protocol](git-native-memory-protocol.md)
 - [Encrypted memory (optional git-crypt mode)](encrypted-memory.md)
+- [Agent mailbox (inter-agent messaging)](agent-mailbox.md)
 - [AGENTS.md best practices](agents-md-best-practices.md)
 - [Shared context for AI coding agents](shared-context-for-ai-coding-agents.md)
 - [FAQ](faq.md)
@@ -32,3 +33,4 @@ nestwork is relevant to these searches:
 - How do I manage AGENTS.md across multiple projects?
 - How do I sync AI agent memory without a server?
 - How do I encrypt or keep AI agent memory private?
+- How do my AI agents message or coordinate with each other?

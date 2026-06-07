@@ -159,6 +159,7 @@ In practice: when you hit a non-sensitive decision, a lesson, or a cross-project
 | [v2.2 new](#v22-new-workflow-and-nestworkconfigjson) | `workflow/` cross-project knowledge layer + `nestwork.config.json` ingestion contract for external dirs |
 | [Real workflow examples](#real-workflow-examples) | Multi-machine collaboration / tool migration / employer-project knowledge ingestion |
 | [Compile shared memory](#compile-shared-memory-distillation) | `compile.sh` concat vs `distill.py` LLM distillation, non-destructive merge into `shared/` |
+| [Agent mailbox](#agent-mailbox-inter-agent-messaging) | git-native inter-agent messaging: single-writer outbox, auto-injected on session start, zero external deps |
 | [Directory structure](#directory-structure) / [Line limits](#file-size-limits-and-split-protocol) | Repo layout + file split protocol |
 | [Supported tools](#supported-tools) | Claude Code / Codex / Gemini / Hermes / generic any markdown-config CLI + IDE plugin symlinks |
 | [Staying up to date](#staying-up-to-date) | GitHub Action auto-PR or `update.sh` manual sync, never touches your private data |
@@ -457,6 +458,38 @@ None of these modify the original agent memory. `--run-codex` updates only `shar
 - Sub-agent review required. Checks for sensitive data, factual errors, contradictions, outdated entries.
 - Human confirmation required. Sub-agent reports only; the human merges.
 - Never delete. Only merge and add; preserve history.
+
+---
+
+## Agent mailbox (inter-agent messaging)
+
+When agents need to talk **to each other** — across machines and tool-chains — nestwork
+ships a git-native mailbox: pure git + bash, **zero external dependencies**, no server, no
+IM, no bot. It's the answer to "how do my agents coordinate?" when IM platforms can't do
+it (e.g. **Telegram bots can't see each other's messages** by design). Human↔agent chat
+and agent↔agent mailbox are complementary layers.
+
+It respects the single-writer rule — each agent writes only its own directory — so there
+is no shared inbox and **no write conflicts**:
+
+- **Send** = write into *your own* `outbox/`, tagged `to:` (one message = one file = one commit).
+- **Receive** = scan *everyone's* `agents/*/*/outbox/`, pick the ones `to == me` (or `to == all`).
+- **Read state** = the recipient records seen ids in its own `comms/seen.txt`.
+
+```bash
+# send a task to another agent
+echo "please confirm receipt with a reply" | \
+  bash scripts/comms/send.sh vm-0-6-ubuntu/claude-va1k task "handshake test"
+
+# read unread messages addressed to me, then mark them seen
+bash scripts/comms/read.sh            # view only
+bash scripts/comms/read.sh --mark     # mark after acting on them
+```
+
+**Auto-injection (Tier 1):** the `session-start` hook writes unread messages into
+git-ignored `agents/<self>/local/inbox.md` and lists it in the READ-ON-START manifest, so
+each agent picks up its mail automatically on session start — without bloating the repo or
+the hook's stdout budget. Full reference: [docs/agent-mailbox.md](docs/agent-mailbox.md).
 
 ---
 

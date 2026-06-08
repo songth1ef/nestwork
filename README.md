@@ -593,6 +593,12 @@ The split `memory.md`:
 
 The agent reads the index first, then follows links to relevant topic files.
 
+### Per-instance override (`queen/limits.md`)
+
+The table above is the protocol default. A private instance can override it without editing the protocol layer: create `queen/limits.md` with its own limits table. When present it is authoritative over the defaults, agents load it at session start (it sits in the high-priority `queen/` layer), and `update.sh` never touches `queen/` — so the override survives protocol updates.
+
+Tune against retrieval quality, not raw context-window size: a larger model window does not justify proportionally larger files, since attention still degrades with token count.
+
 ### Why line limits?
 
 LLM context windows are large, but attention degrades with token count. Stuffing a 5000-line `memory.md` in wholesale is poorly utilized. Splitting into topic files plus an index lets an agent follow only the relevant context.

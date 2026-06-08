@@ -2,6 +2,12 @@
 
 [English](CHANGELOG.md) | [中文](CHANGELOG.zh.md)
 
+## Unreleased
+
+### Added
+
+- **Per-instance file-size-limit override (`queen/limits.md`).** A private instance can override the default limit table in AGENTS.md §6 without editing the protocol layer — create `queen/limits.md` with its own table; when present it is authoritative, agents load it at session start (high-priority `queen/` layer), and `update.sh` never touches `queen/`, so the override survives protocol updates. Additive, no protocol-version bump. Tune against retrieval quality, not raw context-window size. (AGENTS.md §6 + README §"File size limits".)
+
 ## v0.6.0 - 2026-05-08
 
 ### Protocol v2.4

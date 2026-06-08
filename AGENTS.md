@@ -184,6 +184,21 @@ When a specific file does not appear in the table below, use these defaults:
 | `projects/<name>.md` | 150 | `projects/<name>/<topic>.md` |
 | `workflow/<topic>.md` | 200 | `workflow/<topic>/<subtopic>.md` |
 
+### Per-instance override (`queen/limits.md`)
+
+The limits above are protocol defaults. A private instance may override them
+without editing this protocol file: create `queen/limits.md` declaring its own
+limits table. When present, `queen/limits.md` is authoritative over the defaults
+here. It lives in the high-priority `queen/` layer, so agents load it at session
+start and apply its numbers; `update.sh` never touches `queen/`, so the override
+survives protocol updates. Point to it from `queen/agent-rules.md` (or rely on
+this section) so agents know to read it.
+
+Tune limits against retrieval quality / attention, not raw context-window size —
+a larger model window does not justify proportionally larger files, because
+attention still degrades with token count and selective loading stays sharper
+with focused, topic-split files.
+
 **How to split** — replace the oversized file with an index:
 
 ```markdown

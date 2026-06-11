@@ -17,7 +17,9 @@
 # Usage:
 #   sync-local-history.py <nestwork_path> <host> <agent_id>
 #
-# Redaction applied to history.jsonl:
+# Redaction applied to history.jsonl (every string field, recursively —
+# schemas differ between tools/versions, so redaction is not coupled to a
+# known field list):
 #   - pastedContents field dropped
 #   - user home path normalised to <HOME>
 #   - obvious token patterns (sk-*, ghp_*, Bearer ...) replaced with <REDACTED>
@@ -77,6 +79,22 @@ def redact_text(text: str, homes: list[str]) -> str:
     return text
 
 
+def redact_value(value, homes: list[str]):
+    """Recursively redact every string in a JSON value.
+
+    Redaction must not be coupled to a known field list: history.jsonl
+    schemas differ between tools and versions, and a token is sensitive
+    no matter which field it landed in.
+    """
+    if isinstance(value, str):
+        return redact_text(value, homes)
+    if isinstance(value, dict):
+        return {k: redact_value(v, homes) for k, v in value.items()}
+    if isinstance(value, list):
+        return [redact_value(v, homes) for v in value]
+    return value
+
+
 def redact_history(src: Path, dst: Path) -> int:
     """Read src jsonl, drop pastedContents, redact inline, write to dst."""
     if not src.exists():
@@ -96,10 +114,7 @@ def redact_history(src: Path, dst: Path) -> int:
                 continue
             if isinstance(entry, dict):
                 entry.pop("pastedContents", None)
-                if "project" in entry and isinstance(entry["project"], str):
-                    entry["project"] = redact_text(entry["project"], homes)
-                if "display" in entry and isinstance(entry["display"], str):
-                    entry["display"] = redact_text(entry["display"], homes)
+            entry = redact_value(entry, homes)
             fout.write(json.dumps(entry, ensure_ascii=False) + "\n")
             n += 1
     return n

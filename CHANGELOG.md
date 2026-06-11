@@ -20,6 +20,8 @@
 - `export-claude-mem.sh` passes the worker URL and date to Python via argv instead of shell interpolation into the heredoc, so a user-controlled `CLAUDE_MEM_URL` can no longer inject into the script.
 - **Installers hardened.** All `scripts/install/*.sh` now run under `set -euo pipefail` and abort with a clear error when the identity resolver does not return two non-empty lines (previously a parse failure silently produced an `agents/<host>/` path with an empty agent-id). The `.ps1` installers force array context on the resolver output (a single-line result previously indexed *characters*, not lines) and validate line count and non-emptiness.
 - `update.sh` checks for protocol drift with `git diff --quiet` instead of capturing the full diff into a variable, and applies upstream files per-path — a file missing upstream is skipped with a note instead of aborting the whole update mid-way.
+- **`sync_local_history` redaction now covers every string field, recursively.** Redaction was scoped to the `project` and `display` fields; history.jsonl schemas differ between tools and versions, so tokens in any other field passed through unredacted. `pastedContents` is still dropped entirely.
+- `distill.py --run-codex` failures now surface Codex's own stderr plus the exact flag list used, instead of a bare `CalledProcessError` string — flag mismatches across Codex CLI versions were undiagnosable before.
 
 ### Fixed
 

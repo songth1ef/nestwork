@@ -32,6 +32,8 @@
 - `export-claude-mem.sh` 改为通过 argv 向 Python 传递 worker URL 和日期，不再做 heredoc 内的 shell 插值，杜绝用户可控的 `CLAUDE_MEM_URL` 注入脚本的可能。
 - **安装脚本加固。** 所有 `scripts/install/*.sh` 改用 `set -euo pipefail`，且当身份解析未返回两行非空输出时报错退出（之前解析失败会静默产生 agent-id 为空的 `agents/<host>/` 路径）。`.ps1` 安装脚本对解析输出强制数组上下文（单行结果之前会按*字符*而非按行索引）并校验行数与非空。
 - `update.sh` 改用 `git diff --quiet` 检测协议层漂移（不再把完整 diff 捕获进变量），并按路径逐个应用上游文件——某个文件在上游缺失时跳过并提示，而不是让整次更新中途中断。
+- **`sync_local_history` 脱敏改为递归覆盖所有字符串字段。** 之前只处理 `project` 和 `display` 两个字段；history.jsonl 的 schema 因工具/版本而异，其他字段里的 token 会原样通过。`pastedContents` 仍整体丢弃。
+- `distill.py --run-codex` 失败时输出 Codex 自身的 stderr 和实际使用的 flag 列表，不再只给一个裸的 `CalledProcessError` 字符串——之前 Codex CLI 版本间的 flag 不兼容无法定位。
 
 ### 修复（Fixed）
 

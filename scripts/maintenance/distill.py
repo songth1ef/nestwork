@@ -169,13 +169,23 @@ def run_codex(prompt: str, profile: str | None, model: str | None) -> str:
         if model:
             cmd[2:2] = ["--model", model]
 
-        subprocess.run(
+        result = subprocess.run(
             cmd,
             input=prompt,
             text=True,
             capture_output=True,
-            check=True,
         )
+        if result.returncode != 0:
+            # Surface codex's own stderr: the bare CalledProcessError string
+            # hides it, and flag mismatches across Codex CLI versions are the
+            # most likely failure here.
+            stderr = (result.stderr or "").strip()
+            detail = f"\n--- codex stderr ---\n{stderr}" if stderr else ""
+            raise RuntimeError(
+                f"codex exec failed (exit {result.returncode}). If stderr "
+                "mentions an unknown flag, your Codex CLI version may not "
+                f"support the flags used here: {' '.join(cmd[1:])}{detail}"
+            )
         return output_path.read_text(encoding="utf-8")
 
 
@@ -292,7 +302,7 @@ def main() -> int:
     try:
         raw_output = run_codex(prompt, args.profile or None, args.model or None)
         shared_content = extract_shared_memory(raw_output)
-    except (FileNotFoundError, ValueError, subprocess.CalledProcessError) as exc:
+    except (FileNotFoundError, ValueError, RuntimeError, subprocess.CalledProcessError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
 

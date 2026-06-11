@@ -32,9 +32,22 @@ match_agent_file() {
 }
 
 # -- git pull --rebase, abort on conflict --------------------------------------
+#
+# --autostash stashes any uncommitted working-tree change before rebasing. If
+# re-applying that stash conflicts, git leaves the changes parked in the stash,
+# resets the working tree clean, and STILL EXITS 0 — a later Write would then
+# silently overwrite the parked edit. Detect the leftover stash entry (locale-
+# independent, unlike grepping git's message) and treat it as a conflict.
 pull_rebase() {
   cd "$NESTWORK_PATH" || return 1
+  local stash_before stash_after
+  stash_before=$(git stash list 2>/dev/null | wc -l)
   if git pull --rebase --autostash -q 2>/dev/null; then
+    stash_after=$(git stash list 2>/dev/null | wc -l)
+    if [ "$stash_after" -gt "$stash_before" ]; then
+      echo "[!] nestwork[$HOST_ID/$AGENT_ID]: autostash conflict -- uncommitted changes were parked in 'git stash'; run 'git stash pop' and resolve before writing memory" >&2
+      return 1
+    fi
     return 0
   fi
   git rebase --abort 2>/dev/null || true

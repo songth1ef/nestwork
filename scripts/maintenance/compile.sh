@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 # ---------------------------------------------
 # nestwork compile
@@ -25,12 +25,37 @@ fi
 
 echo "-> found ${#MEMORY_FILES[@]} agent(s): ${MEMORY_FILES[*]}"
 
-# Build compiled output
+# Strip the installer-generated header (leading H1, blockquote lines, blank
+# lines, and the first horizontal rule) plus the empty-memory placeholder,
+# passing all real content through verbatim. Content must never be run
+# through printf %b or similar: agent memory may legally contain backslash
+# sequences that %b would mangle.
+strip_header() {
+  awk '
+    NR == 1 && /^# /                   { next }
+    !body && /^[[:space:]]*$/          { next }
+    !body && /^>/                      { next }
+    !body && /^---[[:space:]]*$/       { next }
+    /^_No memory yet\._[[:space:]]*$/  { next }
+    { body = 1; print }
+  ' "$1"
+}
+
+# Build compiled output in a temp file, then move into place atomically.
 NOW=$(date -u +"%Y-%m-%d %H:%M UTC")
-OUTPUT="# SHARED MEMORY\n\n"
-OUTPUT+="> This file is compiled from all agents' private memory.\n"
-OUTPUT+="> Read-only for agents. Do not edit manually.\n"
-OUTPUT+="> Last compiled: $NOW\n\n---\n\n"
+TMP="$SHARED.tmp"
+trap '[ -f "$TMP" ] && rm -f "$TMP"' EXIT
+
+cat > "$TMP" <<EOF
+# SHARED MEMORY
+
+> This file is compiled from all agents' private memory.
+> Read-only for agents. Do not edit manually.
+> Last compiled: $NOW
+
+---
+
+EOF
 
 for f in "${MEMORY_FILES[@]}"; do
   # Build label as <host>/<agent-id> from the two directory levels above memory.md
@@ -38,17 +63,16 @@ for f in "${MEMORY_FILES[@]}"; do
   AGENT_ID=$(basename "$AGENT_DIR")
   HOST_ID=$(basename "$(dirname "$AGENT_DIR")")
   LABEL="$HOST_ID/$AGENT_ID"
-  OUTPUT+="## $LABEL\n\n"
-  # Strip frontmatter-style header (first H1 + metadata lines)
-  CONTENT=$(tail -n +4 "$f" | sed '/^---$/d' | sed '/^_No memory yet\._/d')
-  if [ -z "$(echo "$CONTENT" | tr -d '[:space:]')" ]; then
-    OUTPUT+="> _No memory recorded yet._\n\n"
+  printf '## %s\n\n' "$LABEL" >> "$TMP"
+  CONTENT=$(strip_header "$f")
+  if [ -z "$(printf '%s' "$CONTENT" | tr -d '[:space:]')" ]; then
+    printf '> _No memory recorded yet._\n\n' >> "$TMP"
   else
-    OUTPUT+="$CONTENT\n\n"
+    printf '%s\n\n' "$CONTENT" >> "$TMP"
   fi
 done
 
-printf "%b" "$OUTPUT" > "$SHARED"
+mv "$TMP" "$SHARED"
 echo "[ok] compiled -> $SHARED"
 
 # Commit and push

@@ -7,6 +7,31 @@
 ### Added
 
 - **Per-instance file-size-limit override (`queen/limits.md`).** A private instance can override the default limit table in AGENTS.md §6 without editing the protocol layer — create `queen/limits.md` with its own table; when present it is authoritative, agents load it at session start (high-priority `queen/` layer), and `update.sh` never touches `queen/`, so the override survives protocol updates. Additive, no protocol-version bump. Tune against retrieval quality, not raw context-window size. (AGENTS.md §6 + README §"File size limits".)
+- **`scripts/comms/archive.sh`** — moves a sender's own outbox messages older than N days (default 30) into `outbox/archive/`, keeping `read.sh` scan cost bounded as the mailbox ages. Commits and pushes the move.
+- **End-to-end tests** for the v2.4 orphan-branch snapshot (`tests/test_snapshot_local_orphan.py`), the agent mailbox (`tests/test_comms.py`), and `compile.sh` content fidelity (`tests/test_compile.py`).
+- **End-to-end tests for the atomic per-write hook** (`tests/test_nestwork_hook.py`): pre fast-forward, pre blocking on divergent conflict (exit 2), the autostash-leftover guard, post commit+push, the push-retry path after a concurrent remote advance, post ignoring non-agent paths, and the Stop safety net (dirty and clean).
+- **Priority-chain uniformity test**: every rendition of the priority chain across all markdown files must show all six layers, so partial copies can no longer go stale unnoticed.
+- **ADR: GEO doc duplication strategy** (`decisions/2026-06-11-geo-docs-duplication-with-drift-tests.md`, proposed) — keep the intentional duplication across README/AGENTS/docs stubs, control drift with derived consistency tests instead of deduplicating or adding a build step.
+
+### Changed
+
+- **Mailbox delivery is self-contained.** `send.sh` now commits and pushes the message itself (with rebase-retry) instead of relying on the per-write hooks — those only match Write/Edit tool calls, so a Bash-invoked send was never auto-committed, and non-Claude tool-chains had no covering hook at all. Docs updated to describe the real mechanism.
+- **Mailbox read state moved to git-ignored `local/comms/seen.txt`.** Marking messages read no longer creates commits on `main`. A legacy committed `comms/seen.txt` is imported automatically on first read; it can be `git rm`-ed afterwards.
+- **CI sync scope aligned with `update.sh`.** `sync-upstream.yml` `PROTOCOL_PATHS` previously synced only scripts/AGENTS/CLAUDE/SOUL/READMEs, silently never propagating `docs/`, `schemas/`, CHANGELOGs, or the workflow/projects/decisions templates; both lists now match (CI still excludes `.github/workflows/` — GITHUB_TOKEN cannot push workflow files) and both now also carry `VERSION` and `llms.txt`.
+- `export-claude-mem.sh` passes the worker URL and date to Python via argv instead of shell interpolation into the heredoc, so a user-controlled `CLAUDE_MEM_URL` can no longer inject into the script.
+- **Installers hardened.** All `scripts/install/*.sh` now run under `set -euo pipefail` and abort with a clear error when the identity resolver does not return two non-empty lines (previously a parse failure silently produced an `agents/<host>/` path with an empty agent-id). The `.ps1` installers force array context on the resolver output (a single-line result previously indexed *characters*, not lines) and validate line count and non-emptiness.
+- `update.sh` checks for protocol drift with `git diff --quiet` instead of capturing the full diff into a variable, and applies upstream files per-path — a file missing upstream is skipped with a note instead of aborting the whole update mid-way.
+- **`sync_local_history` redaction now covers every string field, recursively.** Redaction was scoped to the `project` and `display` fields; history.jsonl schemas differ between tools and versions, so tokens in any other field passed through unredacted. `pastedContents` is still dropped entirely.
+- `distill.py --run-codex` failures now surface Codex's own stderr plus the exact flag list used, instead of a bare `CalledProcessError` string — flag mismatches across Codex CLI versions were undiagnosable before.
+
+### Fixed
+
+- **`compile.sh` no longer corrupts memory content.** Output was emitted with `printf "%b"`, which interpreted backslash sequences (`\n`, `\t`, `C:\temp`, regexes) *inside agents' memory text*; content now passes through verbatim. Header stripping no longer assumes a fixed 3-line header and no longer leaks the installer template's second blockquote line into `shared/memory.md`.
+- **Pre-write hook autostash guard.** `git pull --rebase --autostash` exits 0 even when re-applying the stash conflicts — git parks the uncommitted change in the stash, leaves the tree clean, and the subsequent Write would silently overwrite it. The hook now detects the leftover stash entry (locale-independent) and blocks the write with a recovery hint instead.
+- **Release metadata reconciled; test suite green again.** `VERSION` and the README version line were stale at v0.3.0 while the CHANGELOG had shipped v0.6.0, and `test_docs_consistency.py` still asserted `Protocol: 2.1` — the suite was red. The test now derives version/protocol expectations from `VERSION` + `AGENTS.md` (instead of hardcoding values that drift) and enforces CLAUDE.md as a byte-exact mirror of AGENTS.md.
+- AGENTS.md §9 now documents `desensitize.placeholder_overrides` (it existed in `schemas/nestwork.config.schema.json` but was missing from the field table); §11 corrects the upstream-check cache path to `~/.cache/nestwork/upstream-check`, which is what the hook actually uses.
+- Stale 5-layer priority chains in `docs/git-native-memory-protocol.md` and `docs/shared-context-for-ai-coding-agents.md` now include `workflow/*.md` (stale since v2.2); removed dead "(to be added in a later step)" notes in `docs/workflow-protocol.md`; `session-start.sh` no longer self-labels a nonexistent protocol v2.5.
+- EN CHANGELOG v0.3.0 entry restructured to match the ZH layout (explicit `Protocol v2.1` / `Compatibility` headings) per this file's own bilingual-parity convention. Content unchanged.
 
 ## v0.6.0 - 2026-05-08
 
@@ -105,8 +130,16 @@ Adds a portable workflow context layer and a contract for ingesting external wor
 
 ## v0.3.0 - 2026-04-22
 
-- Protocol v2.1: split Stop-hook workload. Stop now only runs the lightweight `nestwork.sh stop` safety-net commit+push; the heavier `export-claude-mem.sh` + `sync-local-history.sh` pair moved to a new SessionEnd hook so it runs once at true session end instead of every turn (including `/clear`, resume, compact).
-- `_hooks.py` registers the new `SessionEnd` event; existing installs are cleanly superseded on re-run (old Stop composite command is recognised and removed by `is_nestwork_hook`).
+### Protocol v2.1
+
+Splits the Stop-hook workload and adds a SessionEnd hook.
+
+- Stop now only runs the lightweight `nestwork.sh stop` safety-net commit+push
+- `export-claude-mem.sh` + `sync-local-history.sh` moved to the new SessionEnd hook so they run once at true session end instead of every turn (including `/clear`, resume, compact)
+- `_hooks.py` registers the new `SessionEnd` event; existing installs are cleanly superseded on re-run (old Stop composite command is recognised and removed by `is_nestwork_hook`)
+
+### Compatibility
+
 - Additive-compatible: existing agents keep working until they re-run the installer.
 
 ## v0.2.0 - 2026-04-19

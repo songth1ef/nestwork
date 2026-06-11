@@ -128,6 +128,48 @@ class DistillTests(unittest.TestCase):
                 "# SHARED MEMORY\n\n- merged and written\n",
             )
 
+    def create_failing_codex(self, bin_dir: Path, stderr_text: str, exit_code: int) -> None:
+        bin_dir.mkdir(parents=True, exist_ok=True)
+        fake_codex = bin_dir / "codex"
+        fake_codex.write_text(
+            "\n".join(
+                [
+                    "#!/usr/bin/env python3",
+                    "import sys",
+                    "sys.stdin.read()",
+                    f"print({stderr_text!r}, file=sys.stderr)",
+                    f"sys.exit({exit_code})",
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        fake_codex.chmod(fake_codex.stat().st_mode | stat.S_IEXEC)
+
+    def test_run_codex_failure_surfaces_codex_stderr(self) -> None:
+        TMP_ROOT.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=TMP_ROOT) as tmp:
+            root = Path(tmp)
+            self.create_repo_fixture(root)
+
+            bin_dir = root / "bin"
+            self.create_failing_codex(bin_dir, "error: unknown flag --ignore-rules", 2)
+
+            env = os.environ.copy()
+            env["PATH"] = f"{bin_dir}:{env['PATH']}"
+
+            completed = self.run_distill(root, "--run-codex", env=env)
+
+            self.assertEqual(completed.returncode, 1)
+            self.assertIn("codex exec failed (exit 2)", completed.stderr)
+            # The actionable part: codex's own stderr must reach the user.
+            self.assertIn("unknown flag --ignore-rules", completed.stderr)
+            # shared/memory.md untouched on failure.
+            self.assertIn(
+                "Last compiled: old",
+                (root / "shared" / "memory.md").read_text(encoding="utf-8"),
+            )
+
     @classmethod
     def tearDownClass(cls) -> None:
         if TMP_ROOT.exists():

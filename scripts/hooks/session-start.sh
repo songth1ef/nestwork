@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # -----------------------------------------------------------------------------
-# nestwork SessionStart hook (v2.5: tiered loading)
+# nestwork SessionStart hook (tiered loading)
 #
 # Usage (registered by installer in Claude Code settings.json):
 #   session-start.sh <host> <agent-id>

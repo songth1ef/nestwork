@@ -207,5 +207,5 @@ When the user changes `custom_rules` (e.g., joins a new company), all future ing
 - `AGENTS.md` Section 7 — Memory Distillation Protocol (parallel mechanism for `shared/`)
 - `AGENTS.md` Section 8 — Workflow Protocol (canonical rules)
 - `AGENTS.md` Section 9 — `nestwork.config.json` Contract (canonical schema)
-- `docs/desensitization-prompt.md` — AI prompt template for `strong` desensitization (to be added in a later step)
-- `schemas/nestwork.config.schema.json` — JSON Schema (to be added in a later step)
+- `docs/desensitization-prompt.md` — AI prompt template for `strong` desensitization
+- `schemas/nestwork.config.schema.json` — JSON Schema for `nestwork.config.json`

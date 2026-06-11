@@ -12,9 +12,11 @@
 
 [English](README.md) | 中文
 
-版本：v0.3.0 | 协议：2.4
+版本：v0.6.0 | 协议：2.4
 
 [![Protocol](https://img.shields.io/badge/protocol-2.4-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Hermes-green)](#支持的工具) [![Storage](https://img.shields.io/badge/storage-git-orange)](#工作原理)
+
+**nestwork 是面向 AI 编程 agent 的 git 原生记忆协议：持久记忆与共享上下文都存在你自己的 git 仓里。** 你的 AI agent 记忆跟着你跨 session、跨机器、跨工具。
 
 ---
 
@@ -472,7 +474,7 @@ bash，**零外部依赖**，无服务器、无 IM、无 bot。这是当 IM 平�
 
 - **发** = 写进*你自己的* `outbox/`，打 `to:` 标签（一条消息 = 一个文件 = 一个 commit）。
 - **收** = 扫*所有人的* `agents/*/*/outbox/`，挑出 `to == 我`（或 `to == all`）的。
-- **已读状态** = 收件方把已读 id 记在*自己的* `comms/seen.txt`。
+- **已读状态** = 收件方把已读 id 记在*自己的*、被 git 忽略的 `local/comms/seen.txt`（不进 commit，标记已读不会产生提交）。
 
 ```bash
 # 给另一个 agent 派一个 task

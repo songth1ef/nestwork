@@ -3,8 +3,10 @@ name: Sync Nestwork upstream
 # Automated protocol-layer sync for private Nestwork instances.
 #
 # Opens a PR on your private Nestwork repo whenever the upstream template at
-# songth1ef/nestwork ships changes to scripts/, AGENTS.md, CLAUDE.md, SOUL.md
-# or READMEs. Never touches queen/, agents/, shared/, or projects/.
+# songth1ef/nestwork ships changes to the protocol layer (scripts/, AGENTS.md,
+# CLAUDE.md, SOUL.md, READMEs, CHANGELOGs, docs/, schemas/, VERSION, llms.txt,
+# and the workflow/projects/decisions templates). Never touches queen/,
+# agents/, shared/, or your private projects/ and workflow/ content.
 #
 # Manual "Run workflow" is the default path. Scheduled sync is opt-in via the
 # repo variable `NESTWORK_AUTO_SYNC=true`.
@@ -41,13 +43,18 @@ jobs:
       UPSTREAM_URL: https://github.com/songth1ef/nestwork.git
       UPSTREAM_BRANCH: main
       SYNC_BRANCH: sync/upstream
-      # Protocol paths that GITHUB_TOKEN can push.
+      # Protocol paths that GITHUB_TOKEN can push. Keep in sync with
+      # PROTOCOL_FILES in scripts/maintenance/update.sh.
       # Note: .github/workflows/ is intentionally excluded here — GitHub
       # rejects GITHUB_TOKEN pushes that modify workflow files for security
       # reasons (you would get 403 Resource not accessible by integration).
       # Workflow updates are synced via scripts/maintenance/update.sh
       # instead, which uses your local git auth that has workflow scope.
-      PROTOCOL_PATHS: scripts/ AGENTS.md CLAUDE.md SOUL.md README.md README.zh.md
+      PROTOCOL_PATHS: >-
+        scripts/ AGENTS.md CLAUDE.md SOUL.md README.md README.zh.md
+        CHANGELOG.md CHANGELOG.zh.md VERSION llms.txt docs/ schemas/
+        workflow/README.md workflow/_template.md projects/_template.md
+        decisions/_template.md decisions/README.md
     steps:
       - uses: actions/checkout@v4
         with:

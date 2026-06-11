@@ -1,3 +1,4 @@
+import re
 import unittest
 from pathlib import Path
 
@@ -91,15 +92,75 @@ class DocsConsistencyTests(unittest.TestCase):
         self.assertIn("ai search systems", docs_index)
         self.assertIn("without a website", docs_index)
 
-    def test_repository_version_metadata_exists(self) -> None:
+    def test_repository_version_metadata_is_consistent(self) -> None:
+        """VERSION, CHANGELOG, both READMEs, and the protocol marker must agree.
+
+        Derives expectations from VERSION and AGENTS.md instead of hardcoding
+        values, so a release or protocol bump cannot silently drift (the
+        failure mode that previously left VERSION three releases stale).
+        """
         version = (REPO_ROOT / "VERSION").read_text(encoding="utf-8").strip()
         changelog = (REPO_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+        readme_zh = (REPO_ROOT / "README.zh.md").read_text(encoding="utf-8")
+        agents = (REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8")
 
-        self.assertEqual("0.3.0", version)
-        self.assertIn("## v0.3.0 - 2026-04-22", changelog)
-        self.assertIn("Version: v0.3.0", readme)
-        self.assertIn("Protocol: 2.1", readme)
+        marker = re.search(r"protocol-version: (\d+\.\d+)", agents)
+        self.assertIsNotNone(marker, "AGENTS.md must declare a protocol-version marker")
+        protocol = marker.group(1)
+
+        # VERSION must match the latest released CHANGELOG entry.
+        released = re.search(r"^## v(\d+\.\d+\.\d+) - \d{4}-\d{2}-\d{2}$", changelog, re.M)
+        self.assertIsNotNone(released, "CHANGELOG.md must have a released entry")
+        self.assertEqual(released.group(1), version)
+
+        # Both READMEs must carry the same version and protocol.
+        self.assertIn(f"Version: v{version} | Protocol: {protocol}", readme)
+        self.assertIn(f"badge/protocol-{protocol}-blue", readme)
+        self.assertIn(f"版本：v{version} | 协议：{protocol}", readme_zh)
+
+    def test_priority_chain_is_uniform_across_docs(self) -> None:
+        """Every rendition of the priority chain must show all six layers.
+
+        The chain is duplicated across README/AGENTS/docs for GEO reasons;
+        this guards against partial copies going stale again (workflow/*.md
+        was missing from two docs for several releases).
+        """
+        canonical = (
+            "queen/agent-rules.md > queen/strategy.md > shared/memory.md > "
+            "agents/*/*/memory.md > projects/*.md > workflow/*.md"
+        )
+        for path in sorted(REPO_ROOT.rglob("*.md")):
+            if ".git" in path.parts:
+                continue
+            for lineno, line in enumerate(
+                path.read_text(encoding="utf-8").splitlines(), start=1
+            ):
+                if "queen/agent-rules.md" not in line or ">" not in line:
+                    continue
+                if "shared/memory.md" not in line:
+                    continue
+                normalized = " ".join(line.split())
+                with self.subTest(file=str(path.relative_to(REPO_ROOT)), line=lineno):
+                    self.assertIn(
+                        canonical,
+                        normalized,
+                        "priority chain rendition is missing layers",
+                    )
+
+    def test_claude_md_is_verbatim_mirror_of_agents_md(self) -> None:
+        """CLAUDE.md = generated header + AGENTS.md, byte for byte.
+
+        sync-claude-md.sh declares drift between the two files a bug; this
+        enforces it (regenerate via `bash scripts/maintenance/sync-claude-md.sh`).
+        """
+        agents = (REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8")
+        claude = (REPO_ROOT / "CLAUDE.md").read_text(encoding="utf-8")
+
+        header, sep, body = claude.partition("-->\n\n")
+        self.assertTrue(sep, "CLAUDE.md must start with the generated-mirror header")
+        self.assertIn("verbatim mirror of AGENTS.md", header)
+        self.assertEqual(body, agents)
 
 
 if __name__ == "__main__":

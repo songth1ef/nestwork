@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 # -----------------------------------------------------------------------------
 # nestwork x generic markdown-config installer
@@ -59,6 +59,10 @@ eval CONFIG_PATH="$CONFIG_PATH"
 IDENTITY="$(python3 "$NESTWORK_PATH/scripts/install/_identity.py" "$PREFIX")"
 HOST="$(printf '%s\n' "$IDENTITY" | sed -n 1p)"
 AGENT_ID="$(printf '%s\n' "$IDENTITY" | sed -n 2p)"
+if [ -z "$HOST" ] || [ -z "$AGENT_ID" ]; then
+  echo "ERROR: identity resolver returned host='$HOST' agent='$AGENT_ID' (expected two non-empty lines); check python3 and scripts/install/_identity.py" >&2
+  exit 1
+fi
 AGENT_DIR="$NESTWORK_PATH/agents/$HOST/$AGENT_ID"
 
 echo "-> nestwork path : $NESTWORK_PATH"

@@ -19,10 +19,16 @@ if (-not $PythonCmd) {
 
 # Resolve (host, agent-id) via shared identity helper. Claude uses a random
 # suffix so multiple installs on one machine stay distinct.
-$IdentityLines = & $PythonCmd (Join-Path $NestworkPath "scripts\install\_identity.py") claude --with-suffix
+$IdentityLines = @(& $PythonCmd (Join-Path $NestworkPath "scripts\install\_identity.py") claude --with-suffix)
 if ($LASTEXITCODE -ne 0) { throw "identity resolver failed (exit $LASTEXITCODE)" }
+if ($IdentityLines.Count -lt 2) {
+    throw "identity resolver returned $($IdentityLines.Count) line(s); expected host + agent-id"
+}
 $NestHost = $IdentityLines[0].Trim()
 $AgentId  = $IdentityLines[1].Trim()
+if (-not $NestHost -or -not $AgentId) {
+    throw "identity resolver returned an empty host or agent-id"
+}
 $AgentDir = "$NestworkPath\agents\$NestHost\$AgentId"
 
 Write-Host "-> nestwork path : $NestworkPath"

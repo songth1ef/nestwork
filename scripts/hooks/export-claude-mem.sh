@@ -38,11 +38,13 @@ fi
 # -- 2. Fetch today's observations ---------------------------------------------
 TODAY=$(date +%Y-%m-%d)
 
-DIGEST=$(python3 - <<PYEOF
+# Pass URL/date via argv (quoted heredoc) so a user-controlled CLAUDE_MEM_URL
+# can never inject into the Python source.
+DIGEST=$(python3 - "$WORKER_URL" "$TODAY" <<'PYEOF'
 import urllib.request, json, sys
 
-base_url = "$WORKER_URL"
-today    = "$TODAY"
+base_url = sys.argv[1]
+today    = sys.argv[2]
 
 def fetch_json(path):
     try:

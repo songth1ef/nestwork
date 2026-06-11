@@ -15,11 +15,12 @@ nestwork separates context into layers:
 | Shared memory | `shared/memory.md` | Distilled cross-agent facts |
 | Private memory | `agents/<host>/<agent-id>/memory.md` | One agent's own memory |
 | Project context | `projects/<name>.md` | Context for a specific project |
+| Workflow | `workflow/<topic>.md` | Portable cross-project methodology |
 
 Priority order:
 
 ```text
-queen/agent-rules.md > queen/strategy.md > shared/memory.md > agents/*/*/memory.md > projects/*.md
+queen/agent-rules.md > queen/strategy.md > shared/memory.md > agents/*/*/memory.md > projects/*.md > workflow/*.md
 ```
 
 ## Why git?

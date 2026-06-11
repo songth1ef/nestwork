@@ -12,9 +12,11 @@
 
 [中文](README.zh.md) | English
 
-Version: v0.3.0 | Protocol: 2.4
+Version: v0.6.0 | Protocol: 2.4
 
 [![Protocol](https://img.shields.io/badge/protocol-2.4-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Hermes-green)](#supported-tools) [![Storage](https://img.shields.io/badge/storage-git-orange)](#how-it-works)
+
+**nestwork is a git-native memory protocol for AI coding agents: persistent memory and shared context that live in your own git repo.** Your AI agent memory follows you across sessions, machines, and tools.
 
 ---
 
@@ -474,7 +476,7 @@ is no shared inbox and **no write conflicts**:
 
 - **Send** = write into *your own* `outbox/`, tagged `to:` (one message = one file = one commit).
 - **Receive** = scan *everyone's* `agents/*/*/outbox/`, pick the ones `to == me` (or `to == all`).
-- **Read state** = the recipient records seen ids in its own `comms/seen.txt`.
+- **Read state** = the recipient records seen ids in its own git-ignored `local/comms/seen.txt` (never committed, so marking messages read creates no commits).
 
 ```bash
 # send a task to another agent

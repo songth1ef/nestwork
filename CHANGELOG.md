@@ -11,6 +11,7 @@
 - **End-to-end tests** for the v2.4 orphan-branch snapshot (`tests/test_snapshot_local_orphan.py`), the agent mailbox (`tests/test_comms.py`), and `compile.sh` content fidelity (`tests/test_compile.py`).
 - **End-to-end tests for the atomic per-write hook** (`tests/test_nestwork_hook.py`): pre fast-forward, pre blocking on divergent conflict (exit 2), the autostash-leftover guard, post commit+push, the push-retry path after a concurrent remote advance, post ignoring non-agent paths, and the Stop safety net (dirty and clean).
 - **Priority-chain uniformity test**: every rendition of the priority chain across all markdown files must show all six layers, so partial copies can no longer go stale unnoticed.
+- **ADR: GEO doc duplication strategy** (`decisions/2026-06-11-geo-docs-duplication-with-drift-tests.md`, proposed) — keep the intentional duplication across README/AGENTS/docs stubs, control drift with derived consistency tests instead of deduplicating or adding a build step.
 
 ### Changed
 
@@ -30,6 +31,7 @@
 - **Release metadata reconciled; test suite green again.** `VERSION` and the README version line were stale at v0.3.0 while the CHANGELOG had shipped v0.6.0, and `test_docs_consistency.py` still asserted `Protocol: 2.1` — the suite was red. The test now derives version/protocol expectations from `VERSION` + `AGENTS.md` (instead of hardcoding values that drift) and enforces CLAUDE.md as a byte-exact mirror of AGENTS.md.
 - AGENTS.md §9 now documents `desensitize.placeholder_overrides` (it existed in `schemas/nestwork.config.schema.json` but was missing from the field table); §11 corrects the upstream-check cache path to `~/.cache/nestwork/upstream-check`, which is what the hook actually uses.
 - Stale 5-layer priority chains in `docs/git-native-memory-protocol.md` and `docs/shared-context-for-ai-coding-agents.md` now include `workflow/*.md` (stale since v2.2); removed dead "(to be added in a later step)" notes in `docs/workflow-protocol.md`; `session-start.sh` no longer self-labels a nonexistent protocol v2.5.
+- EN CHANGELOG v0.3.0 entry restructured to match the ZH layout (explicit `Protocol v2.1` / `Compatibility` headings) per this file's own bilingual-parity convention. Content unchanged.
 
 ## v0.6.0 - 2026-05-08
 
@@ -128,8 +130,16 @@ Adds a portable workflow context layer and a contract for ingesting external wor
 
 ## v0.3.0 - 2026-04-22
 
-- Protocol v2.1: split Stop-hook workload. Stop now only runs the lightweight `nestwork.sh stop` safety-net commit+push; the heavier `export-claude-mem.sh` + `sync-local-history.sh` pair moved to a new SessionEnd hook so it runs once at true session end instead of every turn (including `/clear`, resume, compact).
-- `_hooks.py` registers the new `SessionEnd` event; existing installs are cleanly superseded on re-run (old Stop composite command is recognised and removed by `is_nestwork_hook`).
+### Protocol v2.1
+
+Splits the Stop-hook workload and adds a SessionEnd hook.
+
+- Stop now only runs the lightweight `nestwork.sh stop` safety-net commit+push
+- `export-claude-mem.sh` + `sync-local-history.sh` moved to the new SessionEnd hook so they run once at true session end instead of every turn (including `/clear`, resume, compact)
+- `_hooks.py` registers the new `SessionEnd` event; existing installs are cleanly superseded on re-run (old Stop composite command is recognised and removed by `is_nestwork_hook`)
+
+### Compatibility
+
 - Additive-compatible: existing agents keep working until they re-run the installer.
 
 ## v0.2.0 - 2026-04-19

@@ -23,6 +23,7 @@
 - **端到端测试**：v2.4 孤儿分支快照（`tests/test_snapshot_local_orphan.py`）、agent 邮箱（`tests/test_comms.py`）、`compile.sh` 内容保真（`tests/test_compile.py`）。
 - **原子 per-write hook 端到端测试**（`tests/test_nestwork_hook.py`）：pre 快进拉取、pre 在分叉冲突时阻断（exit 2）、autostash 残留防护、post commit+push、远端并发推进后的 push 重试路径、post 忽略非 agent 路径、Stop 安全网（脏/干净两种状态）。
 - **优先级链一致性测试**：所有 markdown 文件中出现的优先级链必须完整展示六层，杜绝局部副本再次悄悄过期。
+- **ADR：GEO 文档重复策略**（`decisions/2026-06-11-geo-docs-duplication-with-drift-tests.md`，proposed）——保留 README/AGENTS/docs stub 间的刻意重复，用「从单一事实源推导期望值」的一致性测试控制漂移，而不是去重或引入构建步骤。
 
 ### 变更（Changed）
 
@@ -42,6 +43,7 @@
 - **发布元数据对齐；测试套件恢复绿色。** `VERSION` 与 README 版本行停在 v0.3.0 而 CHANGELOG 已发布 v0.6.0，且 `test_docs_consistency.py` 仍断言 `Protocol: 2.1`——套件之前是红的。该测试现在从 `VERSION` + `AGENTS.md` 推导版本/协议期望（不再硬编码易漂移的值），并强制 CLAUDE.md 为 AGENTS.md 的字节级镜像。
 - AGENTS.md §9 补充 `desensitize.placeholder_overrides` 字段说明（schema 中已存在但字段表缺失）；§11 把 upstream 检查缓存路径更正为 hook 实际使用的 `~/.cache/nestwork/upstream-check`。
 - `docs/git-native-memory-protocol.md` 与 `docs/shared-context-for-ai-coding-agents.md` 中自 v2.2 起过期的 5 层优先级链补上 `workflow/*.md`；清理 `docs/workflow-protocol.md` 中失效的「(to be added in a later step)」占位语；`session-start.sh` 不再自称不存在的协议 v2.5。
+- 英文 CHANGELOG 的 v0.3.0 条目重排为与中文一致的结构（显式 `Protocol v2.1` / `Compatibility` 标题），内容不变，符合本文件自身的双语对齐约定。
 
 ## v0.6.0 - 2026-05-08
 

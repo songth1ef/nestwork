@@ -45,7 +45,7 @@ TS="$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo unknown)"
 # Build a tree containing only local/ files using a temporary index, so the
 # main working index stays untouched. We add files relative to NESTWORK_PATH
 # so the resulting tree mirrors the original path layout.
-TMP_INDEX="$(mktemp -t nw-snapshot.XXXXXX 2>/dev/null || echo "${TMPDIR:-/tmp}/nw-snapshot.$$")"
+TMP_INDEX="$(mktemp -t nw-snapshot.XXXXXX 2>/dev/null || echo "${TMPDIR:-/tmp}/nw-snapshot.$$.$RANDOM")"
 cleanup() { [ -f "$TMP_INDEX" ] && rm -f "$TMP_INDEX"; }
 trap cleanup EXIT
 

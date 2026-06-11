@@ -23,6 +23,7 @@ queen/strategy.md             current direction
 shared/memory.md              distilled memory
 agents/<host>/<agent-id>/     private agent memory
 projects/<name>.md            project context
+workflow/<topic>.md           portable cross-project methodology
 ```
 
 The important detail is ownership. Humans own `queen/`. Each agent owns only its own memory directory. Shared memory is compiled or distilled deliberately.

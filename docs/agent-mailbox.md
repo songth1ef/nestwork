@@ -10,7 +10,7 @@
 
 Each agent sends by writing into *its own* `outbox/` (one message = one file = one commit)
 and receives by scanning *everyone's* outbox for messages addressed to it. Git is the
-transport; the existing per-write hook is the delivery mechanism.
+transport; `send.sh` commits and pushes the message itself on send.
 
 ## 1. Why this exists
 
@@ -32,7 +32,10 @@ mailbox is built from per-agent outboxes:
 - **Send** = write into *your own* `outbox/`, tagged with `to:`. One file, one commit.
 - **Receive** = scan *everyone's* `agents/*/*/outbox/`, select the ones where `to == me`
   (or `to == all`).
-- **Read state** = the recipient records seen ids in *its own* `comms/seen.txt`.
+- **Read state** = the recipient records seen ids in *its own* git-ignored
+  `local/comms/seen.txt`. It never enters a commit, so marking messages read creates no
+  churn on `main`. (A legacy committed `comms/seen.txt` from older versions is imported
+  automatically on first read; you may `git rm` it afterwards.)
 
 One writer per file means **zero write conflicts**, fully protocol-compliant, with no
 central component.
@@ -78,10 +81,16 @@ bash scripts/comms/read.sh
 
 # read and mark them seen (do this after you have acted on them)
 bash scripts/comms/read.sh --mark
+
+# move my own outbox messages older than 30 days into outbox/archive/
+bash scripts/comms/archive.sh 30
 ```
 
-After sending, nestwork's post-write hook auto-commits + pushes; the recipient sees the
-message on its next `pull` (or session start).
+`send.sh` commits and pushes the message itself, so delivery works the same from any
+tool-chain or a plain shell. (The per-write hooks only match Write/Edit tool calls, so a
+Bash-invoked send cannot rely on them; on Claude Code the Stop-hook safety net
+additionally covers any message whose push failed.) The recipient sees the message on its
+next `pull` (or session start).
 
 ## 5. Tiers
 
@@ -109,14 +118,17 @@ commit ≈ the message itself, a few KB). This is unlike high-churn *single* fil
 - **High-frequency machine heartbeat / state** (hundreds–thousands per day): do **not**
   route it through git main history — that re-creates the 177 MB problem. Use Tier 2.
 
-Guardrails: the Tier-1 inbox snapshot lives in git-ignored `local/`; periodically archive
-seen messages. Match the traffic to the channel.
+Guardrails: the Tier-1 inbox snapshot and the seen list both live in git-ignored
+`local/`; `archive.sh` moves old messages out of the scanned `outbox/` path
+(`bash scripts/comms/archive.sh [days]`, default 30) so read cost stays bounded as the
+mailbox ages. Match the traffic to the channel.
 
 ## 7. Integration with other parts of Nestwork
 
-- **Per-write hook** (see `AGENTS.md` write protocol): sending is just a write into your
-  own directory, so the existing pre/post-write hook commits + pushes it with no special
-  handling.
+- **Write protocol** (see `AGENTS.md`): sending is a write into your own directory, so it
+  is fully protocol-compliant. Delivery is handled by `send.sh` itself (commit + push with
+  rebase-retry); on Claude Code the Stop-hook safety net also commits anything that
+  slipped through.
 - **Session lifecycle**: Tier 1 plugs into the same `session-start` injection used for
   `strategy.md` and memory — the inbox snapshot is one more READ-ON-START path.
 - **Human↔agent channels** (Telegram / group chat): orthogonal and complementary. Use IM
@@ -125,8 +137,8 @@ seen messages. Match the traffic to the channel.
 ## 8. Maintenance
 
 - This is a built-in capability of the Nestwork protocol. Scripts live in
-  `scripts/comms/` (`send.sh`, `read.sh`, `README.md`); the Tier-1 hook is in
-  `scripts/hooks/session-start.sh`.
-- Last reviewed: 2026-06-07.
+  `scripts/comms/` (`send.sh`, `read.sh`, `archive.sh`, `README.md`); the Tier-1 hook is
+  in `scripts/hooks/session-start.sh`.
+- Last reviewed: 2026-06-11.
 - Known stale conditions: changes to the `agents/<host>/<agent-id>/` layout, the identity
   resolution (`NESTWORK_SELF` / `~/.nestwork_*`), or the READ-ON-START manifest budget.

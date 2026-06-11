@@ -23,6 +23,9 @@ UPSTREAM_BRANCH="main"
 # indentation bug fixed in nestwork 43ae297) reach every private nest.
 # If you need per-nest workflow customization, do it via repo-level
 # Variables or Secrets rather than editing the YAML in place.
+# Keep this list in sync with PROTOCOL_PATHS in
+# .github/workflows/sync-upstream.yml (which carries everything here except
+# .github/workflows/ — GITHUB_TOKEN cannot push workflow files).
 PROTOCOL_FILES=(
   scripts/
   .github/workflows/
@@ -33,6 +36,8 @@ PROTOCOL_FILES=(
   README.zh.md
   CHANGELOG.md
   CHANGELOG.zh.md
+  VERSION
+  llms.txt
   docs/
   schemas/
   workflow/README.md

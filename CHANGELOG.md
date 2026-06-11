@@ -7,6 +7,22 @@
 ### Added
 
 - **Per-instance file-size-limit override (`queen/limits.md`).** A private instance can override the default limit table in AGENTS.md §6 without editing the protocol layer — create `queen/limits.md` with its own table; when present it is authoritative, agents load it at session start (high-priority `queen/` layer), and `update.sh` never touches `queen/`, so the override survives protocol updates. Additive, no protocol-version bump. Tune against retrieval quality, not raw context-window size. (AGENTS.md §6 + README §"File size limits".)
+- **`scripts/comms/archive.sh`** — moves a sender's own outbox messages older than N days (default 30) into `outbox/archive/`, keeping `read.sh` scan cost bounded as the mailbox ages. Commits and pushes the move.
+- **End-to-end tests** for the v2.4 orphan-branch snapshot (`tests/test_snapshot_local_orphan.py`), the agent mailbox (`tests/test_comms.py`), and `compile.sh` content fidelity (`tests/test_compile.py`).
+
+### Changed
+
+- **Mailbox delivery is self-contained.** `send.sh` now commits and pushes the message itself (with rebase-retry) instead of relying on the per-write hooks — those only match Write/Edit tool calls, so a Bash-invoked send was never auto-committed, and non-Claude tool-chains had no covering hook at all. Docs updated to describe the real mechanism.
+- **Mailbox read state moved to git-ignored `local/comms/seen.txt`.** Marking messages read no longer creates commits on `main`. A legacy committed `comms/seen.txt` is imported automatically on first read; it can be `git rm`-ed afterwards.
+- **CI sync scope aligned with `update.sh`.** `sync-upstream.yml` `PROTOCOL_PATHS` previously synced only scripts/AGENTS/CLAUDE/SOUL/READMEs, silently never propagating `docs/`, `schemas/`, CHANGELOGs, or the workflow/projects/decisions templates; both lists now match (CI still excludes `.github/workflows/` — GITHUB_TOKEN cannot push workflow files) and both now also carry `VERSION` and `llms.txt`.
+- `export-claude-mem.sh` passes the worker URL and date to Python via argv instead of shell interpolation into the heredoc, so a user-controlled `CLAUDE_MEM_URL` can no longer inject into the script.
+
+### Fixed
+
+- **`compile.sh` no longer corrupts memory content.** Output was emitted with `printf "%b"`, which interpreted backslash sequences (`\n`, `\t`, `C:\temp`, regexes) *inside agents' memory text*; content now passes through verbatim. Header stripping no longer assumes a fixed 3-line header and no longer leaks the installer template's second blockquote line into `shared/memory.md`.
+- **Release metadata reconciled; test suite green again.** `VERSION` and the README version line were stale at v0.3.0 while the CHANGELOG had shipped v0.6.0, and `test_docs_consistency.py` still asserted `Protocol: 2.1` — the suite was red. The test now derives version/protocol expectations from `VERSION` + `AGENTS.md` (instead of hardcoding values that drift) and enforces CLAUDE.md as a byte-exact mirror of AGENTS.md.
+- AGENTS.md §9 now documents `desensitize.placeholder_overrides` (it existed in `schemas/nestwork.config.schema.json` but was missing from the field table); §11 corrects the upstream-check cache path to `~/.cache/nestwork/upstream-check`, which is what the hook actually uses.
+- Stale 5-layer priority chains in `docs/git-native-memory-protocol.md` and `docs/shared-context-for-ai-coding-agents.md` now include `workflow/*.md` (stale since v2.2); removed dead "(to be added in a later step)" notes in `docs/workflow-protocol.md`; `session-start.sh` no longer self-labels a nonexistent protocol v2.5.
 
 ## v0.6.0 - 2026-05-08
 

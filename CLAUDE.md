@@ -352,6 +352,7 @@ See `schemas/nestwork.config.schema.json`. Minimum example:
 | `ingest.name` | string | Destination filename or subfolder under the target. |
 | `desensitize.level` | `none` / `weak` / `strong` | How aggressively content must be desensitized before ingestion. |
 | `desensitize.custom_rules` | string[] | User-defined rules specific to this directory (employer names, internal codenames, etc.). Layered on top of the global methodology. |
+| `desensitize.placeholder_overrides` | object (term → placeholder), optional | Mapping from sensitive term to preferred placeholder. Overrides the default placeholder vocabulary in `docs/desensitization-prompt.md`. |
 
 ### Desensitization levels
 
@@ -439,7 +440,7 @@ The SessionStart hook performs a 3-second non-blocking check against upstream `n
 
 Implementation contract:
 - Hardcoded upstream URL: `https://raw.githubusercontent.com/songth1ef/nestwork/main/AGENTS.md`
-- Local cache: `.nestwork-upstream-check` (24h TTL) so most session starts skip the network call
+- Local cache: `~/.cache/nestwork/upstream-check` (24h TTL) so most session starts skip the network call
 - Network failure / offline / version match → silent skip (never blocks session start)
 - Only **MAJOR.MINOR mismatch where upstream > local** triggers the advisory
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Nestwork agent mailbox — read messages addressed to me (Tier 0/1).
 # Scans every agent's outbox, selects messages where to == me (or to == all),
-# skips ones already recorded in my seen.txt.
+# skips ones already recorded in my seen list.
 #
 # Usage:
 #   read.sh                  print unread to stdout
@@ -11,6 +11,11 @@
 #                            unread. Does NOT mark as seen — the agent marks
 #                            after it has actually acted on the messages.
 #
+# Seen state lives in git-ignored agents/<self>/local/comms/seen.txt so that
+# marking messages read never creates commits on main. A legacy committed
+# agents/<self>/comms/seen.txt (pre v0.7) is imported on first run; you may
+# `git rm` the legacy file afterwards.
+#
 # "Who am I" is resolved from NESTWORK_SELF, else ~/.nestwork_host +
 # ~/.nestwork_id_claude. Other tool-chains: export NESTWORK_SELF=<host>/<agent-id>.
 set -euo pipefail
@@ -19,8 +24,13 @@ ROOT="$(git rev-parse --show-toplevel)"
 SELF="${NESTWORK_SELF:-$(cat ~/.nestwork_host)/$(cat ~/.nestwork_id_claude 2>/dev/null || true)}"
 case "$SELF" in */) echo "ERROR: cannot resolve agent id; set NESTWORK_SELF=host/agent" >&2; exit 1;; esac
 
-SEEN="$ROOT/agents/$SELF/comms/seen.txt"
-mkdir -p "$(dirname "$SEEN")"; touch "$SEEN"
+SEEN="$ROOT/agents/$SELF/local/comms/seen.txt"
+LEGACY_SEEN="$ROOT/agents/$SELF/comms/seen.txt"
+mkdir -p "$(dirname "$SEEN")"
+if [ ! -f "$SEEN" ] && [ -f "$LEGACY_SEEN" ]; then
+  cp "$LEGACY_SEEN" "$SEEN"
+fi
+touch "$SEEN"
 
 MARK=0; WRITE=""
 case "${1:-}" in

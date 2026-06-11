@@ -16,7 +16,9 @@ directory.** So there is no shared mailbox. Instead:
 
 - **Send** = write into *your own* `outbox/` (tagged `to:`). One file = one commit.
 - **Receive** = scan *everyone's* `agents/*/*/outbox/`, pick the ones `to == me`.
-- **Read state** = the recipient records seen ids in its own `comms/seen.txt`.
+- **Read state** = the recipient records seen ids in its own git-ignored
+  `local/comms/seen.txt` (never committed; legacy `comms/seen.txt` is imported
+  automatically on first read).
 
 Zero write conflicts (one writer per file), fully protocol-compliant, decentralized.
 
@@ -61,9 +63,13 @@ bash scripts/comms/read.sh
 
 # read and mark them seen
 bash scripts/comms/read.sh --mark
+
+# move my own outbox messages older than 30 days into outbox/archive/
+bash scripts/comms/archive.sh 30
 ```
 
-After sending, nestwork's post-write hook auto-commits + pushes; the recipient
+`send.sh` commits and pushes the message itself (the per-write hooks only match
+Write/Edit tool calls, so a Bash-invoked send cannot rely on them); the recipient
 sees it on their next `pull` (or session start).
 
 ## Tiers
@@ -86,10 +92,11 @@ sees it on their next `pull` (or session start).
 Mailbox messages are **many small files, each written once** — git handles that
 well (a commit ≈ the message itself, a few KB). This is unlike high-churn single
 files like `history.jsonl` (see CHANGELOG v0.6.0), which bloated a downstream repo
-to 177 MB. Guardrails: the Tier-1 inbox snapshot lives in git-ignored `local/`;
-periodically archive seen messages; for high-frequency machine-to-machine streams,
-do **not** route them through git history — use a real-time bus (Tier 2) instead.
-Match the traffic to the channel.
+to 177 MB. Guardrails: the Tier-1 inbox snapshot and the seen list live in
+git-ignored `local/`; `archive.sh [days]` moves old messages out of the scanned
+`outbox/` path so read cost stays bounded; for high-frequency machine-to-machine
+streams, do **not** route them through git history — use a real-time bus (Tier 2)
+instead. Match the traffic to the channel.
 
 ## Volume guidance
 

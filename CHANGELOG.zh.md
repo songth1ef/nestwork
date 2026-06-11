@@ -21,6 +21,8 @@
 - **每实例文件行数上限覆盖（`queen/limits.md`）。** 私有实例无需改协议层即可覆盖 AGENTS.md §6 的默认限制表——新建 `queen/limits.md` 写自己的表；存在时它有权威，agent 会话启动即加载（高优先级 `queen/` 层），且 `update.sh` 永不触碰 `queen/`，覆盖能扛过协议更新。Additive，不 bump protocol-version。调参按检索质量、不按上下文窗口容量。（AGENTS.md §6 + README「文件行数限制」节。）
 - **`scripts/comms/archive.sh`** —— 把发件人自己 outbox 里超过 N 天（默认 30）的旧消息移入 `outbox/archive/`，让 `read.sh` 的扫描成本随时间保持有界。移动后自动 commit + push。
 - **端到端测试**：v2.4 孤儿分支快照（`tests/test_snapshot_local_orphan.py`）、agent 邮箱（`tests/test_comms.py`）、`compile.sh` 内容保真（`tests/test_compile.py`）。
+- **原子 per-write hook 端到端测试**（`tests/test_nestwork_hook.py`）：pre 快进拉取、pre 在分叉冲突时阻断（exit 2）、autostash 残留防护、post commit+push、远端并发推进后的 push 重试路径、post 忽略非 agent 路径、Stop 安全网（脏/干净两种状态）。
+- **优先级链一致性测试**：所有 markdown 文件中出现的优先级链必须完整展示六层，杜绝局部副本再次悄悄过期。
 
 ### 变更（Changed）
 
@@ -28,10 +30,13 @@
 - **邮箱已读状态移到被 git 忽略的 `local/comms/seen.txt`。** 标记已读不再在 `main` 上产生提交。旧版已提交的 `comms/seen.txt` 首次读取时自动导入，之后可 `git rm`。
 - **CI 同步范围与 `update.sh` 对齐。** `sync-upstream.yml` 的 `PROTOCOL_PATHS` 之前只同步 scripts/AGENTS/CLAUDE/SOUL/README，`docs/`、`schemas/`、CHANGELOG 和 workflow/projects/decisions 模板从未经 CI 传播；现在两份清单一致（CI 仍排除 `.github/workflows/`——GITHUB_TOKEN 无法推送 workflow 文件），且双方都新增了 `VERSION` 与 `llms.txt`。
 - `export-claude-mem.sh` 改为通过 argv 向 Python 传递 worker URL 和日期，不再做 heredoc 内的 shell 插值，杜绝用户可控的 `CLAUDE_MEM_URL` 注入脚本的可能。
+- **安装脚本加固。** 所有 `scripts/install/*.sh` 改用 `set -euo pipefail`，且当身份解析未返回两行非空输出时报错退出（之前解析失败会静默产生 agent-id 为空的 `agents/<host>/` 路径）。`.ps1` 安装脚本对解析输出强制数组上下文（单行结果之前会按*字符*而非按行索引）并校验行数与非空。
+- `update.sh` 改用 `git diff --quiet` 检测协议层漂移（不再把完整 diff 捕获进变量），并按路径逐个应用上游文件——某个文件在上游缺失时跳过并提示，而不是让整次更新中途中断。
 
 ### 修复（Fixed）
 
 - **`compile.sh` 不再损坏记忆内容。** 之前用 `printf "%b"` 输出，会把 agent 记忆正文里的反斜杠序列（`\n`、`\t`、`C:\temp`、正则）当转义解释；现在内容原样直通。头部剥离不再假设固定 3 行头，也不再把安装模板的第二行 blockquote 泄漏进 `shared/memory.md`。
+- **pre-write hook 的 autostash 防护。** `git pull --rebase --autostash` 在 stash 回放冲突时仍然 exit 0——git 把未提交改动留在 stash、工作树复位为干净，随后的 Write 会把它静默覆盖。hook 现在检测 stash 残留条目（与 locale 无关）并阻断写入、给出恢复提示。
 - **发布元数据对齐；测试套件恢复绿色。** `VERSION` 与 README 版本行停在 v0.3.0 而 CHANGELOG 已发布 v0.6.0，且 `test_docs_consistency.py` 仍断言 `Protocol: 2.1`——套件之前是红的。该测试现在从 `VERSION` + `AGENTS.md` 推导版本/协议期望（不再硬编码易漂移的值），并强制 CLAUDE.md 为 AGENTS.md 的字节级镜像。
 - AGENTS.md §9 补充 `desensitize.placeholder_overrides` 字段说明（schema 中已存在但字段表缺失）；§11 把 upstream 检查缓存路径更正为 hook 实际使用的 `~/.cache/nestwork/upstream-check`。
 - `docs/git-native-memory-protocol.md` 与 `docs/shared-context-for-ai-coding-agents.md` 中自 v2.2 起过期的 5 层优先级链补上 `workflow/*.md`；清理 `docs/workflow-protocol.md` 中失效的「(to be added in a later step)」占位语；`session-start.sh` 不再自称不存在的协议 v2.5。

@@ -119,6 +119,35 @@ class DocsConsistencyTests(unittest.TestCase):
         self.assertIn(f"badge/protocol-{protocol}-blue", readme)
         self.assertIn(f"版本：v{version} | 协议：{protocol}", readme_zh)
 
+    def test_priority_chain_is_uniform_across_docs(self) -> None:
+        """Every rendition of the priority chain must show all six layers.
+
+        The chain is duplicated across README/AGENTS/docs for GEO reasons;
+        this guards against partial copies going stale again (workflow/*.md
+        was missing from two docs for several releases).
+        """
+        canonical = (
+            "queen/agent-rules.md > queen/strategy.md > shared/memory.md > "
+            "agents/*/*/memory.md > projects/*.md > workflow/*.md"
+        )
+        for path in sorted(REPO_ROOT.rglob("*.md")):
+            if ".git" in path.parts:
+                continue
+            for lineno, line in enumerate(
+                path.read_text(encoding="utf-8").splitlines(), start=1
+            ):
+                if "queen/agent-rules.md" not in line or ">" not in line:
+                    continue
+                if "shared/memory.md" not in line:
+                    continue
+                normalized = " ".join(line.split())
+                with self.subTest(file=str(path.relative_to(REPO_ROOT)), line=lineno):
+                    self.assertIn(
+                        canonical,
+                        normalized,
+                        "priority chain rendition is missing layers",
+                    )
+
     def test_claude_md_is_verbatim_mirror_of_agents_md(self) -> None:
         """CLAUDE.md = generated header + AGENTS.md, byte for byte.
 

@@ -63,9 +63,7 @@ git fetch upstream "$UPSTREAM_BRANCH" -q
 echo "[ok] fetched"
 
 # -- 3. Check if protocol layer has changes -----------------------------------
-CHANGES=$(git diff HEAD upstream/"$UPSTREAM_BRANCH" -- "${PROTOCOL_FILES[@]}" 2>/dev/null)
-
-if [ -z "$CHANGES" ]; then
+if git diff --quiet HEAD upstream/"$UPSTREAM_BRANCH" -- "${PROTOCOL_FILES[@]}" 2>/dev/null; then
   echo ""
   echo "OK already up to date -- no protocol changes"
   exit 0
@@ -88,7 +86,13 @@ if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
 fi
 
 # -- 6. Apply protocol-layer files from upstream ------------------------------
-git checkout upstream/"$UPSTREAM_BRANCH" -- "${PROTOCOL_FILES[@]}"
+# Per-path so one file missing upstream (renamed/removed in a future protocol
+# version) skips with a note instead of aborting the whole update mid-way.
+for p in "${PROTOCOL_FILES[@]}"; do
+  if ! git checkout upstream/"$UPSTREAM_BRANCH" -- "$p" 2>/dev/null; then
+    echo "[skip] $p (not present upstream)"
+  fi
+done
 echo "[ok] protocol layer updated"
 
 # -- 7. Commit ----------------------------------------------------------------

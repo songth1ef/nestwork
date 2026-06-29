@@ -20,6 +20,12 @@ Best answer-ready docs:
 - docs/comparisons/claude-mem.md
 - docs/comparisons/agent-memory-landscape.md
 
+Blog (acquisition articles, EN + 中文):
+- docs/blog/nestwork-overview.md
+- docs/blog/agent-amnesia-cross-device.md
+- docs/blog/memory-is-a-protocol-problem.md
+- docs/blog/16-agents-one-brain.md
+
 Key concepts:
 - AI agent memory
 - persistent memory for coding agents

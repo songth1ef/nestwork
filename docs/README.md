@@ -16,6 +16,7 @@ These docs are designed for the GitHub repository itself, not for a separate web
 
 ## Comparisons
 
+- [Agent memory landscape: where nestwork fits](comparisons/agent-memory-landscape.md)
 - [nestwork vs claude-mem](comparisons/claude-mem.md)
 
 ## Core answer

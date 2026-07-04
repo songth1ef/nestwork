@@ -93,6 +93,12 @@ for p in "${PROTOCOL_FILES[@]}"; do
     echo "[skip] $p (not present upstream)"
   fi
 done
+
+# `git checkout <tree-ish> -- <path>` stages upstream blobs verbatim, bypassing
+# clean filters. On a nest with git-crypt enabled that would commit upstream's
+# PLAINTEXT into the encrypted repo. Renormalize re-runs clean filters over the
+# staged paths (no-op for unencrypted nests).
+git add --renormalize -- "${PROTOCOL_FILES[@]}" 2>/dev/null || true
 echo "[ok] protocol layer updated"
 
 # -- 7. Commit ----------------------------------------------------------------

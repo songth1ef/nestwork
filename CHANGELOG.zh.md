@@ -39,6 +39,7 @@
 
 ### 修复（Fixed）
 
+- **`update.sh` 不再把上游明文提交进 git-crypt 加密的 nest。** `git checkout <tree-ish> -- <path>` 会把上游 blob 原样写进 index、绕过 clean filter——全仓加密的实例跑一次更新，提交里全是上游明文。应用步骤现在对协议路径补跑 `git add --renormalize` 重过 clean filter（未加密实例为 no-op）。
 - **`compile.sh` 不再损坏记忆内容。** 之前用 `printf "%b"` 输出，会把 agent 记忆正文里的反斜杠序列（`\n`、`\t`、`C:\temp`、正则）当转义解释；现在内容原样直通。头部剥离不再假设固定 3 行头，也不再把安装模板的第二行 blockquote 泄漏进 `shared/memory.md`。
 - **pre-write hook 的 autostash 防护。** `git pull --rebase --autostash` 在 stash 回放冲突时仍然 exit 0——git 把未提交改动留在 stash、工作树复位为干净，随后的 Write 会把它静默覆盖。hook 现在检测 stash 残留条目（与 locale 无关）并阻断写入、给出恢复提示。
 - **发布元数据对齐；测试套件恢复绿色。** `VERSION` 与 README 版本行停在 v0.3.0 而 CHANGELOG 已发布 v0.6.0，且 `test_docs_consistency.py` 仍断言 `Protocol: 2.1`——套件之前是红的。该测试现在从 `VERSION` + `AGENTS.md` 推导版本/协议期望（不再硬编码易漂移的值），并强制 CLAUDE.md 为 AGENTS.md 的字节级镜像。

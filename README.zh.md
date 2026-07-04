@@ -95,6 +95,20 @@ Gemini CLI / OpenClaw / Hermes 用法相同，把 `claude` 换成对应工具名
 - 发现可配置功能：
   > 阅读 https://github.com/songth1ef/nestwork 的 README，列出 nestwork 所有可配置功能（hooks、可选同步、过滤等），并根据我当前机器场景建议要不要开启。
 
+### 卸载
+
+每个安装器在 `scripts/uninstall/` 下都有对应的卸载器。卸载**只解除绑定**：从工具的启动文件里移除 bootstrap 块、摘掉 nestwork 注册的 hooks，让工具不再在会话启动时加载 nestwork。其余一概不动——你的记忆（`agents/<host>/<agent-id>/`）、身份文件（`~/.nestwork_host`、`~/.nestwork_id_<tool>`）、以及同一配置文件里你自己的内容全部原样保留。重新跑安装器即以原身份恢复绑定。
+
+```bash
+bash ~/nestwork/scripts/uninstall/claude.sh     # macOS / Linux
+```
+
+```powershell
+.\nestwork\scripts\uninstall\claude.ps1         # Windows
+```
+
+`codex` / `gemini` / `hermes` / `openclaw` / `generic` 同理换名。若想连该工具的 agent id 一起清掉（下次安装作为全新 agent），加 `--purge-identity`（PowerShell 用 `-PurgeIdentity`）。
+
 ---
 
 ## 怎么用
@@ -535,6 +549,12 @@ nestwork/
     │   ├── _bootstrap.py          共享 bootstrap 注入器
     │   ├── _codex_hooks.py        Codex config.toml + hooks.json 注册器
     │   └── _hooks.py              共享 hook 注册器（Claude Code）
+    ├── uninstall/                 按工具分的卸载器（只解绑；记忆与身份保留）
+    │   ├── claude.{sh,ps1} codex.{sh,ps1} gemini.{sh,ps1}
+    │   ├── hermes.{sh,ps1} openclaw.{sh,ps1} generic.{sh,ps1}
+    │   ├── _unbootstrap.py        共享 bootstrap 移除器
+    │   ├── _codex_unhooks.py      Codex Stop hook 移除器
+    │   └── _unhooks.py            共享 hook 移除器（Claude Code）
     ├── hooks/                     运行时 hook
     │   ├── nestwork.sh            pre/post/stop 统一入口
     │   ├── _match-file.py         stdin 文件匹配器

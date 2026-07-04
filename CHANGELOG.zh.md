@@ -18,6 +18,7 @@
 
 ### 新增（Added）
 
+- **`scripts/uninstall/` 按工具卸载器**——与 `scripts/install/` 镜像（claude / codex / gemini / hermes / openclaw / generic，`.sh` + `.ps1` 双版本）。卸载**只解除绑定**：从工具启动文件移除 bootstrap 标记块、摘掉 nestwork 注册的 hooks（Claude settings.json、Codex hooks.json）。记忆（`agents/<host>/<agent-id>/`）、身份文件（`~/.nestwork_host`、`~/.nestwork_id_<tool>`）及标记块之外的用户内容一概不动；重装即以原身份恢复。可选 `--purge-identity` / `-PurgeIdentity` 连同该工具 agent id 一起清除。共享助手 `_unbootstrap.py` / `_unhooks.py` / `_codex_unhooks.py` 复用安装器自身的匹配逻辑——安装器会覆盖替换的条目，卸载器就能移除。配套 `tests/test_uninstall.py` 往返测试（install → uninstall 保留用户内容与用户 hooks）。
 - **每实例文件行数上限覆盖（`queen/limits.md`）。** 私有实例无需改协议层即可覆盖 AGENTS.md §6 的默认限制表——新建 `queen/limits.md` 写自己的表；存在时它有权威，agent 会话启动即加载（高优先级 `queen/` 层），且 `update.sh` 永不触碰 `queen/`，覆盖能扛过协议更新。Additive，不 bump protocol-version。调参按检索质量、不按上下文窗口容量。（AGENTS.md §6 + README「文件行数限制」节。）
 - **`scripts/comms/archive.sh`** —— 把发件人自己 outbox 里超过 N 天（默认 30）的旧消息移入 `outbox/archive/`，让 `read.sh` 的扫描成本随时间保持有界。移动后自动 commit + push。
 - **端到端测试**：v2.4 孤儿分支快照（`tests/test_snapshot_local_orphan.py`）、agent 邮箱（`tests/test_comms.py`）、`compile.sh` 内容保真（`tests/test_compile.py`）。

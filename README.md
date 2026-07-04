@@ -95,6 +95,20 @@ Don't want to follow the steps manually? Paste either of these into a Claude Cod
 - Discover configurable features:
   > Read the README at https://github.com/songth1ef/nestwork. List all configurable nestwork features (hooks, optional sync, filters, etc.) and recommend whether to enable each based on my current machine context.
 
+### Uninstall
+
+Every installer has a mirror uninstaller under `scripts/uninstall/`. It **unbinds only**: the bootstrap block is removed from the tool's startup file and the nestwork hooks are deregistered, so the tool stops loading nestwork at session start. Nothing else is touched — your memory (`agents/<host>/<agent-id>/`), identity files (`~/.nestwork_host`, `~/.nestwork_id_<tool>`), and any content of your own in the same config files all stay in place. Re-running the installer restores the exact same agent identity.
+
+```bash
+bash ~/nestwork/scripts/uninstall/claude.sh     # macOS / Linux
+```
+
+```powershell
+.\nestwork\scripts\uninstall\claude.ps1         # Windows
+```
+
+Same pattern for `codex` / `gemini` / `hermes` / `openclaw` / `generic`. Pass `--purge-identity` (PowerShell: `-PurgeIdentity`) if you also want to drop that tool's agent id, so a future install starts as a brand-new agent.
+
 ---
 
 ## How to use
@@ -537,6 +551,12 @@ nestwork/
     │   ├── _bootstrap.py          Shared bootstrap injector
     │   ├── _codex_hooks.py        Codex config.toml + hooks.json registrar
     │   └── _hooks.py              Shared hook registrar (Claude Code)
+    ├── uninstall/                 Per-tool uninstallers (unbind only; memory & identity kept)
+    │   ├── claude.{sh,ps1} codex.{sh,ps1} gemini.{sh,ps1}
+    │   ├── hermes.{sh,ps1} openclaw.{sh,ps1} generic.{sh,ps1}
+    │   ├── _unbootstrap.py        Shared bootstrap remover
+    │   ├── _codex_unhooks.py      Codex Stop-hook remover
+    │   └── _unhooks.py            Shared hook remover (Claude Code)
     ├── hooks/                     Runtime hooks
     │   ├── nestwork.sh            Unified pre/post/stop entrypoint
     │   ├── _match-file.py         stdin file matcher

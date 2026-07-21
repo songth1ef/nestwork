@@ -13,7 +13,10 @@
 #   - File exists, markers present -> replace content between markers only
 #
 # Usage:
-#   _install-bootstrap.py <output_md> <nestwork_path> <host> <agent_id>
+#   _install-bootstrap.py <output_md> <nestwork_path> <host> <agent_id> [--tool=<tool>]
+#
+# --tool=kimi produces a Kimi Code-specific bootstrap that does not assume
+# additionalContext injection (Kimi Code currently only runs SessionStart hooks).
 # -----------------------------------------------------------------------------
 
 import os
@@ -96,6 +99,68 @@ See full protocol: `{hp}/AGENTS.md`
 {end}
 """
 
+KIMI_BLOCK_TEMPLATE = """\
+{begin}
+# Nestwork Startup Protocol
+
+Before any analysis, planning, or implementation in a fresh session, ensure
+nestwork context is loaded.
+
+Kimi Code's SessionStart hook runs `git -C {hp} pull --rebase` for you, but
+it does not inject additionalContext. Therefore you MUST Read the files
+below yourself with your Read tool before your first reply.
+
+Required at session start:
+
+1. Pull: `git -C {hp} pull --rebase` (already done by the SessionStart hook)
+2. Read each of the following (use your Read tool):
+   - `{hp}/queen/agent-rules.md`
+   - `{hp}/queen/strategy.md`
+   - `{hp}/shared/memory.md`
+   - `{hp}/agents/{host}/{aid}/memory.md`
+3. Read on demand when task-relevant:
+   - `{hp}/workflow/*.md` (portable methodology)
+   - `{hp}/projects/<name>.md` (current task scope)
+
+Skipping step 2 is a protocol violation: `agent-rules.md` requires you to
+"say so -- do not guess" when context is missing, and step 2 is what
+prevents the missing-context state.
+
+## After loading -- self-direct, do not ask
+
+You have enough signal to pick a next action without user prompting.
+Before your first reply:
+
+1. `git -C {hp} log --oneline -10 -- agents/` -- recent activity across
+   every instance
+2. `git -C {hp} log --oneline -5` -- recent protocol / shared changes
+3. Cross-reference with `queen/strategy.md` **Current Priorities** and
+   the latest entries in `shared/memory.md` / `agents/{host}/{aid}/memory.md`
+
+Open with: **(a) state summary** (2-3 bullets on what's in flight, what
+priorities say, what's blocking) and **(b) one concrete proposal** for
+the next action (plus a short alternative if meaningful).
+
+FORBIDDEN first replies: "What would you like me to do?" / "How can I
+help?" / "Tell me what to do." Only if every source above is empty may
+you ask -- and you must state that you checked and found nothing.
+
+## Write protocol
+
+- Only write to `{hp}/agents/{host}/{aid}/`
+- PreToolUse / PostToolUse hooks handle commit+push for every Write/Edit
+  under `agents/{host}/{aid}/`. If hooks are unavailable, run manually:
+
+```bash
+git -C {hp} add agents/{host}/{aid}/
+git -C {hp} diff --cached --quiet -- agents/{host}/{aid}/ ||   git -C {hp} commit -m "memory: update {host}/{aid}" -- agents/{host}/{aid}/
+git -C {hp} push
+```
+
+See full protocol: `{hp}/AGENTS.md`
+{end}
+"""
+
 
 def strip_legacy_codex_bootstrap(content: str) -> str:
     if not LEGACY_CODEX_BOOTSTRAP_RE.search(content):
@@ -110,7 +175,7 @@ def strip_legacy_codex_bootstrap(content: str) -> str:
 def main() -> int:
     if len(sys.argv) < 5:
         print(
-            "usage: _install-bootstrap.py <output_md> <nestwork_path> <host> <agent_id>",
+            "usage: _install-bootstrap.py <output_md> <nestwork_path> <host> <agent_id> [--tool=<tool>]",
             file=sys.stderr,
         )
         return 2
@@ -120,7 +185,12 @@ def main() -> int:
     host           = sys.argv[3]
     agent_id       = sys.argv[4]
 
-    block = BLOCK_TEMPLATE.format(
+    tool = ""
+    if len(sys.argv) >= 6 and sys.argv[5].startswith("--tool="):
+        tool = sys.argv[5][len("--tool="):].strip().lower()
+
+    template = KIMI_BLOCK_TEMPLATE if tool == "kimi" else BLOCK_TEMPLATE
+    block = template.format(
         begin=BEGIN, end=END, hp=nestwork_path, host=host, aid=agent_id
     )
 

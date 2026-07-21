@@ -75,7 +75,7 @@ Codex (Windows):
 .\nestwork\scripts\install\codex.ps1
 ```
 
-Gemini CLI / OpenClaw / Hermes follow the same pattern, swap `claude` for the tool name. See [Supported tools](#supported-tools) for the full list.
+Gemini CLI / Kimi Code / OpenClaw / Hermes follow the same pattern, swap `claude` for the tool name. See [Supported tools](#supported-tools) for the full list.
 
 Run once per machine. Same queen, different agent IDs, one shared brain.
 
@@ -546,16 +546,19 @@ nestwork/
     │   ├── codex.{sh,ps1}
     │   ├── gemini.{sh,ps1}
     │   ├── hermes.{sh,ps1}
+    │   ├── kimi.{sh,ps1}
     │   ├── openclaw.{sh,ps1}
     │   ├── generic.{sh,ps1}       Any markdown-config CLI
     │   ├── _bootstrap.py          Shared bootstrap injector
     │   ├── _codex_hooks.py        Codex config.toml + hooks.json registrar
-    │   └── _hooks.py              Shared hook registrar (Claude Code)
+    │   ├── _hooks.py              Shared hook registrar (Claude Code)
+    │   └── _kimi_hooks.py         Kimi Code config.toml registrar
     ├── uninstall/                 Per-tool uninstallers (unbind only; memory & identity kept)
     │   ├── claude.{sh,ps1} codex.{sh,ps1} gemini.{sh,ps1}
-    │   ├── hermes.{sh,ps1} openclaw.{sh,ps1} generic.{sh,ps1}
+    │   ├── hermes.{sh,ps1} kimi.{sh,ps1} openclaw.{sh,ps1} generic.{sh,ps1}
     │   ├── _unbootstrap.py        Shared bootstrap remover
     │   ├── _codex_unhooks.py      Codex Stop-hook remover
+    │   ├── _kimi_unhooks.py       Kimi Code hook-block remover
     │   └── _unhooks.py            Shared hook remover (Claude Code)
     ├── hooks/                     Runtime hooks
     │   ├── nestwork.sh            Unified pre/post/stop entrypoint
@@ -638,10 +641,11 @@ The next optimization direction is generated indexes and selective loading by ac
 | Claude Code | Anthropic | `~/.claude/CLAUDE.md` + hooks | `bash scripts/install/claude.sh` | Adopted, daily-driven |
 | Codex CLI | OpenAI | `~/.codex/AGENTS.md` + compatibility entry | `bash scripts/install/codex.sh` | Adopted, daily-driven |
 | Gemini CLI | Google | `~/.gemini/GEMINI.md` | `bash scripts/install/gemini.sh` | Entry exists, untested by author |
+| Kimi Code | Moonshot AI | `~/.kimi-code/NESTWORK.md` + hooks | `bash scripts/install/kimi.sh` | Entry exists, untested by author |
 | OpenClaw | Open source | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install/openclaw.sh` | Entry exists, untested by author |
 | Hermes Agent | Open source | `~/.hermes/SOUL.md` | `bash scripts/install/hermes.sh` | Entry exists, untested by author |
 
-Only Claude Code registers the full atomic per-write synchronization hooks. Codex registers a Stop hook for optional local-history snapshots through `~/.codex/config.toml` + `~/.codex/hooks.json`; Codex memory edits still follow the manual commit/push bootstrap protocol. Other tools follow their bootstrap protocol.
+Claude Code and Kimi Code register the full atomic per-write synchronization hooks. Codex registers a Stop hook for optional local-history snapshots through `~/.codex/config.toml` + `~/.codex/hooks.json`; Codex memory edits still follow the manual commit/push bootstrap protocol. Other tools follow their bootstrap protocol.
 
 ### Optional: capture local tool history
 

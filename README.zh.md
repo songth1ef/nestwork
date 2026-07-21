@@ -75,7 +75,7 @@ Codex（Windows）：
 .\nestwork\scripts\install\codex.ps1
 ```
 
-Gemini CLI / OpenClaw / Hermes 用法相同，把 `claude` 换成对应工具名。完整列表见 [支持的工具](#支持的工具)。
+Gemini CLI / Kimi Code / OpenClaw / Hermes 用法相同，把 `claude` 换成对应工具名。完整列表见 [支持的工具](#支持的工具)。
 
 每台机器执行一次。同一个 queen，不同的 agent ID，共享同一个大脑。
 
@@ -544,16 +544,19 @@ nestwork/
     │   ├── codex.{sh,ps1}
     │   ├── gemini.{sh,ps1}
     │   ├── hermes.{sh,ps1}
+    │   ├── kimi.{sh,ps1}
     │   ├── openclaw.{sh,ps1}
     │   ├── generic.{sh,ps1}       任何 markdown-config CLI
     │   ├── _bootstrap.py          共享 bootstrap 注入器
     │   ├── _codex_hooks.py        Codex config.toml + hooks.json 注册器
-    │   └── _hooks.py              共享 hook 注册器（Claude Code）
+    │   ├── _hooks.py              共享 hook 注册器（Claude Code）
+    │   └── _kimi_hooks.py         Kimi Code config.toml 注册器
     ├── uninstall/                 按工具分的卸载器（只解绑；记忆与身份保留）
     │   ├── claude.{sh,ps1} codex.{sh,ps1} gemini.{sh,ps1}
-    │   ├── hermes.{sh,ps1} openclaw.{sh,ps1} generic.{sh,ps1}
+    │   ├── hermes.{sh,ps1} kimi.{sh,ps1} openclaw.{sh,ps1} generic.{sh,ps1}
     │   ├── _unbootstrap.py        共享 bootstrap 移除器
     │   ├── _codex_unhooks.py      Codex Stop hook 移除器
+    │   ├── _kimi_unhooks.py       Kimi Code hook 块移除器
     │   └── _unhooks.py            共享 hook 移除器（Claude Code）
     ├── hooks/                     运行时 hook
     │   ├── nestwork.sh            pre/post/stop 统一入口
@@ -636,10 +639,11 @@ LLM 上下文窗口虽大，但注意力随 token 数衰减。把一个 5000 行
 | Claude Code | Anthropic | `~/.claude/CLAUDE.md` + hooks | `bash scripts/install/claude.sh` | 已适配，个人在用 |
 | Codex CLI | OpenAI | `~/.codex/AGENTS.md` + 兼容入口 | `bash scripts/install/codex.sh` | 已适配，个人在用 |
 | Gemini CLI | Google | `~/.gemini/GEMINI.md` | `bash scripts/install/gemini.sh` | 有入口，未亲测 |
+| Kimi Code | Moonshot AI | `~/.kimi-code/NESTWORK.md` + hooks | `bash scripts/install/kimi.sh` | 有入口，未亲测 |
 | OpenClaw | 开源 | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install/openclaw.sh` | 有入口，未亲测 |
 | Hermes Agent | 开源 | `~/.hermes/SOUL.md` | `bash scripts/install/hermes.sh` | 有入口，未亲测 |
 
-只有 Claude Code 注册完整的原子逐次写入同步 hooks。Codex 会通过 `~/.codex/config.toml` + `~/.codex/hooks.json` 注册用于可选本地 history 快照的 Stop hook；Codex memory 编辑仍按 bootstrap 中的手动 commit/push 协议处理。其他工具按各自 bootstrap 协议运行。
+Claude Code 与 Kimi Code 都注册完整的原子逐次写入同步 hooks。Codex 会通过 `~/.codex/config.toml` + `~/.codex/hooks.json` 注册用于可选本地 history 快照的 Stop hook；Codex memory 编辑仍按 bootstrap 中的手动 commit/push 协议处理。其他工具按各自 bootstrap 协议运行。
 
 ### 可选：捕获本地工具历史
 

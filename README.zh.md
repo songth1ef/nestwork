@@ -12,9 +12,9 @@
 
 [English](README.md) | 中文
 
-版本：v0.6.0 | 协议：2.4
+版本：v0.6.0 | 协议：2.5
 
-[![Protocol](https://img.shields.io/badge/protocol-2.4-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Hermes-green)](#支持的工具) [![Storage](https://img.shields.io/badge/storage-git-orange)](#工作原理)
+[![Protocol](https://img.shields.io/badge/protocol-2.5-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Hermes-green)](#支持的工具) [![Storage](https://img.shields.io/badge/storage-git-orange)](#工作原理)
 
 **nestwork 是面向 AI 编程 agent 的 git 原生记忆协议：持久记忆与共享上下文都存在你自己的 git 仓里。** 你的 AI agent 记忆跟着你跨 session、跨机器、跨工具。
 
@@ -908,6 +908,7 @@ git remote set-url origin <你的私有 git>
 - v2.2（2026-05-07）：新增 `workflow/` 上下文层 + `nestwork.config.json` 外部目录吸收契约 + 通用 markdown 拆分规则
 - v2.3（2026-05-08）：新增 §10 nestwork 与 repo 5-doc 边界（`projects/<name>.md` 5 字段建议 + `decisions/` 协议级 ADR + `workflow/lessons.md` 跨 repo 教训）；SessionStart hook 增加上游版本自动检测（24h 缓存，仅提醒，绝不自动应用）
 - v2.4（2026-05-08）：新增 §12 高频 artefact 的孤儿分支策略。`agents/*/*/local/` 默认 `.gitignore`，由 `agent-history-<host>-<agent-id>` 单 commit 滚动覆盖快照（force-push）。解决启用 `sync_local_history` 后 main 历史无界膨胀（实测 mynestwork 从 177 MB 降到 1.6 MB）。
+- v2.5（2026-07-28）：新增 §13 工具原生记忆结转。每个编码 agent 自己的记忆都是机器本地的（Claude Code / Codex / Kimi Code 一样），换机器即归零——而账号级记忆则随账号一起消失。新增保留冷路径 `agents/<host>/<agent-id>/carryover/<tool>.md`，接收经 §7 流程**蒸馏**过的工具原生记忆（不是原样镜像），且绝不在会话启动时注入。
 
 完整协议规范见 [AGENTS.md](AGENTS.md)。
 

@@ -12,9 +12,9 @@
 
 [中文](README.zh.md) | English
 
-Version: v0.6.0 | Protocol: 2.4
+Version: v0.6.0 | Protocol: 2.5
 
-[![Protocol](https://img.shields.io/badge/protocol-2.4-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Hermes-green)](#supported-tools) [![Storage](https://img.shields.io/badge/storage-git-orange)](#how-it-works)
+[![Protocol](https://img.shields.io/badge/protocol-2.5-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Hermes-green)](#supported-tools) [![Storage](https://img.shields.io/badge/storage-git-orange)](#how-it-works)
 
 **nestwork is a git-native memory protocol for AI coding agents: persistent memory and shared context that live in your own git repo.** Your AI agent memory follows you across sessions, machines, and tools.
 
@@ -910,6 +910,7 @@ If you need any of the above, nestwork may not be the right fit. Pick a dedicate
 - v2.2 (2026-05-07): Added `workflow/` context layer + `nestwork.config.json` external-directory ingestion contract + universal markdown split rule
 - v2.3 (2026-05-08): Added §10 nestwork-vs-repo-5-doc boundary (`projects/<name>.md` 5-field convention + `decisions/` for protocol-level ADRs + `workflow/lessons.md` for cross-repo lessons); SessionStart hook now auto-checks upstream protocol version (24h cache, advisory only, never auto-applies)
 - v2.4 (2026-05-08): Added §12 orphan-branch strategy for high-churn artefacts. `agents/*/*/local/` is now in default `.gitignore`; `agent-history-<host>-<agent-id>` orphan branches hold a single rolling-overwrite snapshot (force-push). Fixes unbounded main-history bloat when `sync_local_history` is enabled (observed mynestwork: 177 MB → 1.6 MB).
+- v2.5 (2026-07-28): Added §13 tool-native memory carryover. Every coding agent's own memory is machine-local (Claude Code, Codex, Kimi Code alike), so it dies with the disk — and account-bound memory dies with the account. New reserved cold path `agents/<host>/<agent-id>/carryover/<tool>.md` receives that memory **distilled** through the §7 pipeline, never raw-mirrored, and is never injected at session start.
 
 Full protocol: [AGENTS.md](AGENTS.md).
 

@@ -1,6 +1,6 @@
 # NESTWORK BOOTSTRAP
 
-<!-- protocol-version: 2.4 -->
+<!-- protocol-version: 2.5 -->
 
 Every agent that loads this file returns context to the same shared nest.
 Follow this protocol exactly on every session.
@@ -481,6 +481,81 @@ git restore --source=agent-history-<host>-<agent-id> -- \
 ### When to use this pattern (general rule)
 
 For any future high-churn / poorly-compressing artefact: **default to a per-agent orphan branch, not `main`**. Markdown-style memory (low-churn, human-curated) continues to live on `main`.
+
+---
+
+## 13. Tool-native memory carryover (v2.5+)
+
+Every coding agent keeps its own memory, and as of 2026-07 **all of it is machine-local**:
+
+| Tool | Native memory location | Redirect setting |
+|---|---|---|
+| Claude Code | `~/.claude/projects/<project>/memory/` | `autoMemoryDirectory` in `settings.json` |
+| Codex | `~/.codex/memories/` | none — only `CODEX_HOME` moves everything |
+| Kimi Code | `~/.kimi-code/` | none — only `KIMI_CODE_HOME` |
+
+Claude Code's own documentation states it plainly: *"Auto memory is machine-local. Files are not shared across machines or cloud environments."*
+
+That leaves accumulated context exposed three ways: a new machine starts from zero, a discontinued tool takes its memory with it, and account-bound memory disappears with the account. The root cause is **ownership** — the vendor decides where your context lives and how long it survives.
+
+Nestwork already solves this one layer up. This section connects tool-native memory to the same git-owned store.
+
+### Landing place
+
+```
+agents/<host>/<agent-id>/
+├── memory.md          # hot — injected at every session start
+└── carryover/         # cold — never injected
+    ├── claude-code.md
+    ├── codex.md
+    └── kimi-code.md
+```
+
+`carryover/` is a **cold layer**. It is *never* auto-injected at session start. `memory.md` may point at it with a single line; it must not inline its content. Read it when restoring onto a new machine, or when deliberately looking something up.
+
+### This is distillation, not mirroring
+
+Use the §7 pipeline — read, filter, human review, merge, commit — with a new input. **Do not raw-copy a tool's memory directory into the nest.** A raw mirror carries duplicates and expired notes across, and the same fact then lives in two places that drift apart, which §2 already forbids.
+
+Filter by one question: **when does this stop being true?**
+
+| When it stops being true | Where it goes |
+|---|---|
+| Already recorded in the nest | skip — do not write it twice |
+| Its own stated delete-condition has fired | do not carry; propose removing the source |
+| It is a fast-moving progress snapshot | do not carry — it expires the moment it is committed |
+| Only when the machine changes, **and it must apply without being looked up** | `agents/<host>/<agent-id>/memory.md` |
+| Only when the machine changes, **and it is needed only on restore** | `agents/<host>/<agent-id>/carryover/<tool>.md` |
+| Never (portable method, cross-tool pitfall) | `workflow/<topic>.md` — desensitise first |
+| When the project changes | that repository's own `docs/` — propose only, never write across repositories |
+
+The hot/cold split is the one people get wrong. Ask whether the entry has to take effect *when nobody went looking for it*. A known API limitation must — put it in `memory.md`. How a local tool was installed must not — put it in `carryover/`. Hot entries compete for the session-start context budget; when in doubt, choose cold.
+
+### Restoring onto another machine
+
+Some tools derive their project directory name from the repository's **absolute path**, so the same repository produces a different name on a machine with a different drive or checkout location. Every carryover entry therefore records both the original directory name and the repository it referred to:
+
+```markdown
+## <one-line title>
+
+- **source**: `~/.claude/projects/<project-dir>/memory/<file>.md`
+- **original project dir**: `<project-dir>` (repository: `<repo path>`)
+- **carried on**: YYYY-MM-DD
+- **criterion**: cold — needed only on restore
+
+<body, keeping the original Why / How-to-apply structure>
+```
+
+On restore, recompute the directory name from the new machine's repository path and write the content back there.
+
+### Notes
+
+- Carryover is markdown and low-churn, so it lives on `main`. The orphan-branch rule for high-churn artefacts (§12) does not apply.
+- The direction is one-way: tool memory flows into the nest. Nothing flows back into a tool's native store.
+- **Deleting a source memory after distilling is irreversible** — tool-native memory is not under version control. Extract anything worth keeping first.
+- An instance that prefers a live mirror over periodic distillation can point a tool's memory directory into its agent folder where the tool supports it (for example Claude Code's `autoMemoryDirectory`). That is a local choice, not the protocol default: only some tools offer it, every write becomes a commit, and it drops the review step.
+
+Rationale and rejected alternatives: `decisions/2026-07-28-tool-memory-carryover.md`.
 
 ---
 

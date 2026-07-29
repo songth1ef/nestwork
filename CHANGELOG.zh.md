@@ -16,8 +16,13 @@
 
 ## Unreleased
 
+### Protocol v2.5
+
+- **工具原生记忆结转（AGENTS.md §13）。** 每个编码 agent 都维护自己的记忆，而截至 2026-07 **全部是机器本地的**——Claude Code（`~/.claude/projects/<project>/memory/`，官方文档原话「不跨机器、不跨云环境共享」）、Codex（`~/.codex/memories/`）、Kimi Code（`~/.kimi-code/`）。这让积累的上下文有三条失效路径：换台机器从零开始、工具停服时记忆随之消失、账号级记忆随账号丢失（停用、区域限制、订阅到期）而消失。**共同根因是「归属」**——厂商决定你的上下文存在哪、能活多久，而 nestwork 在上一层已经解决了同一个问题。新增保留路径 `agents/<host>/<agent-id>/carryover/<tool>.md`，接收经 §7 流程（读取 → 判据过滤 → 人审 → 合并 → 提交）**蒸馏**过的工具原生记忆，**不是原样镜像**——原样镜像会把重复条目和已过期的笔记一起搬进来，制造 §2 明令禁止的「同一记忆两份」漂移。`carryover/` 是**冷层**：绝不在会话启动时注入，`memory.md` 至多用一行指针引用它。分诊按「这条什么时候不再成立？」归类，并显式区分冷热——**必须在没人主动去查的情况下也生效**的条目进 `memory.md`，其余进 `carryover/`。每条记录同时保存原 project 目录名**与**其对应仓库，因为部分工具由仓库绝对路径推导该目录名，换台机器就对不上。Additive：不改动任何既有路径、hook 或优先级链行为。取舍与被否方案见 `decisions/2026-07-28-tool-memory-carryover.md`。
+
 ### 新增（Added）
 
+- **`queen/limits.example.md`**——下面那条「每实例行数上限覆盖」的惰性模板。agent 读的是 `queen/limits.md` 而非本示例，所以复制是一个显式动作。**刻意 ship 成示例而不是生效文件**：若每个实例都带一份生效的 `queen/limits.md`，等于把该实例的数值就地冻结，而 `update.sh` 永不触碰 `queen/`，日后 §6 协议默认值的调整就再也传不到它。内含「按检索质量而非上下文窗口容量调参」的理由，以及一份调参日志，好把有意调整和随手误改区分开。
 - **`scripts/uninstall/` 按工具卸载器**——与 `scripts/install/` 镜像（claude / codex / gemini / hermes / openclaw / generic，`.sh` + `.ps1` 双版本）。卸载**只解除绑定**：从工具启动文件移除 bootstrap 标记块、摘掉 nestwork 注册的 hooks（Claude settings.json、Codex hooks.json）。记忆（`agents/<host>/<agent-id>/`）、身份文件（`~/.nestwork_host`、`~/.nestwork_id_<tool>`）及标记块之外的用户内容一概不动；重装即以原身份恢复。可选 `--purge-identity` / `-PurgeIdentity` 连同该工具 agent id 一起清除。共享助手 `_unbootstrap.py` / `_unhooks.py` / `_codex_unhooks.py` 复用安装器自身的匹配逻辑——安装器会覆盖替换的条目，卸载器就能移除。配套 `tests/test_uninstall.py` 往返测试（install → uninstall 保留用户内容与用户 hooks）。
 - **每实例文件行数上限覆盖（`queen/limits.md`）。** 私有实例无需改协议层即可覆盖 AGENTS.md §6 的默认限制表——新建 `queen/limits.md` 写自己的表；存在时它有权威，agent 会话启动即加载（高优先级 `queen/` 层），且 `update.sh` 永不触碰 `queen/`，覆盖能扛过协议更新。Additive，不 bump protocol-version。调参按检索质量、不按上下文窗口容量。（AGENTS.md §6 + README「文件行数限制」节。）
 - **`scripts/comms/archive.sh`** —— 把发件人自己 outbox 里超过 N 天（默认 30）的旧消息移入 `outbox/archive/`，让 `read.sh` 的扫描成本随时间保持有界。移动后自动 commit + push。

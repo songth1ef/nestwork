@@ -22,7 +22,7 @@
 
 ### 新增（Added）
 
-- **`queen/limits.example.md`**——下面那条「每实例行数上限覆盖」的惰性模板。agent 读的是 `queen/limits.md` 而非本示例，所以复制是一个显式动作。**刻意 ship 成示例而不是生效文件**：若每个实例都带一份生效的 `queen/limits.md`，等于把该实例的数值就地冻结，而 `update.sh` 永不触碰 `queen/`，日后 §6 协议默认值的调整就再也传不到它。内含「按检索质量而非上下文窗口容量调参」的理由，以及一份调参日志，好把有意调整和随手误改区分开。
+- **`docs/limits-override-example.md`**——下面那条「每实例行数上限覆盖」的「照抄我」模板。agent 读的是 `queen/limits.md`，复制是一个显式动作。**刻意 ship 成示例而不是生效文件**：若每个实例都带一份生效的 `queen/limits.md`，等于把该实例的数值就地冻结，而 `update.sh` 永不触碰 `queen/`，日后 §6 协议默认值的调整就再也传不到它。**放在 `docs/` 而不是 `queen/` 则是同一枚硬币的反面**——`docs/` 是 `update.sh` **会**同步的，所以默认值演进时这份示例能持续送达，而 `queen/` 完完全全归用户所有。内含「按检索质量而非上下文窗口容量调参」的理由，以及一份调参日志，好把有意调整和随手误改区分开。
 - **`scripts/uninstall/` 按工具卸载器**——与 `scripts/install/` 镜像（claude / codex / gemini / hermes / openclaw / generic，`.sh` + `.ps1` 双版本）。卸载**只解除绑定**：从工具启动文件移除 bootstrap 标记块、摘掉 nestwork 注册的 hooks（Claude settings.json、Codex hooks.json）。记忆（`agents/<host>/<agent-id>/`）、身份文件（`~/.nestwork_host`、`~/.nestwork_id_<tool>`）及标记块之外的用户内容一概不动；重装即以原身份恢复。可选 `--purge-identity` / `-PurgeIdentity` 连同该工具 agent id 一起清除。共享助手 `_unbootstrap.py` / `_unhooks.py` / `_codex_unhooks.py` 复用安装器自身的匹配逻辑——安装器会覆盖替换的条目，卸载器就能移除。配套 `tests/test_uninstall.py` 往返测试（install → uninstall 保留用户内容与用户 hooks）。
 - **每实例文件行数上限覆盖（`queen/limits.md`）。** 私有实例无需改协议层即可覆盖 AGENTS.md §6 的默认限制表——新建 `queen/limits.md` 写自己的表；存在时它有权威，agent 会话启动即加载（高优先级 `queen/` 层），且 `update.sh` 永不触碰 `queen/`，覆盖能扛过协议更新。Additive，不 bump protocol-version。调参按检索质量、不按上下文窗口容量。（AGENTS.md §6 + README「文件行数限制」节。）
 - **`scripts/comms/archive.sh`** —— 把发件人自己 outbox 里超过 N 天（默认 30）的旧消息移入 `outbox/archive/`，让 `read.sh` 的扫描成本随时间保持有界。移动后自动 commit + push。
@@ -35,7 +35,7 @@
 
 - **README 从 933 行减到 769 行（英文）、930 减到 768（中文）。** 有五节是在把协议**第三次**讲一遍——目录结构、文件行数限制、编译共享记忆、Agent 邮箱、`workflow/` 深入说明——而 `AGENTS.md` 和对应的 `docs/` 页早就更详细地写着同样的内容（`docs/agent-mailbox.md` 有 144 行，README 那节只有 32 行）。现在各留一段摘要 + 指针。**GEO 重复策略未受影响**：没有删除任何内容，每个主题的自包含页面仍在它该在的那一处。目的是可维护性而非篇幅——加 §13 时要改 7 个文件 10 处，而那份重复策略 ADR 预算的是「大约五处」；这次收回到 `AGENTS.md` + 镜像 + 两份 CHANGELOG。
 - **退役 README 里的版本切片章节。** 90 行的「v2.2 新增：workflow/ 与 nestwork.config.json」熬过了三个协议版本，导致读者看到 v2.2 被当成最新的东西，而 v2.3–v2.5 都没有对应节。内容已挪到常设的「上下文层」标题下；版本切片属于本文件。新增测试 `test_readmes_have_no_version_scoped_sections` 拒绝以后再出现 `## vX.Y 新增` 这类标题。
-- **两份 README 的目录树已修正。** 它已经漂了：`agents/*/carryover/`、`queen/limits.example.md`、`decisions/`、`tests/`、`scripts/comms/` 全都缺失，逐文件罗列的脚本清单也旧到会误导。现在展示全部顶层分层，并在 agent 目录上标出冷热区分。
+- **两份 README 的目录树已修正。** 它已经漂了：`agents/*/carryover/`、`decisions/`、`tests/`、`scripts/comms/` 全都缺失，逐文件罗列的脚本清单也旧到会误导。现在展示全部顶层分层，并在 agent 目录上标出冷热区分。
 
 ### 修复（文档）
 

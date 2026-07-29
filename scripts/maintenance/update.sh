@@ -75,7 +75,9 @@ echo "--- incoming protocol changes -------------------------------------------"
 git diff HEAD upstream/"$UPSTREAM_BRANCH" --stat -- "${PROTOCOL_FILES[@]}"
 echo "-------------------------------------------------------------------------"
 echo ""
-echo "Files that will NOT be touched: agents/  queen/  shared/  projects/"
+echo "Never touched: agents/  queen/  shared/  and your own files in projects/ and decisions/"
+echo "Updated:       the shipped templates only -- projects/_template.md,"
+echo "               decisions/_template.md, decisions/README.md"
 echo ""
 
 # -- 5. Confirm ---------------------------------------------------------------

@@ -419,10 +419,9 @@ nestwork/
 ├── AGENTS.md                   唯一 bootstrap 源（Codex、Kimi、OpenClaw、Gemini…）
 ├── CLAUDE.md                   AGENTS.md 的字节级镜像（Claude Code 认这个文件名）
 ├── SOUL.md                     Hermes 的简短人设文件
-├── queen/                      行为规则 + 决策方向，agent 只读
+├── queen/                      行为规则 + 决策方向，agent 只读，永不被同步覆盖
 │   ├── agent-rules.md
-│   ├── strategy.md
-│   └── limits.example.md       每实例行数上限覆盖的模板
+│   └── strategy.md
 ├── agents/
 │   └── <host>/<agent-id>/
 │       ├── memory.md           该 agent 的私有记忆（热——会话启动时注入）
@@ -462,7 +461,7 @@ nestwork/
 
 调参要盯**检索质量，而不是上下文窗口容量**：窗口变大并不意味着文件可以按比例变大。
 
-私有实例无需改协议层即可覆盖上表——把 [queen/limits.example.md](queen/limits.example.md) 复制成 `queen/limits.md` 再改。`update.sh` 永不触碰 `queen/`，覆盖能扛过协议更新。
+私有实例无需改协议层即可覆盖上表——把 [docs/limits-override-example.md](docs/limits-override-example.md) 复制成 `queen/limits.md` 再改。`update.sh` 永不触碰 `queen/`，覆盖能扛过协议更新。
 
 拆分机制与完整示例：[AGENTS.md](AGENTS.md) §6。
 

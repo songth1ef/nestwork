@@ -1,12 +1,17 @@
-# FILE SIZE LIMITS — example
+# File size limits — override example
 
-> **This file is inert.** Agents read `queen/limits.md`, not this one.
-> To activate an override, copy this to `queen/limits.md` and edit the table.
-> Shipped as an example on purpose: a live `queen/limits.md` would freeze your
-> instance's numbers, and `update.sh` never touches `queen/`, so future changes
-> to the protocol defaults in `AGENTS.md` §6 would stop reaching you.
+> **Copy this file to `queen/limits.md` to activate an override**, then edit the
+> table. Agents read `queen/limits.md`; this page is documentation and has no
+> effect where it sits.
+>
+> It ships here in `docs/` rather than as a live `queen/limits.md` for two
+> reasons. A live file in every instance would freeze that instance's numbers,
+> and since `update.sh` never touches `queen/`, later changes to the protocol
+> defaults in `AGENTS.md` §6 would stop reaching it. And `docs/` **is** synced by
+> `update.sh`, so this example keeps arriving as the defaults evolve — `queen/`
+> stays entirely yours.
 
-> Once activated, this file is read-only for agents. Only humans modify it.
+> Once copied into `queen/`, the file is read-only for agents. Only humans modify it.
 
 updated: YYYY-MM-DD
 

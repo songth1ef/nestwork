@@ -419,10 +419,9 @@ nestwork/
 ├── AGENTS.md                   Single bootstrap source (Codex, Kimi, OpenClaw, Gemini, …)
 ├── CLAUDE.md                   Byte-exact mirror of AGENTS.md (Claude Code reads this name)
 ├── SOUL.md                     Hermes' short persona file
-├── queen/                      Behaviour rules + strategy, agent read-only
+├── queen/                      Behaviour rules + strategy, agent read-only, never synced
 │   ├── agent-rules.md
-│   ├── strategy.md
-│   └── limits.example.md       Template for a per-instance file-size override
+│   └── strategy.md
 ├── agents/
 │   └── <host>/<agent-id>/
 │       ├── memory.md           Private memory (hot — injected at session start)
@@ -462,7 +461,7 @@ Any markdown file in the repo is split once it outgrows its limit, always the sa
 
 Tune against **retrieval quality, not raw context-window size**: a bigger window does not justify proportionally bigger files.
 
-A private instance can override the table without touching the protocol layer — copy [queen/limits.example.md](queen/limits.example.md) to `queen/limits.md` and edit it. `update.sh` never touches `queen/`, so the override survives protocol updates.
+A private instance can override the table without touching the protocol layer — copy [docs/limits-override-example.md](docs/limits-override-example.md) to `queen/limits.md` and edit it. `update.sh` never touches `queen/`, so the override survives protocol updates.
 
 Split mechanics and worked examples: [AGENTS.md](AGENTS.md) §6.
 

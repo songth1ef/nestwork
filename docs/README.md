@@ -12,6 +12,7 @@ These docs are designed for the GitHub repository itself, not for a separate web
 - [Agent mailbox (inter-agent messaging)](agent-mailbox.md)
 - [AGENTS.md best practices](agents-md-best-practices.md)
 - [Shared context for AI coding agents](shared-context-for-ai-coding-agents.md)
+- [File size limits: override example](limits-override-example.md)
 - [FAQ](faq.md)
 
 ## Comparisons

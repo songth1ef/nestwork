@@ -14,7 +14,7 @@
 
 版本：v0.6.0 | 协议：2.5
 
-[![Protocol](https://img.shields.io/badge/protocol-2.5-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Hermes-green)](#支持的工具) [![Storage](https://img.shields.io/badge/storage-git-orange)](#工作原理)
+[![Protocol](https://img.shields.io/badge/protocol-2.5-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Kimi%20%7C%20Hermes%20%7C%20OpenClaw-green)](#支持的工具) [![Storage](https://img.shields.io/badge/storage-git-orange)](#工作原理)
 
 **nestwork 是面向 AI 编程 agent 的 git 原生记忆协议：持久记忆与共享上下文都存在你自己的 git 仓里。** 你的 AI agent 记忆跟着你跨 session、跨机器、跨工具。
 
@@ -172,12 +172,12 @@ git 同步、优先级链、hook 全自动运行。想了解机制看 [工作原
 | [核心设计原则](#核心设计原则) | 6 条不可妥协：git-only、读写隔离、记忆分层、模板化私有实例、跨工具中立、协议可演进 |
 | [与其他方案对比](#与其他方案对比) | 为什么不用 MCP server / claude-mem / 厂商 memory / 自建数据库 |
 | [自定义你的 nest](#自定义你的-nest) | 编辑 `queen/` `projects/` `workflow/` 各层 |
-| [v2.2 新增](#v22-新增workflow-与-nestworkconfigjson) | `workflow/` 跨项目知识层 + `nestwork.config.json` 外部目录脱敏吸收契约 |
+| [上下文层](#上下文层workflow-与外部目录吸收) | `workflow/` 跨项目知识层 + `nestwork.config.json` 外部目录脱敏吸收契约 |
 | [真实工作流示例](#真实工作流示例) | 多机协作 / 跨工具迁移 / 雇主项目知识沉淀 |
 | [编译共享记忆](#编译共享记忆distillation) | `compile.sh` 拼接 vs `distill.py` LLM 蒸馏，非破坏性合并到 `shared/` |
 | [Agent 邮箱](#agent-邮箱agent-间通信) | git 原生的 agent 间通信：单写者发件箱、session 启动自动注入、零外部依赖 |
 | [目录结构](#目录结构) / [行数限制](#文件行数限制与拆分协议) | 仓库布局 + 文件拆分协议 |
-| [支持的工具](#支持的工具) | Claude Code / Codex / Gemini / Hermes / generic 任何 markdown-config CLI + IDE 插件软链接 |
+| [支持的工具](#支持的工具) | Claude Code / Codex / Gemini / Kimi Code / Hermes / OpenClaw / generic 任何 markdown-config CLI + IDE 插件软链接 |
 | [跟踪上游更新](#跟踪上游更新) | GitHub Action 自动 PR 或 `update.sh` 手动同步，不动你的私有数据 |
 | [FAQ](#faq) / [故障排查](#故障排查) | 常见疑问与排错清单 |
 | [不做什么](#不做什么non-goals) | nestwork 明确不解决的问题 |
@@ -302,93 +302,20 @@ nestwork 的答案是用 git 仓做 agent 大脑。每个 agent 把记忆写到 
 
 ---
 
-## v2.2 新增：workflow/ 与 nestwork.config.json
+## 上下文层：`workflow/` 与外部目录吸收
 
-### 为什么需要 `workflow/`
+除四个核心层（`queen/` `shared/` `agents/` `projects/`）之外，nestwork 还有第五层，装**跨项目可迁移的知识**：编码纪律、估时规则、工具栈偏好、迁移指南——这些东西换了雇主依然成立。
 
-v2.2 之前，nestwork 有 4 个上下文层：`queen/` `shared/` `agents/` `projects/`。缺一个位置放跨项目可迁移的用户级知识。
+判据一句话：**「换雇主之后这条还适用吗？」** 适用 → `workflow/`；不适用 → `projects/`（项目专属）、`shared/`（关于你的稳定事实）或 `queen/`（行为规则）。
 
-例如：
+当外部工作目录里的内容值得吸收进来时，由**那个目录**声明一份 `nestwork.config.json`，写明可以进哪个类别、需要多强的脱敏。该配置**只放在源目录、永不进 nestwork 仓**；脱敏默认 `strong`；agent 发现可吸收内容却没有配置时，必须停下来问，不得静默吸收。
 
-- 估时按 AI 速度，不按人月
-- 加载态 UI 用骨架屏，已有数据再刷新用 v-loading
-- 新 repo 初始化时建 5 文档骨架（AGENT.md + conventions.md + domain.md + architecture.md + lessons.md）
-- 30 分钟跨设备复原工作流的清单
+吸收是单向的：源目录 → 你的私有 nest。私有 nest 永不自动回流上游。
 
-这些不是关于用户的事实（→ `shared/`），不是项目特定的（→ `projects/`），也不是行为规则（→ `queen/`）。它们值得跨雇主、跨项目、跨设备保留。`workflow/` 就是为这层准备的。
-
-### `workflow/` 内容定位
-
-| 应该放 | 不应该放 |
-|---|---|
-| 跨项目编码纪律、估时规则 | 项目特定业务规则 → `projects/` |
-| 工具栈偏好与设置约定 | 跨 agent 稳定的用户事实 → `shared/` |
-| Skill 资产、提示词模板 | 单 agent 的临时观察 → `agents/` |
-| 迁移 / 跨机部署指南 | 一次性任务笔记 |
-| 跨 repo 都用得上的方法论 | 雇主机密信息（不允许任何形式存在于本仓） |
-
-判断标准："换雇主后还适用吗？"是 → `workflow/`；否 → 别的位置。
-
-### `nestwork.config.json`：外部目录吸收契约
-
-你的某个工作目录（如 `~/work/some-employer-project/`）里有内容值得吸收进 nestwork 的 `projects/` 或 `workflow/`，但里面包含雇主机密、客户名、内部代号，不能直接复制。
-
-`nestwork.config.json` 是放在源工作目录（不是 nestwork 内）的元数据文件，声明：
-
-- 这个目录可被吸收到哪个分类
-- 必须脱敏到什么级别
-- 哪些词需要脱敏（雇主名、客户名、内部代号）
-
-最小示例（放在你的工作目录根）：
-
-```json
-{
-  "$schema": "https://github.com/songth1ef/nestwork/schemas/nestwork.config.schema.json",
-  "version": "1.0",
-  "ingest": {
-    "target": "projects",
-    "name": "some-project"
-  },
-  "desensitize": {
-    "level": "strong",
-    "custom_rules": [
-      "<你的雇主名>",
-      "<内部代号>",
-      "<客户名>"
-    ]
-  }
-}
-```
-
-字段说明：
-
-| 字段 | 含义 |
-|---|---|
-| `ingest.target` | 吸收到哪个分类：`projects` / `workflow` / `null`（不可吸收） |
-| `ingest.name` | 目标文件名 |
-| `desensitize.level` | `none`（不处理）/ `weak`（按 custom_rules 模式替换）/ `strong`（AI 语义脱敏 + custom_rules） |
-| `desensitize.custom_rules` | 用户自定义敏感词，覆盖在通用方法论之上 |
-
-关键约束：
-
-- 配置文件只放在源目录，从不进 nestwork 仓
-- 默认 `desensitize.level: "strong"`
-- agent 检测到要吸收但没有 config 时必须停下来提醒用户创建，绝不静默吸收
-- 吸收方向单向：源目录 → 私有 nest（不会从私有 nest 反向流到 upstream）
-
-完整规则见 [docs/workflow-protocol.md](docs/workflow-protocol.md) 与 `AGENTS.md` 第 8、9 节。
-
-### 脱敏方法论
-
-upstream nestwork 只提供方法论与提示词模板（[docs/desensitization-prompt.md](docs/desensitization-prompt.md)），不含任何具体雇主名/客户名/代号。具体名词放在每个用户的 `nestwork.config.json` `custom_rules` 里。
-
-`strong` 级别脱敏会调用 AI（推荐 Claude Haiku，足够便宜快），按提示词模板：
-
-1. 替换所有 `custom_rules` 命中词为占位符（`<EMPLOYER>`、`<CLIENT-A>` 等）
-2. 识别"未直接命名但泄露机密"的内容（如内部 API 结构、未发布产品特性）并改写
-3. 保留可迁移的方法论部分
-4. 输出结构化 JSON（脱敏后内容 + 替换记录 + 待人工 review 的疑问点）
-5. 必须经人工 review 后才写入 nestwork
+- 层的规则与完整吸收契约：[AGENTS.md](AGENTS.md) §8、§9
+- 带例子的深入说明：[docs/workflow-protocol.md](docs/workflow-protocol.md)
+- 配置 schema：[schemas/nestwork.config.schema.json](schemas/nestwork.config.schema.json)
+- 脱敏提示词模板：[docs/desensitization-prompt.md](docs/desensitization-prompt.md)——上游只提供方法论，雇主名与客户名放在你自己的 `custom_rules` 里，永不进本仓
 
 ---
 
@@ -447,63 +374,41 @@ Codex 启动时读 `~/.codex/AGENTS.md`，里面已经被 installer 注入了 ne
 
 ## 编译共享记忆（distillation）
 
-当各 agent 积累了足够记忆后，用下面两种方式之一合入 `shared/memory.md`：
+当各 agent 积累了足够记忆，合并进 `shared/memory.md`：
 
 ```bash
-# 纯拼接：把 agents/*/memory.md 拼接，commit，push
+# 纯拼接：把 agents/*/memory.md 拼起来，commit、push
 bash ~/nestwork/scripts/maintenance/compile.sh
 
-# LLM 版、与厂商无关：打印蒸馏 prompt，手动喂给任一 agent 会话
+# 不绑厂商：打印一段蒸馏提示词，喂给任意 agent 会话
 python3 ~/nestwork/scripts/maintenance/distill.py
 
-# Codex 手动一键蒸馏：汇总所有 agent memory，写回 shared/memory.md，
-# 然后 commit、push。把 <your-profile> 换成这台机器实际可用的 Codex
-# profile；如果默认配置已经正确，也可以省略 --profile。
-python3 ~/nestwork/scripts/maintenance/distill.py --run-codex --profile <your-profile>
-
-# 只预览候选 shared/memory.md，不落盘
-python3 ~/nestwork/scripts/maintenance/distill.py --run-codex --profile <your-profile> --dry-run
+# Codex 一把过：聚合、写回 shared/memory.md、commit、push
+#（加 --dry-run 只预览不写）
+python3 ~/nestwork/scripts/maintenance/distill.py --run-codex --profile <你的-profile>
 ```
 
-这些方式都不会修改原始的 agent memory。`--run-codex` 只更新 `shared/memory.md`，提交信息 `memory: distill shared`。所有 agent 在下次 `git pull` 时自动看到新的 `shared/memory.md`。
+三种方式都不改动各 agent 的原始记忆——蒸馏只读私有记忆、只写 `shared/memory.md`，commit message 为 `memory: distill shared`。其他 agent 下次 `git pull` 就能拿到。
 
-### 蒸馏的设计取舍
-
-- 共享是 union 不是 intersection，不丢任何 agent 的独特观察
-- 非破坏性，每个 agent 私有 memory 不变，蒸馏只读
-- 要 sub-agent review，检查敏感数据、事实错误、矛盾、过期项
-- 要人工确认，sub-agent 只报告，人决定合并
-- 绝不删，只合并和增加，不删历史
+让这件事安全的那几条规则——shared 是并集不是交集、永不删除、子 agent 审查后由人确认——在 [AGENTS.md](AGENTS.md) §7。
 
 ---
 
 ## Agent 邮箱（agent 间通信）
 
-当 agent 之间需要互相通信——跨机器、跨工具链——nestwork 自带一个 git 原生邮箱：纯 git +
-bash，**零外部依赖**，无服务器、无 IM、无 bot。这是当 IM 平台办不到时「我的 agent 之间怎么
-协作」的答案（比如 **Telegram bot 之间天生互相看不到消息**）。人↔agent 聊天和 agent↔agent
-邮箱是互补的两层，不冲突。
+当 agent 需要跨机器、跨工具链**互相**说话时，nestwork 自带一个 git 原生邮箱：纯 git + bash，**零外部依赖**，无服务器、无 bot。它回答的是 IM 平台答不了的那个问题——比如 **Telegram bot 在设计上就看不到彼此的消息**。
 
-它遵守单写者规则——每个 agent 只写自己的目录——所以没有共享收件箱，**也没有写冲突**：
-
-- **发** = 写进*你自己的* `outbox/`，打 `to:` 标签（一条消息 = 一个文件 = 一个 commit）。
-- **收** = 扫*所有人的* `agents/*/*/outbox/`，挑出 `to == 我`（或 `to == all`）的。
-- **已读状态** = 收件方把已读 id 记在*自己的*、被 git 忽略的 `local/comms/seen.txt`（不进 commit，标记已读不会产生提交）。
+它遵守单写者规则，所以没有共享收件箱、**没有写冲突**：**发**＝写进*自己的* `outbox/` 并打上 `to:` 标签（一条消息 = 一个文件 = 一次 commit）；**收**＝扫所有人的 `agents/*/*/outbox/`，挑出发给自己的。
 
 ```bash
-# 给另一个 agent 派一个 task
-echo "please confirm receipt with a reply" | \
-  bash scripts/comms/send.sh vm-0-6-ubuntu/claude-va1k task "handshake test"
+echo "收到请回复" | \
+  bash scripts/comms/send.sh <host>/<agent-id> task "握手测试"
 
-# 读发给我的未读消息，然后标记已读
-bash scripts/comms/read.sh            # 只看
-bash scripts/comms/read.sh --mark     # 处理完后再标记
+bash scripts/comms/read.sh            # 查看发给我的未读
+bash scripts/comms/read.sh --mark     # 处理完再标记已读
 ```
 
-**自动注入（Tier 1）：** `session-start` hook 把未读消息写进被 git 忽略的
-`agents/<self>/local/inbox.md` 并列进 READ-ON-START 清单，于是每个 agent 在 session 启动
-时自动收到自己的邮件——既不膨胀仓库、也不撑爆 hook 的 stdout 预算。完整说明见
-[docs/agent-mailbox.md](docs/agent-mailbox.md)。
+已读状态存在被 git 忽略的本地文件里，所以标记已读不产生任何 commit。未读消息在会话启动时经由被忽略的本地收件箱自动注入，agent 不用你提醒就能收到。完整说明：[docs/agent-mailbox.md](docs/agent-mailbox.md)。
 
 ---
 
@@ -511,81 +416,39 @@ bash scripts/comms/read.sh --mark     # 处理完后再标记
 
 ```
 nestwork/
-├── AGENTS.md                   bootstrap 唯一来源（Codex、OpenClaw、Gemini 等）
-├── CLAUDE.md                   AGENTS.md 的逐行镜像（Claude Code 认这个名字）
-├── SOUL.md                     Hermes 的简短人格文件
-├── queen/
-│   ├── agent-rules.md          行为规则，agent 只读
-│   └── strategy.md             决策方向，agent 只读
+├── AGENTS.md                   唯一 bootstrap 源（Codex、Kimi、OpenClaw、Gemini…）
+├── CLAUDE.md                   AGENTS.md 的字节级镜像（Claude Code 认这个文件名）
+├── SOUL.md                     Hermes 的简短人设文件
+├── queen/                      行为规则 + 决策方向，agent 只读
+│   ├── agent-rules.md
+│   ├── strategy.md
+│   └── limits.example.md       每实例行数上限覆盖的模板
 ├── agents/
 │   └── <host>/<agent-id>/
-│       └── memory.md           该 agent 的私有记忆
-├── shared/
-│   └── memory.md               跨 agent 编译记忆
-├── projects/
-│   └── <项目>.md               项目上下文
-├── workflow/                   v2.2+：跨项目可迁移的工作流知识
-│   ├── README.md
-│   └── <主题>.md
-├── docs/                       协议方法论与对外文档
-│   ├── workflow-protocol.md       v2.2 workflow 详解
-│   ├── desensitization-prompt.md  AI 脱敏提示词模板
-│   ├── ai-agent-memory.md
-│   ├── claude-code-memory.md
-│   ├── codex-persistent-memory.md
-│   ├── git-native-memory-protocol.md
-│   ├── agents-md-best-practices.md
-│   └── faq.md
-├── schemas/
-│   └── nestwork.config.schema.json   v2.2 配置 JSON Schema
+│       ├── memory.md           该 agent 的私有记忆（热——会话启动时注入）
+│       └── carryover/          蒸馏过的工具原生记忆（冷——永不注入，v2.5+）
+├── shared/memory.md            跨 agent 编译后的记忆
+├── projects/<project>.md       项目上下文
+├── workflow/<topic>.md         跨项目可迁移知识
+├── decisions/                  协议级 ADR
+├── docs/                       方法论、答案就绪文档、竞品对比、博客
+├── schemas/                    nestwork.config.json 的 JSON Schema
+├── tests/                      一致性与端到端测试
 └── scripts/
-    ├── install/                   按工具分的安装器
-    │   ├── claude.{sh,ps1}
-    │   ├── codex.{sh,ps1}
-    │   ├── gemini.{sh,ps1}
-    │   ├── hermes.{sh,ps1}
-    │   ├── kimi.{sh,ps1}
-    │   ├── openclaw.{sh,ps1}
-    │   ├── generic.{sh,ps1}       任何 markdown-config CLI
-    │   ├── _bootstrap.py          共享 bootstrap 注入器
-    │   ├── _codex_hooks.py        Codex config.toml + hooks.json 注册器
-    │   ├── _hooks.py              共享 hook 注册器（Claude Code）
-    │   └── _kimi_hooks.py         Kimi Code config.toml 注册器
-    ├── uninstall/                 按工具分的卸载器（只解绑；记忆与身份保留）
-    │   ├── claude.{sh,ps1} codex.{sh,ps1} gemini.{sh,ps1}
-    │   ├── hermes.{sh,ps1} kimi.{sh,ps1} openclaw.{sh,ps1} generic.{sh,ps1}
-    │   ├── _unbootstrap.py        共享 bootstrap 移除器
-    │   ├── _codex_unhooks.py      Codex Stop hook 移除器
-    │   ├── _kimi_unhooks.py       Kimi Code hook 块移除器
-    │   └── _unhooks.py            共享 hook 移除器（Claude Code）
-    ├── hooks/                     运行时 hook
-    │   ├── nestwork.sh            pre/post/stop 统一入口
-    │   ├── _match-file.py         stdin 文件匹配器
-    │   ├── export-claude-mem.sh   claude-mem 可选桥接
-    │   ├── sync-local-history.sh  本地历史同步（wrapper，可选）
-    │   └── sync-local-history.py  本地历史同步（worker，可选）
-    └── maintenance/               运维
-        ├── compile.sh             聚合 agents/* 到 shared/（纯拼接）
-        ├── distill.py             打印 prompt，或手动触发 Codex 蒸馏
-        ├── sync-claude-md.sh      从 AGENTS.md 重新生成 CLAUDE.md
-        └── update.sh              拉取 upstream 协议层
+    ├── install/                按工具安装器（.sh + .ps1）
+    ├── uninstall/              按工具卸载器（只解绑，记忆与身份保留）
+    ├── hooks/                  运行时 hook（pre/post/stop、session-start、可选同步）
+    ├── comms/                  Agent 邮箱（send / read / archive）
+    └── maintenance/            compile.sh · distill.py · sync-claude-md.sh · update.sh
 ```
 
 ---
 
 ## 文件行数限制与拆分协议
 
-### 通用规则（v2.2+）
+仓库里任何 markdown 文件超限后都按同一个模式拆：**原文件名变成文件夹，原文件变成纯链接索引**，内容按主题切分。
 
-仓库内任意 markdown 文件超限后都按同一模式拆分：原文件名变文件夹，原文件变索引（或 `<folder>/index.md`），内容按 topic 分文件。
-
-例：`plan-all.md`（1200 行） → `plan-all.md`（索引） + `plan/plan-a.md` / `plan/plan-b.md` / `plan/plan-c.md`。
-
-未在下表列出的文件按默认阈值：软限 500 行（开始考虑拆），硬限 1000 行(下次写入前必须拆)。
-
-### 具体限制
-
-| 文件 | 最大行数 |
+| 文件 | 行数上限 |
 |---|---|
 | `queen/agent-rules.md` | 80 |
 | `queen/strategy.md` | 80 |
@@ -593,40 +456,15 @@ nestwork/
 | `shared/memory.md` | 500 |
 | `projects/<name>.md` | 150 |
 | `workflow/<topic>.md` | 200 |
+| 其余任意 markdown | 软限 500 / 硬限 1000 |
 
-示例：`agents/macbook/claude/memory.md` 达到上限后拆分：
+**为什么要限行数？** 上下文窗口很大，但注意力随 token 数衰减——把 5000 行的 `memory.md` 整个塞进去，利用率很差。索引 + 主题文件让 agent 只跟进相关的那部分。
 
-```
-agents/macbook/claude/
-├── memory.md          ← 变为索引
-├── user_profile.md
-├── feedback_collab.md
-└── project_nestwork.md
-```
+调参要盯**检索质量，而不是上下文窗口容量**：窗口变大并不意味着文件可以按比例变大。
 
-拆分后的 `memory.md`：
+私有实例无需改协议层即可覆盖上表——把 [queen/limits.example.md](queen/limits.example.md) 复制成 `queen/limits.md` 再改。`update.sh` 永不触碰 `queen/`，覆盖能扛过协议更新。
 
-```markdown
-# MEMORY — claude-macbook
-
-- [用户档案](user_profile.md)：角色、技术栈、偏好
-- [协作习惯](feedback_collab.md)：工作方式、修正记录
-- [项目：nestwork](project_nestwork.md)：目标、决策
-```
-
-agent 先读索引，按需跟进相关 topic 文件。
-
-### 每实例覆盖（`queen/limits.md`）
-
-上表是协议默认值。私有实例无需改协议层即可覆盖：新建 `queen/limits.md`，写自己的限制表。存在时它对上表默认值有权威，agent 会话启动即加载（它在高优先级的 `queen/` 层），且 `update.sh` 永不触碰 `queen/`——所以覆盖能扛过协议更新。
-
-调参按检索质量、不按上下文窗口容量：模型窗口变大并不意味着文件可以按比例变大，因为注意力仍随 token 数衰减。
-
-### 为什么有行数限制？
-
-LLM 上下文窗口虽大，但注意力随 token 数衰减。把一个 5000 行的 `memory.md` 全塞进去，agent 实际利用率很低。拆成 topic 文件加索引，可以让 agent 只跟进相关上下文。
-
-下一步优化方向是生成式索引与按当前项目/topic 的选择性加载，让记忆库增长时，启动上下文不随之无限增长。
+拆分机制与完整示例：[AGENTS.md](AGENTS.md) §6。
 
 ---
 

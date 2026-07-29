@@ -6,7 +6,7 @@ AI agent memory is persistent context that an AI coding agent loads before it st
 
 ## What problem does it solve?
 
-AI coding agents often forget useful context between sessions. A developer may repeat the same rules, project goals, coding preferences, and current priorities every time they use Claude Code, Codex CLI, Gemini CLI, or another agent. nestwork turns that repeated context into files that every agent can load.
+AI coding agents often forget useful context between sessions. A developer may repeat the same rules, project goals, coding preferences, and current priorities every time they use Claude Code, Codex CLI, Gemini CLI, Kimi Code, or another agent. nestwork turns that repeated context into files that every agent can load.
 
 ## How nestwork stores memory
 

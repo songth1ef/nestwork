@@ -2,7 +2,7 @@
 
 nestwork is a git-native memory protocol for AI coding agents.
 
-Use it to give Claude Code, Codex CLI, Gemini CLI, OpenClaw, Hermes Agent, and other markdown-config agents persistent memory and shared context across sessions and machines.
+Use it to give Claude Code, Codex CLI, Gemini CLI, Kimi Code, OpenClaw, Hermes Agent, and other markdown-config agents persistent memory and shared context across sessions and machines.
 
 Core repository:
 - README.md
@@ -42,6 +42,8 @@ Install examples:
 - bash scripts/install/claude.sh
 - bash scripts/install/codex.sh
 - bash scripts/install/gemini.sh
+- bash scripts/install/kimi.sh
 - .\nestwork\scripts\install\claude.ps1
 - .\nestwork\scripts\install\codex.ps1
 - .\nestwork\scripts\install\gemini.ps1
+- .\nestwork\scripts\install\kimi.ps1

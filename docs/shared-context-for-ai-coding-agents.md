@@ -2,7 +2,7 @@
 
 ## Short answer
 
-Shared context for AI coding agents is the set of rules, goals, memory, and project facts that multiple agents load before they work. nestwork stores shared context in git so Claude Code, Codex CLI, Gemini CLI, and other agents can start from the same source of truth.
+Shared context for AI coding agents is the set of rules, goals, memory, and project facts that multiple agents load before they work. nestwork stores shared context in git so Claude Code, Codex CLI, Gemini CLI, Kimi Code, and other agents can start from the same source of truth.
 
 ## Why shared context matters
 

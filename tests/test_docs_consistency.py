@@ -162,6 +162,64 @@ class DocsConsistencyTests(unittest.TestCase):
         self.assertIn("verbatim mirror of AGENTS.md", header)
         self.assertEqual(body, agents)
 
+    def test_readmes_have_no_version_scoped_sections(self) -> None:
+        """No `## vX.Y new: ...` headings in either README.
+
+        A version-scoped section freezes on the release that created it: the
+        repo carried a "v2.2 new" section for three protocol releases, so
+        readers saw v2.2 advertised as the newest thing. Version slices belong
+        in CHANGELOG; the README describes what exists now.
+        """
+        pattern = re.compile(r"^#+\s*v\d+\.\d+\s", re.IGNORECASE)
+
+        for name in ("README.md", "README.zh.md"):
+            text = (REPO_ROOT / name).read_text(encoding="utf-8")
+            for lineno, line in enumerate(text.splitlines(), start=1):
+                if line.lstrip().startswith("#") and pattern.match(line.strip()):
+                    self.fail(
+                        f"{name}:{lineno} is a version-scoped heading "
+                        f"({line.strip()!r}). Describe the feature under a "
+                        f"permanent heading and put the version slice in CHANGELOG."
+                    )
+
+    def test_advertised_tool_list_covers_every_installer(self) -> None:
+        """Every shipped installer must appear in the README badge and llms.txt.
+
+        Expectations are derived from `scripts/install/*.sh`, so adding a tool
+        without updating the docs turns this red instead of silently leaving
+        the answer-engine surface advertising an outdated list. `generic` is
+        excluded: it is a fallback, not a named tool.
+        """
+        installers = {
+            path.stem
+            for path in (REPO_ROOT / "scripts" / "install").glob("*.sh")
+            if not path.stem.startswith("_") and path.stem != "generic"
+        }
+        self.assertTrue(installers, "expected at least one installer to exist")
+
+        surfaces = {
+            "README.md badge": _readme_badge(REPO_ROOT / "README.md"),
+            "README.zh.md badge": _readme_badge(REPO_ROOT / "README.zh.md"),
+            "llms.txt": (REPO_ROOT / "llms.txt").read_text(encoding="utf-8").lower(),
+        }
+
+        for surface, text in surfaces.items():
+            for tool in sorted(installers):
+                with self.subTest(surface=surface, tool=tool):
+                    self.assertIn(
+                        tool,
+                        text,
+                        f"{surface} does not mention the '{tool}' installer",
+                    )
+
+
+def _readme_badge(path: Path) -> str:
+    """The tools badge line, lowercased and URL-unescaped enough to match names."""
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if "badge/tools-" in line:
+            return line.replace("%20", " ").replace("%7C", "|").lower()
+    raise AssertionError(f"{path.name} has no tools badge")
+
 
 if __name__ == "__main__":
     unittest.main()

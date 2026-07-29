@@ -33,6 +33,14 @@
 
 ### 变更（Changed）
 
+- **README 从 933 行减到 769 行（英文）、930 减到 768（中文）。** 有五节是在把协议**第三次**讲一遍——目录结构、文件行数限制、编译共享记忆、Agent 邮箱、`workflow/` 深入说明——而 `AGENTS.md` 和对应的 `docs/` 页早就更详细地写着同样的内容（`docs/agent-mailbox.md` 有 144 行，README 那节只有 32 行）。现在各留一段摘要 + 指针。**GEO 重复策略未受影响**：没有删除任何内容，每个主题的自包含页面仍在它该在的那一处。目的是可维护性而非篇幅——加 §13 时要改 7 个文件 10 处，而那份重复策略 ADR 预算的是「大约五处」；这次收回到 `AGENTS.md` + 镜像 + 两份 CHANGELOG。
+- **退役 README 里的版本切片章节。** 90 行的「v2.2 新增：workflow/ 与 nestwork.config.json」熬过了三个协议版本，导致读者看到 v2.2 被当成最新的东西，而 v2.3–v2.5 都没有对应节。内容已挪到常设的「上下文层」标题下；版本切片属于本文件。新增测试 `test_readmes_have_no_version_scoped_sections` 拒绝以后再出现 `## vX.Y 新增` 这类标题。
+- **两份 README 的目录树已修正。** 它已经漂了：`agents/*/carryover/`、`queen/limits.example.md`、`decisions/`、`tests/`、`scripts/comms/` 全都缺失，逐文件罗列的脚本清单也旧到会误导。现在展示全部顶层分层，并在 agent 目录上标出冷热区分。
+
+### 修复（文档）
+
+- **Kimi Code 在整个答案引擎面上是缺失的。** 它 2026-07-21 就作为安装器发布了，却只出现在 README 正文里——两份 README 的工具 badge、`llms.txt`、`docs/README.md`、`docs/ai-agent-memory.md`、`docs/shared-context-for-ai-coding-agents.md`、`docs/faq.md` 全都还在宣传一份没有它的清单。这正是 GEO 重复策略 ADR 预言过的漂移，而且发生在**过期副本危害最大的那一处**。新增测试 `test_advertised_tool_list_covers_every_installer` 从 `scripts/install/*.sh` 反推期望清单，以后发布新工具却不更新文档会让测试变红，而不是默默向答案引擎提供错误信息。
+
 - **邮箱投递自包含。** `send.sh` 现在自己 commit + push 消息（带 rebase 重试），不再依赖 per-write hook——那些 hook 只匹配 Write/Edit 工具调用，经 Bash 调用的发送从来不会被自动提交，非 Claude 工具链更是没有任何兜底 hook。文档已改为描述真实机制。
 - **邮箱已读状态移到被 git 忽略的 `local/comms/seen.txt`。** 标记已读不再在 `main` 上产生提交。旧版已提交的 `comms/seen.txt` 首次读取时自动导入，之后可 `git rm`。
 - **CI 同步范围与 `update.sh` 对齐。** `sync-upstream.yml` 的 `PROTOCOL_PATHS` 之前只同步 scripts/AGENTS/CLAUDE/SOUL/README，`docs/`、`schemas/`、CHANGELOG 和 workflow/projects/decisions 模板从未经 CI 传播；现在两份清单一致（CI 仍排除 `.github/workflows/`——GITHUB_TOKEN 无法推送 workflow 文件），且双方都新增了 `VERSION` 与 `llms.txt`。

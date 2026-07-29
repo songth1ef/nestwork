@@ -14,7 +14,7 @@
 
 Version: v0.6.0 | Protocol: 2.5
 
-[![Protocol](https://img.shields.io/badge/protocol-2.5-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Hermes-green)](#supported-tools) [![Storage](https://img.shields.io/badge/storage-git-orange)](#how-it-works)
+[![Protocol](https://img.shields.io/badge/protocol-2.5-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Kimi%20%7C%20Hermes%20%7C%20OpenClaw-green)](#supported-tools) [![Storage](https://img.shields.io/badge/storage-git-orange)](#how-it-works)
 
 **nestwork is a git-native memory protocol for AI coding agents: persistent memory and shared context that live in your own git repo.** Your AI agent memory follows you across sessions, machines, and tools.
 
@@ -172,12 +172,12 @@ In practice: when you hit a non-sensitive decision, a lesson, or a cross-project
 | [Core design principles](#core-design-principles) | 6 non-negotiables: git-only, read/write isolation, layered memory, template + private instance, tool-neutral, evolvable protocol |
 | [Comparison with other approaches](#comparison-with-other-approaches) | Why not MCP server / claude-mem / vendor memory / self-hosted DB |
 | [Customize your nest](#customize-your-nest) | Edit `queen/` `projects/` `workflow/` layers |
-| [v2.2 new](#v22-new-workflow-and-nestworkconfigjson) | `workflow/` cross-project knowledge layer + `nestwork.config.json` ingestion contract for external dirs |
+| [Context layers](#context-layers-workflow-and-external-ingestion) | `workflow/` cross-project knowledge layer + `nestwork.config.json` ingestion contract for external dirs |
 | [Real workflow examples](#real-workflow-examples) | Multi-machine collaboration / tool migration / employer-project knowledge ingestion |
 | [Compile shared memory](#compile-shared-memory-distillation) | `compile.sh` concat vs `distill.py` LLM distillation, non-destructive merge into `shared/` |
 | [Agent mailbox](#agent-mailbox-inter-agent-messaging) | git-native inter-agent messaging: single-writer outbox, auto-injected on session start, zero external deps |
 | [Directory structure](#directory-structure) / [Line limits](#file-size-limits-and-split-protocol) | Repo layout + file split protocol |
-| [Supported tools](#supported-tools) | Claude Code / Codex / Gemini / Hermes / generic any markdown-config CLI + IDE plugin symlinks |
+| [Supported tools](#supported-tools) | Claude Code / Codex / Gemini / Kimi Code / Hermes / OpenClaw / generic any markdown-config CLI + IDE plugin symlinks |
 | [Staying up to date](#staying-up-to-date) | GitHub Action auto-PR or `update.sh` manual sync, never touches your private data |
 | [FAQ](#faq) / [Troubleshooting](#troubleshooting) | Common questions and debugging recipes |
 | [Non-goals](#non-goals) | What nestwork explicitly will not do |
@@ -302,93 +302,20 @@ Your workflow (new in v2.2+): add `workflow/<topic>.md`. Cross-project portable 
 
 ---
 
-## v2.2 new: workflow/ and nestwork.config.json
+## Context layers: `workflow/` and external ingestion
 
-### Why we need `workflow/`
+Beyond the four core layers (`queen/` `shared/` `agents/` `projects/`), nestwork has a fifth for **cross-project portable knowledge**: coding disciplines, estimation rules, tool-stack preferences, migration guides — the things that survive a change of employer.
 
-Before v2.2, nestwork had 4 context layers: `queen/` `shared/` `agents/` `projects/`. One place was missing: cross-project portable user-level knowledge.
+The test: *"Will this still apply after I change employers?"* Yes → `workflow/`; no → `projects/` (project-specific), `shared/` (stable facts about you), or `queen/` (behaviour rules).
 
-Examples:
+When content from an outside working directory is worth absorbing, that directory declares a `nestwork.config.json` stating which category may receive it and how aggressively it must be desensitised. The config lives **only in the source directory, never inside nestwork**, it defaults to `strong` desensitisation, and an agent that finds ingestable content without a config must stop and ask rather than ingest silently.
 
-- Estimate effort by AI speed, not by person-months
-- Use skeleton screens for loading UI; v-loading when re-fetching with existing data
-- When initializing a new repo, scaffold 5 docs (AGENT.md + conventions.md + domain.md + architecture.md + lessons.md)
-- A 30-minute checklist for restoring your workflow on a new machine
+Ingestion is one-way: source directory → your private nest. Nothing ever auto-flows from a private nest back upstream.
 
-These aren't facts about the user (→ `shared/`), aren't project-specific (→ `projects/`), and aren't behavior rules (→ `queen/`). They deserve to be preserved across employers, projects, and machines. `workflow/` is for that layer.
-
-### What `workflow/` is for
-
-| Belongs | Doesn't belong |
-|---|---|
-| Cross-project coding disciplines, estimation rules | Project-specific business rules → `projects/` |
-| Tool-stack preferences and setup conventions | Stable user facts across agents → `shared/` |
-| Skill assets, prompt templates | Single-agent transient observations → `agents/` |
-| Migration / cross-machine deployment guides | One-off task notes |
-| Methodology useful in multiple repos | Employer-confidential info (must not exist in this repo in any form) |
-
-The test: "Will this still apply after I change employers?" Yes → `workflow/`; No → somewhere else.
-
-### `nestwork.config.json`: ingestion contract for external directories
-
-Some working directory of yours (e.g. `~/work/some-employer-project/`) contains content worth ingesting into nestwork's `projects/` or `workflow/`, but it also has employer secrets, client names, internal codenames. You can't just copy it.
-
-`nestwork.config.json` is a metadata file placed in the source working directory (not inside nestwork) declaring:
-
-- Which category this directory's content can be ingested into
-- The required level of desensitization
-- Which terms to redact (employer names, client names, internal codenames)
-
-Minimal example (place at the root of your working directory):
-
-```json
-{
-  "$schema": "https://github.com/songth1ef/nestwork/schemas/nestwork.config.schema.json",
-  "version": "1.0",
-  "ingest": {
-    "target": "projects",
-    "name": "some-project"
-  },
-  "desensitize": {
-    "level": "strong",
-    "custom_rules": [
-      "<your-employer-name>",
-      "<internal-codename>",
-      "<client-name>"
-    ]
-  }
-}
-```
-
-Field semantics:
-
-| Field | Meaning |
-|---|---|
-| `ingest.target` | Which category receives content: `projects` / `workflow` / `null` (not ingestable) |
-| `ingest.name` | Destination filename |
-| `desensitize.level` | `none` (no transformation) / `weak` (pattern replace via custom_rules) / `strong` (AI semantic desensitization + custom_rules) |
-| `desensitize.custom_rules` | User-defined sensitive terms, layered on top of the general methodology |
-
-Key constraints:
-
-- The config file lives only in the source directory, never inside nestwork
-- Default `desensitize.level: "strong"`
-- If an agent detects ingestable content but no config exists, it must stop and prompt the user to create one; never ingest silently
-- Ingestion is one-way: source dir → private nest (never reverse-flows from private nest to upstream)
-
-Full rules: [docs/workflow-protocol.md](docs/workflow-protocol.md) and `AGENTS.md` §8, §9.
-
-### Desensitization methodology
-
-Upstream nestwork provides only the methodology and prompt template ([docs/desensitization-prompt.md](docs/desensitization-prompt.md)). No specific employer/client/codename names. Specifics live in each user's `nestwork.config.json` `custom_rules`.
-
-`strong`-level desensitization invokes an AI (Claude Haiku is sufficient and cheap) following the prompt template:
-
-1. Replace every `custom_rules` hit with a placeholder (`<EMPLOYER>`, `<CLIENT-A>`, etc.)
-2. Identify content that leaks confidential information without naming it directly (e.g. internal API structure, unreleased product features) and rewrite
-3. Preserve portable methodology
-4. Output structured JSON (desensitized content + redaction record + flags for human review)
-5. Write into nestwork only after human review
+- Layer rules and the full ingestion contract: [AGENTS.md](AGENTS.md) §8, §9
+- Deep dive with examples: [docs/workflow-protocol.md](docs/workflow-protocol.md)
+- Config schema: [schemas/nestwork.config.schema.json](schemas/nestwork.config.schema.json)
+- Desensitisation prompt template: [docs/desensitization-prompt.md](docs/desensitization-prompt.md) — upstream ships the methodology only; employer and client names live in your own `custom_rules`, never here
 
 ---
 
@@ -447,65 +374,41 @@ The employer name never appears in the nest repo; the methodology is preserved. 
 
 ## Compile shared memory (distillation)
 
-When agents have accumulated enough memory, merge it into `shared/memory.md` via one of:
+When agents have accumulated enough memory, merge it into `shared/memory.md`:
 
 ```bash
 # Pure concat: concatenate agents/*/memory.md, commit, push
 bash ~/nestwork/scripts/maintenance/compile.sh
 
-# LLM version, vendor-agnostic: prints a distillation prompt for you to feed any agent session
+# Vendor-agnostic: prints a distillation prompt for you to feed any agent session
 python3 ~/nestwork/scripts/maintenance/distill.py
 
-# Codex one-shot manual distill: aggregate all agent memory, write back to shared/memory.md,
-# then commit, push. Replace <your-profile> with the Codex profile available on this
-# machine; if the default config is correct, you can omit --profile.
+# Codex one-shot: aggregate, write back to shared/memory.md, commit, push
+# (add --dry-run to preview without writing)
 python3 ~/nestwork/scripts/maintenance/distill.py --run-codex --profile <your-profile>
-
-# Preview only, don't write
-python3 ~/nestwork/scripts/maintenance/distill.py --run-codex --profile <your-profile> --dry-run
 ```
 
-None of these modify the original agent memory. `--run-codex` updates only `shared/memory.md`, with commit message `memory: distill shared`. All agents see the new `shared/memory.md` on their next `git pull`.
+None of these modify the original agent memory — distillation reads private memory and writes only `shared/memory.md`, with commit message `memory: distill shared`. Every agent picks up the result on its next `git pull`.
 
-### Distillation design tradeoffs
-
-- Shared is a union, not an intersection. Never drop any agent's unique observation.
-- Non-destructive. Each agent's private memory is unchanged; distillation is read-only.
-- Sub-agent review required. Checks for sensitive data, factual errors, contradictions, outdated entries.
-- Human confirmation required. Sub-agent reports only; the human merges.
-- Never delete. Only merge and add; preserve history.
+The rules that make this safe — shared is a union and not an intersection, never delete, sub-agent review followed by human confirmation — are in [AGENTS.md](AGENTS.md) §7.
 
 ---
 
 ## Agent mailbox (inter-agent messaging)
 
-When agents need to talk **to each other** — across machines and tool-chains — nestwork
-ships a git-native mailbox: pure git + bash, **zero external dependencies**, no server, no
-IM, no bot. It's the answer to "how do my agents coordinate?" when IM platforms can't do
-it (e.g. **Telegram bots can't see each other's messages** by design). Human↔agent chat
-and agent↔agent mailbox are complementary layers.
+When agents need to talk **to each other** across machines and tool-chains, nestwork ships a git-native mailbox: pure git + bash, zero external dependencies, no server and no bot. It answers "how do my agents coordinate?" in the case IM platforms cannot — Telegram bots, for instance, cannot see each other's messages by design.
 
-It respects the single-writer rule — each agent writes only its own directory — so there
-is no shared inbox and **no write conflicts**:
-
-- **Send** = write into *your own* `outbox/`, tagged `to:` (one message = one file = one commit).
-- **Receive** = scan *everyone's* `agents/*/*/outbox/`, pick the ones `to == me` (or `to == all`).
-- **Read state** = the recipient records seen ids in its own git-ignored `local/comms/seen.txt` (never committed, so marking messages read creates no commits).
+It respects the single-writer rule, so there is no shared inbox and no write conflicts: you **send** by writing into *your own* `outbox/` tagged `to:` (one message = one file = one commit), and **receive** by scanning everyone's `agents/*/*/outbox/` for messages addressed to you.
 
 ```bash
-# send a task to another agent
 echo "please confirm receipt with a reply" | \
-  bash scripts/comms/send.sh vm-0-6-ubuntu/claude-va1k task "handshake test"
+  bash scripts/comms/send.sh <host>/<agent-id> task "handshake test"
 
-# read unread messages addressed to me, then mark them seen
-bash scripts/comms/read.sh            # view only
-bash scripts/comms/read.sh --mark     # mark after acting on them
+bash scripts/comms/read.sh            # view unread addressed to me
+bash scripts/comms/read.sh --mark     # mark seen after acting on them
 ```
 
-**Auto-injection (Tier 1):** the `session-start` hook writes unread messages into
-git-ignored `agents/<self>/local/inbox.md` and lists it in the READ-ON-START manifest, so
-each agent picks up its mail automatically on session start — without bloating the repo or
-the hook's stdout budget. Full reference: [docs/agent-mailbox.md](docs/agent-mailbox.md).
+Read state lives in a git-ignored local file, so marking mail read creates no commits. Unread mail is auto-injected at session start through a git-ignored local inbox, so agents pick it up without being asked. Full reference: [docs/agent-mailbox.md](docs/agent-mailbox.md).
 
 ---
 
@@ -513,79 +416,37 @@ the hook's stdout budget. Full reference: [docs/agent-mailbox.md](docs/agent-mai
 
 ```
 nestwork/
-├── AGENTS.md                   Single bootstrap source (Codex, OpenClaw, Gemini, …)
-├── CLAUDE.md                   Line-by-line mirror of AGENTS.md (Claude Code reads this name)
+├── AGENTS.md                   Single bootstrap source (Codex, Kimi, OpenClaw, Gemini, …)
+├── CLAUDE.md                   Byte-exact mirror of AGENTS.md (Claude Code reads this name)
 ├── SOUL.md                     Hermes' short persona file
-├── queen/
-│   ├── agent-rules.md          Behavior rules, agent read-only
-│   └── strategy.md             Decision direction, agent read-only
+├── queen/                      Behaviour rules + strategy, agent read-only
+│   ├── agent-rules.md
+│   ├── strategy.md
+│   └── limits.example.md       Template for a per-instance file-size override
 ├── agents/
 │   └── <host>/<agent-id>/
-│       └── memory.md           That agent's private memory
-├── shared/
-│   └── memory.md               Cross-agent compiled memory
-├── projects/
-│   └── <project>.md            Project context
-├── workflow/                   v2.2+: cross-project portable workflow knowledge
-│   ├── README.md
-│   └── <topic>.md
-├── docs/                       Protocol methodology and external docs
-│   ├── workflow-protocol.md       v2.2 workflow deep dive
-│   ├── desensitization-prompt.md  AI desensitization prompt template
-│   ├── ai-agent-memory.md
-│   ├── claude-code-memory.md
-│   ├── codex-persistent-memory.md
-│   ├── git-native-memory-protocol.md
-│   ├── agents-md-best-practices.md
-│   └── faq.md
-├── schemas/
-│   └── nestwork.config.schema.json   v2.2 config JSON Schema
+│       ├── memory.md           Private memory (hot — injected at session start)
+│       └── carryover/          Distilled tool-native memory (cold — never injected, v2.5+)
+├── shared/memory.md            Cross-agent compiled memory
+├── projects/<project>.md       Project context
+├── workflow/<topic>.md         Cross-project portable knowledge
+├── decisions/                  Protocol-level ADRs
+├── docs/                       Methodology, answer-ready docs, comparisons, blog
+├── schemas/                    JSON Schema for nestwork.config.json
+├── tests/                      Consistency and end-to-end tests
 └── scripts/
-    ├── install/                   Per-tool installers
-    │   ├── claude.{sh,ps1}
-    │   ├── codex.{sh,ps1}
-    │   ├── gemini.{sh,ps1}
-    │   ├── hermes.{sh,ps1}
-    │   ├── kimi.{sh,ps1}
-    │   ├── openclaw.{sh,ps1}
-    │   ├── generic.{sh,ps1}       Any markdown-config CLI
-    │   ├── _bootstrap.py          Shared bootstrap injector
-    │   ├── _codex_hooks.py        Codex config.toml + hooks.json registrar
-    │   ├── _hooks.py              Shared hook registrar (Claude Code)
-    │   └── _kimi_hooks.py         Kimi Code config.toml registrar
-    ├── uninstall/                 Per-tool uninstallers (unbind only; memory & identity kept)
-    │   ├── claude.{sh,ps1} codex.{sh,ps1} gemini.{sh,ps1}
-    │   ├── hermes.{sh,ps1} kimi.{sh,ps1} openclaw.{sh,ps1} generic.{sh,ps1}
-    │   ├── _unbootstrap.py        Shared bootstrap remover
-    │   ├── _codex_unhooks.py      Codex Stop-hook remover
-    │   ├── _kimi_unhooks.py       Kimi Code hook-block remover
-    │   └── _unhooks.py            Shared hook remover (Claude Code)
-    ├── hooks/                     Runtime hooks
-    │   ├── nestwork.sh            Unified pre/post/stop entrypoint
-    │   ├── _match-file.py         stdin file matcher
-    │   ├── export-claude-mem.sh   Optional claude-mem bridge
-    │   ├── sync-local-history.sh  Local history sync (wrapper, optional)
-    │   └── sync-local-history.py  Local history sync (worker, optional)
-    └── maintenance/               Operations
-        ├── compile.sh             Aggregate agents/* into shared/ (pure concat)
-        ├── distill.py             Print prompt or trigger Codex distillation
-        ├── sync-claude-md.sh      Regenerate CLAUDE.md from AGENTS.md
-        └── update.sh              Pull upstream protocol layer
+    ├── install/                Per-tool installers (.sh + .ps1)
+    ├── uninstall/              Per-tool uninstallers (unbind only; memory & identity kept)
+    ├── hooks/                  Runtime hooks (pre/post/stop, session-start, optional sync)
+    ├── comms/                  Agent mailbox (send / read / archive)
+    └── maintenance/            compile.sh · distill.py · sync-claude-md.sh · update.sh
 ```
 
 ---
 
 ## File size limits and split protocol
 
-### Universal rule (v2.2+)
-
-Any markdown file in the repo, when it exceeds the limit, is split using the same pattern: the original filename becomes a folder, the original file becomes an index (or `<folder>/index.md`), and content is split by topic.
-
-Example: `plan-all.md` (1200 lines) → `plan-all.md` (index) + `plan/plan-a.md` / `plan/plan-b.md` / `plan/plan-c.md`.
-
-Files not in the table below use the defaults: soft limit 500 lines (start considering a split), hard limit 1000 lines (must split before next write).
-
-### Specific limits
+Any markdown file in the repo is split once it outgrows its limit, always the same way: **the original filename becomes a folder, and the original file becomes a pure index of links.** Content is divided by topic.
 
 | File | Max lines |
 |---|---|
@@ -595,40 +456,15 @@ Files not in the table below use the defaults: soft limit 500 lines (start consi
 | `shared/memory.md` | 500 |
 | `projects/<name>.md` | 150 |
 | `workflow/<topic>.md` | 200 |
+| anything else | soft 500 / hard 1000 |
 
-Example. Splitting `agents/macbook/claude/memory.md` after it hits the limit:
+**Why limits at all?** Context windows are large, but attention degrades with token count — loading a 5000-line `memory.md` wholesale is poorly utilised. An index plus topic files lets an agent follow only what is relevant.
 
-```
-agents/macbook/claude/
-├── memory.md          ← becomes the index
-├── user_profile.md
-├── feedback_collab.md
-└── project_nestwork.md
-```
+Tune against **retrieval quality, not raw context-window size**: a bigger window does not justify proportionally bigger files.
 
-The split `memory.md`:
+A private instance can override the table without touching the protocol layer — copy [queen/limits.example.md](queen/limits.example.md) to `queen/limits.md` and edit it. `update.sh` never touches `queen/`, so the override survives protocol updates.
 
-```markdown
-# MEMORY — claude-macbook
-
-- [User profile](user_profile.md): role, stack, preferences
-- [Collaboration habits](feedback_collab.md): workflow, corrections
-- [Project: nestwork](project_nestwork.md): goals, decisions
-```
-
-The agent reads the index first, then follows links to relevant topic files.
-
-### Per-instance override (`queen/limits.md`)
-
-The table above is the protocol default. A private instance can override it without editing the protocol layer: create `queen/limits.md` with its own limits table. When present it is authoritative over the defaults, agents load it at session start (it sits in the high-priority `queen/` layer), and `update.sh` never touches `queen/` — so the override survives protocol updates.
-
-Tune against retrieval quality, not raw context-window size: a larger model window does not justify proportionally larger files, since attention still degrades with token count.
-
-### Why line limits?
-
-LLM context windows are large, but attention degrades with token count. Stuffing a 5000-line `memory.md` in wholesale is poorly utilized. Splitting into topic files plus an index lets an agent follow only the relevant context.
-
-The next optimization direction is generated indexes and selective loading by active project or topic, so a growing nest does not become a growing startup prompt.
+Split mechanics and worked examples: [AGENTS.md](AGENTS.md) §6.
 
 ---
 

@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 # nestwork hook remover for Codex CLI (inverse of scripts/install/_codex_hooks.py)
 #
-# Deletes the nestwork Stop hook from hooks.json, matching with the installer's
+# Deletes the nestwork hook from Stop or SessionEnd, matching with the installer's
 # own predicate so any command the installer would supersede gets removed.
 # `hooksPath` in config.toml is left in place: it is a generic pointer to
 # hooks.json, which may still hold the user's own hooks.
@@ -33,38 +33,34 @@ def main() -> int:
     with open(hooks_path, encoding="utf-8") as f:
         data = json.load(f)
 
-    stop_hooks = (data.get("hooks") or {}).get("Stop")
-    if not isinstance(stop_hooks, list):
-        print(f"nestwork Codex hook: no Stop hooks in {hooks_path} (nothing to remove)")
-        return 0
-
-    kept = []
     removed = 0
-    for entry in stop_hooks:
-        commands = [
-            hook.get("command", "")
-            for hook in entry.get("hooks", [])
-            if isinstance(hook, dict)
-        ]
-        if any(is_nestwork_hook(c) for c in commands):
-            removed += 1
+    events = data.get("hooks") or {}
+    for event in ("Stop", "SessionEnd"):
+        kept = []
+        for entry in events.get(event, []):
+            commands = [
+                hook.get("command", "")
+                for hook in entry.get("hooks", [])
+                if isinstance(hook, dict)
+            ]
+            if any(is_nestwork_hook(c) for c in commands):
+                removed += 1
+            else:
+                kept.append(entry)
+        if kept:
+            events[event] = kept
         else:
-            kept.append(entry)
+            events.pop(event, None)
 
     if not removed:
         print(f"nestwork Codex hook: none found in {hooks_path} (nothing to remove)")
         return 0
 
-    if kept:
-        data["hooks"]["Stop"] = kept
-    else:
-        data["hooks"].pop("Stop", None)
-
     with open(hooks_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
         f.write("\n")
 
-    print(f"removed {removed} nestwork Stop hook(s) from {hooks_path}")
+    print(f"removed {removed} nestwork Codex hook(s) from {hooks_path}")
     return 0
 
 

@@ -237,7 +237,7 @@ SessionEnd hook：claude-mem export + 本地 history sync（如开启）
 | Stop | 安全网 commit+push（clean 时为 no-op） | 兜底 |
 | SessionEnd | claude-mem export + 本地 history sync | 跨机可达 |
 
-只有 Claude Code 注册完整的原子逐次写入同步 hooks。Codex 只注册用于可选本地 history 快照的 Stop hook；Codex memory 编辑仍按 bootstrap 的手动 commit/push 协议处理。其他工具按各自 bootstrap 协议运行（详见 [支持的工具](#支持的工具)）。
+只有 Claude Code 注册完整的原子逐次写入同步 hooks。Codex 只注册用于可选本地 history 快照的 SessionEnd hook；Codex memory 编辑仍按 bootstrap 的手动 commit/push 协议处理。其他工具按各自 bootstrap 协议运行（详见 [支持的工具](#支持的工具)）。
 
 ---
 
@@ -354,7 +354,7 @@ Codex 启动时读 `~/.codex/AGENTS.md`，里面已经被 installer 注入了 ne
 - pull 你的 queen
 - 读 `queen/`、`shared/`、自己的 `agents/<host>/codex/memory.md`
 - 知道你的偏好、过去决策、当前项目状态
-- 启用时通过 `~/.codex/config.toml` + `~/.codex/hooks.json` 的 Stop hook 同步可选的本地 history 快照
+- 启用时通过 `~/.codex/config.toml` + `~/.codex/hooks.json` 的 SessionEnd hook 同步可选的本地 history 快照
 
 记忆不在厂商，在你的 git 仓。换工具的成本接近零。
 
@@ -480,7 +480,7 @@ nestwork/
 | OpenClaw | 开源 | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install/openclaw.sh` | 有入口，未亲测 |
 | Hermes Agent | 开源 | `~/.hermes/SOUL.md` | `bash scripts/install/hermes.sh` | 有入口，未亲测 |
 
-Claude Code 与 Kimi Code 都注册完整的原子逐次写入同步 hooks。Codex 会通过 `~/.codex/config.toml` + `~/.codex/hooks.json` 注册用于可选本地 history 快照的 Stop hook；Codex memory 编辑仍按 bootstrap 中的手动 commit/push 协议处理。其他工具按各自 bootstrap 协议运行。
+Claude Code 与 Kimi Code 都注册完整的原子逐次写入同步 hooks。Codex 会通过 `~/.codex/config.toml` + `~/.codex/hooks.json` 注册用于可选本地 history 快照的 SessionEnd hook；Codex memory 编辑仍按 bootstrap 中的手动 commit/push 协议处理。其他工具按各自 bootstrap 协议运行。
 
 ### 可选：捕获本地工具历史
 

@@ -65,7 +65,7 @@ if ($LASTEXITCODE -ne 0) {
     throw "Codex instructions.md compatibility bootstrap injection failed (exit $LASTEXITCODE)"
 }
 
-# 3. Register the Codex Stop hook used for optional local-history snapshots.
+# 3. Register the Codex SessionEnd hook used for optional local-history snapshots.
 #    Current Codex reads config.toml + hooks.json; the old config.json
 #    session.end_hook entry is ignored by recent releases.
 $env:NESTWORK_CODEX_PLATFORM = "windows"

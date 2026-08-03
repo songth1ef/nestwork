@@ -48,7 +48,7 @@ python3 "$NESTWORK_PATH/scripts/install/_bootstrap.py" \
 python3 "$NESTWORK_PATH/scripts/install/_bootstrap.py" \
   "$CODEX_INSTRUCTIONS" "$NESTWORK_PATH" "$HOST" "$AGENT_ID"
 
-# 3. Register the Codex Stop hook used for optional local-history snapshots.
+# 3. Register the Codex SessionEnd hook used for optional local-history snapshots.
 #    Current Codex reads config.toml + hooks.json; the old config.json
 #    session.end_hook entry is ignored by recent releases.
 python3 "$NESTWORK_PATH/scripts/install/_codex_hooks.py" \

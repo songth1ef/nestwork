@@ -38,17 +38,17 @@ class CodexHooksInstallerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             config, hooks = self.run_installer(Path(directory))
 
-            self.assertIn(f'hooksPath = "{hooks}"', config.read_text(encoding="utf-8"))
-            command = json.loads(hooks.read_text(encoding="utf-8"))["hooks"]["Stop"][0][
-                "hooks"
-            ][0]["command"]
-            self.assertIn("sync-local-history.sh", command)
-            self.assertIn('printf "{}\\n"', command)
-            completed = subprocess.run(command, shell=True, capture_output=True, text=True)
-            self.assertEqual(completed.returncode, 0, completed.stderr)
-            self.assertEqual(completed.stdout, "{}\n")
+            self.assertIn(
+                f'hooksPath = "{hooks.as_posix()}"',
+                config.read_text(encoding="utf-8"),
+            )
+            data = json.loads(hooks.read_text(encoding="utf-8"))
+            self.assertNotIn("Stop", data["hooks"])
+            handler = data["hooks"]["SessionEnd"][0]["hooks"][0]
+            self.assertIn("launch-local-history-sync.py", handler["command"])
+            self.assertEqual(handler["timeout"], 3)
 
-    def test_reinstall_preserves_other_hooks_and_replaces_nestwork_stop_hook(self) -> None:
+    def test_reinstall_preserves_other_hooks_and_moves_nestwork_to_session_end(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             config = root / "config.toml"
@@ -69,6 +69,9 @@ class CodexHooksInstallerTests(unittest.TestCase):
                                     ]
                                 },
                             ],
+                            "SessionEnd": [
+                                {"hooks": [{"type": "command", "command": "keep-end"}]}
+                            ],
                             "Other": [{"hooks": [{"command": "untouched"}]}],
                         }
                     }
@@ -84,18 +87,22 @@ class CodexHooksInstallerTests(unittest.TestCase):
             self.assertIn("[profiles.test]", updated_config)
             updated_hooks = json.loads(hooks.read_text(encoding="utf-8"))
             stops = updated_hooks["hooks"]["Stop"]
-            self.assertEqual(len(stops), 2)
+            self.assertEqual(len(stops), 1)
             self.assertEqual(stops[0]["hooks"][0]["command"], "keep-this")
+            ends = updated_hooks["hooks"]["SessionEnd"]
+            self.assertEqual(len(ends), 2)
+            self.assertEqual(ends[0]["hooks"][0]["command"], "keep-end")
+            self.assertIn("launch-local-history-sync.py", ends[1]["hooks"][0]["command"])
             self.assertEqual(updated_hooks["hooks"]["Other"][0]["hooks"][0]["command"], "untouched")
 
-    def test_windows_command_also_keeps_stdout_json_only(self) -> None:
+    def test_windows_command_uses_python_launcher_instead_of_bash(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             _, hooks = self.run_installer(Path(directory), platform="windows")
-            command = json.loads(hooks.read_text(encoding="utf-8"))["hooks"]["Stop"][0][
-                "hooks"
-            ][0]["command"]
-            self.assertIn("${TEMP:-/tmp}", command)
-            self.assertIn('printf "{}\\n"', command)
+            command = json.loads(hooks.read_text(encoding="utf-8"))["hooks"][
+                "SessionEnd"
+            ][0]["hooks"][0]["command"]
+            self.assertIn("launch-local-history-sync.py", command)
+            self.assertNotIn("bash -lc", command)
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@
 # Gated by ~/.nestwork/settings.json -> {"sync_local_history": true};
 # the gate is enforced inside sync-local-history.py so this wrapper stays thin.
 #
-# Called from the Stop hook chain installed by scripts/install/_hooks.py.
+# Called at SessionEnd (directly by Claude, detached by Codex).
 # -----------------------------------------------------------------------------
 
 set -u

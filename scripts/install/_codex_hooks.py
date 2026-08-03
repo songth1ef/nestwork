@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Register the Nestwork Codex Stop hook in current Codex CLI configuration."""
+"""Register the Nestwork Codex SessionEnd hook in current Codex configuration."""
 
 import json
 import os
 import re
+import shlex
 import sys
 
 
@@ -27,45 +28,52 @@ def install_hooks_path(config: str, hooks_path: str) -> str:
 
 
 def is_nestwork_hook(command: str) -> bool:
-    return "sync-local-history.sh" in command and "nestwork" in command
+    return (
+        "nestwork" in command
+        and (
+            "sync-local-history.sh" in command
+            or "launch-local-history-sync.py" in command
+        )
+    )
 
 
-def upsert_stop_hook(hooks: dict, command: str) -> None:
-    stop_hooks = hooks.setdefault("hooks", {}).get("Stop", [])
-    retained = []
-    for entry in stop_hooks:
-        commands = [
-            hook.get("command", "")
-            for hook in entry.get("hooks", [])
-            if isinstance(hook, dict)
-        ]
-        if not any(is_nestwork_hook(item) for item in commands):
-            retained.append(entry)
-    retained.append(
+def remove_existing_nestwork_hooks(hooks: dict) -> None:
+    events = hooks.setdefault("hooks", {})
+    for event in ("Stop", "SessionEnd"):
+        retained = []
+        for entry in events.get(event, []):
+            commands = [
+                hook.get("command", "")
+                for hook in entry.get("hooks", [])
+                if isinstance(hook, dict)
+            ]
+            if not any(is_nestwork_hook(item) for item in commands):
+                retained.append(entry)
+        if retained:
+            events[event] = retained
+        else:
+            events.pop(event, None)
+
+
+def upsert_session_end_hook(hooks: dict, command: str) -> None:
+    remove_existing_nestwork_hooks(hooks)
+    hooks["hooks"].setdefault("SessionEnd", []).append(
         {
             "hooks": [
-                {"type": "command", "command": command, "timeout": 60}
+                {"type": "command", "command": command, "timeout": 3}
             ]
         }
     )
-    hooks["hooks"]["Stop"] = retained
 
 
 def hook_command(nestwork_path: str, host: str, agent_id: str, platform: str) -> str:
-    script = f"{nestwork_path}/scripts/hooks/sync-local-history.sh"
+    script = f"{nestwork_path}/scripts/hooks/launch-local-history-sync.py"
+    args = [sys.executable, script, nestwork_path, host, agent_id]
     if platform == "windows":
-        return (
-            "bash -lc 'bash "
-            f'"{script}" "{host}" "{agent_id}" '
-            '>> "${TEMP:-/tmp}/nestwork-codex-stop-hook.log" 2>&1; '
-            'printf "{}\\n"\''
-        )
-    return (
-        "bash -lc 'bash "
-        f'"{script}" "{host}" "{agent_id}" '
-        '>> "${TMPDIR:-/tmp}/nestwork-codex-stop-hook.log" 2>&1; '
-        'printf "{}\\n"\''
-    )
+        import subprocess
+
+        return subprocess.list2cmdline(args)
+    return shlex.join(args)
 
 
 def main() -> int:
@@ -100,12 +108,17 @@ def main() -> int:
     if os.path.exists(hooks_path):
         with open(hooks_path, encoding="utf-8") as file:
             hooks = json.load(file)
-    upsert_stop_hook(hooks, hook_command(nestwork_path, host, agent_id, platform))
+    upsert_session_end_hook(
+        hooks, hook_command(nestwork_path, host, agent_id, platform)
+    )
     with open(hooks_path, "w", encoding="utf-8") as file:
         json.dump(hooks, file, indent=2)
         file.write("\n")
 
-    print(f"nestwork Codex Stop hook registered in {hooks_path} for {host}/{agent_id}")
+    print(
+        f"nestwork Codex SessionEnd hook registered in {hooks_path} "
+        f"for {host}/{agent_id}"
+    )
     return 0
 
 

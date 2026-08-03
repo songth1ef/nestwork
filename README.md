@@ -237,7 +237,7 @@ The race window shrinks from "the whole session" to "a single write." Multiple a
 | Stop | Safety-net commit+push (no-op when clean) | Backstop |
 | SessionEnd | claude-mem export + local history sync | Cross-machine reach |
 
-Only Claude Code registers the full atomic per-write synchronization hooks. Codex registers a Stop hook only for optional local-history snapshots; Codex memory edits still follow the manual commit/push bootstrap protocol. Other tools follow their bootstrap protocol (see [Supported tools](#supported-tools)).
+Only Claude Code registers the full atomic per-write synchronization hooks. Codex registers a SessionEnd hook only for optional local-history snapshots; Codex memory edits still follow the manual commit/push bootstrap protocol. Other tools follow their bootstrap protocol (see [Supported tools](#supported-tools)).
 
 ---
 
@@ -354,7 +354,7 @@ Codex starts up, reads `~/.codex/AGENTS.md` (the installer injected the nestwork
 - pull your queen
 - read `queen/`, `shared/`, and its own `agents/<host>/codex/memory.md`
 - know your preferences, past decisions, current project state
-- use a `~/.codex/config.toml` + `~/.codex/hooks.json` Stop hook for optional local-history snapshots when enabled
+- use a `~/.codex/config.toml` + `~/.codex/hooks.json` SessionEnd hook for optional local-history snapshots when enabled
 
 Memory isn't in any vendor; it's in your git repo. The cost of switching tools is near zero.
 
@@ -480,7 +480,7 @@ Split mechanics and worked examples: [AGENTS.md](AGENTS.md) §6.
 | OpenClaw | Open source | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install/openclaw.sh` | Entry exists, untested by author |
 | Hermes Agent | Open source | `~/.hermes/SOUL.md` | `bash scripts/install/hermes.sh` | Entry exists, untested by author |
 
-Claude Code and Kimi Code register the full atomic per-write synchronization hooks. Codex registers a Stop hook for optional local-history snapshots through `~/.codex/config.toml` + `~/.codex/hooks.json`; Codex memory edits still follow the manual commit/push bootstrap protocol. Other tools follow their bootstrap protocol.
+Claude Code and Kimi Code register the full atomic per-write synchronization hooks. Codex registers a SessionEnd hook for optional local-history snapshots through `~/.codex/config.toml` + `~/.codex/hooks.json`; Codex memory edits still follow the manual commit/push bootstrap protocol. Other tools follow their bootstrap protocol.
 
 ### Optional: capture local tool history
 

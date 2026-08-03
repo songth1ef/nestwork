@@ -5,9 +5,12 @@
 # Default mode prints an LLM-ready prompt that merges all agents/*/*/memory.md
 # into a new shared/memory.md.
 #
-# Manual end-to-end mode (`--run-codex`) uses codex exec to run that
-# distillation, validates the result, writes shared/memory.md, and optionally
-# commits + pushes it with the protocol commit message.
+# Manual end-to-end mode runs that distillation through a local CLI agent,
+# validates the result, writes shared/memory.md, and optionally commits +
+# pushes it with the protocol commit message. Two runners are supported:
+# `--run-claude` (claude -p) and `--run-codex` (codex exec). Pick whichever
+# tool this machine is actually signed in to -- a distiller tied to a single
+# vendor stops working the moment that subscription lapses.
 # -----------------------------------------------------------------------------
 
 import argparse
@@ -129,7 +132,7 @@ def extract_shared_memory(text: str) -> str:
         if "# SHARED MEMORY" in candidate:
             return candidate.rstrip() + "\n"
 
-    raise ValueError("Codex output did not contain a markdown block for shared/memory.md")
+    raise ValueError("LLM output did not contain a markdown block for shared/memory.md")
 
 
 def validate_shared_memory(content: str) -> list[str]:
@@ -140,6 +143,47 @@ def validate_shared_memory(content: str) -> list[str]:
     if line_count > 500:
         warnings.append(f"shared/memory.md exceeds 500 lines ({line_count})")
     return warnings
+
+
+def run_claude(prompt: str, model: str | None) -> str:
+    claude = shutil.which("claude")
+    if not claude:
+        raise FileNotFoundError("`claude` executable not found in PATH")
+
+    with tempfile.TemporaryDirectory(prefix="nestwork-distill-") as tmp:
+        cmd = [
+            claude,
+            "-p",
+            # Pure text distillation: no tools, and no user/project settings, so
+            # a CLAUDE.md startup protocol cannot hijack the output. Without
+            # this the distiller obeys the nest's own bootstrap and answers with
+            # a session-start summary instead of a shared/memory.md candidate.
+            "--tools",
+            "",
+            "--setting-sources",
+            "",
+        ]
+        if model:
+            cmd += ["--model", model]
+
+        result = subprocess.run(
+            cmd,
+            input=prompt,
+            text=True,
+            # Agent memory is routinely non-ASCII, and `text=True` alone decodes
+            # with the *locale* codec -- on a zh-CN Windows box that is GBK, and
+            # the whole run dies with UnicodeDecodeError before the distilled
+            # memory is ever parsed. Pin UTF-8 in both directions.
+            encoding="utf-8",
+            errors="replace",
+            capture_output=True,
+            cwd=tmp,
+        )
+        if result.returncode != 0:
+            stderr = (result.stderr or "").strip()
+            detail = f"\n--- claude stderr ---\n{stderr}" if stderr else ""
+            raise RuntimeError(f"claude -p failed (exit {result.returncode}).{detail}")
+        return result.stdout
 
 
 def run_codex(prompt: str, profile: str | None, model: str | None) -> str:
@@ -173,6 +217,10 @@ def run_codex(prompt: str, profile: str | None, model: str | None) -> str:
             cmd,
             input=prompt,
             text=True,
+            # Same reason as run_claude: locale-codec decoding of non-ASCII
+            # memory turns into UnicodeDecodeError on non-UTF-8 Windows locales.
+            encoding="utf-8",
+            errors="replace",
             capture_output=True,
         )
         if result.returncode != 0:
@@ -241,6 +289,11 @@ def parse_args() -> argparse.Namespace:
         help="Path to the Nestwork repository. Defaults to the repo that contains this script.",
     )
     parser.add_argument(
+        "--run-claude",
+        action="store_true",
+        help="Run the distillation end-to-end with `claude -p`, then write shared/memory.md.",
+    )
+    parser.add_argument(
         "--run-codex",
         action="store_true",
         help="Run the distillation end-to-end with `codex exec`, then write shared/memory.md.",
@@ -248,17 +301,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--profile",
         default=os.environ.get("NESTWORK_DISTILL_CODEX_PROFILE", ""),
-        help="Optional `codex exec --profile` value for --run-codex.",
+        help="Optional `codex exec --profile` value for --run-codex (Codex only).",
     )
     parser.add_argument(
         "--model",
-        default=os.environ.get("NESTWORK_DISTILL_CODEX_MODEL", ""),
-        help="Optional `codex exec --model` value for --run-codex.",
+        default="",
+        help="Optional model override for the selected runner. Defaults to "
+        "$NESTWORK_DISTILL_CLAUDE_MODEL / $NESTWORK_DISTILL_CODEX_MODEL.",
     )
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Run Codex and print the candidate shared/memory.md instead of writing it.",
+        help="Run the distiller and print the candidate shared/memory.md instead of writing it.",
     )
     parser.add_argument(
         "--no-commit",
@@ -295,12 +349,24 @@ def main() -> int:
     if sys.platform == "win32":
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
-    if not args.run_codex:
+    if args.run_claude and args.run_codex:
+        print("Error: --run-claude and --run-codex are mutually exclusive.", file=sys.stderr)
+        return 2
+
+    if not (args.run_claude or args.run_codex):
         print(prompt, end="")
         return 0
 
+    if args.run_claude and args.profile:
+        print("Warning: --profile applies to --run-codex only; ignoring.", file=sys.stderr)
+
     try:
-        raw_output = run_codex(prompt, args.profile or None, args.model or None)
+        if args.run_claude:
+            model = args.model or os.environ.get("NESTWORK_DISTILL_CLAUDE_MODEL", "")
+            raw_output = run_claude(prompt, model or None)
+        else:
+            model = args.model or os.environ.get("NESTWORK_DISTILL_CODEX_MODEL", "")
+            raw_output = run_codex(prompt, args.profile or None, model or None)
         shared_content = extract_shared_memory(raw_output)
     except (FileNotFoundError, ValueError, RuntimeError, subprocess.CalledProcessError) as exc:
         print(f"Error: {exc}", file=sys.stderr)

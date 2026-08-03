@@ -60,6 +60,33 @@ class DistillTests(unittest.TestCase):
         )
         fake_codex.chmod(fake_codex.stat().st_mode | stat.S_IEXEC)
 
+    def create_fake_claude(self, bin_dir: Path, response: str) -> None:
+        """A `claude` that echoes a canned answer on stdout and logs its argv.
+
+        `claude -p` returns the answer on stdout rather than through an output
+        file, so the shim differs from the codex one in more than its name.
+        """
+        bin_dir.mkdir(parents=True, exist_ok=True)
+        fake_claude = bin_dir / "claude"
+        args_log = bin_dir / "claude-args.txt"
+        fake_claude.write_text(
+            "\n".join(
+                [
+                    "#!/usr/bin/env python3",
+                    "import pathlib",
+                    "import sys",
+                    "",
+                    "args = sys.argv[1:]",
+                    f"pathlib.Path({str(args_log)!r}).write_text('\\n'.join(args), encoding='utf-8')",
+                    "sys.stdin.read()",
+                    f"sys.stdout.write({response!r})",
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        fake_claude.chmod(fake_claude.stat().st_mode | stat.S_IEXEC)
+
     def run_distill(self, root: Path, *args: str, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
             [sys.executable, str(DISTILL), "--nestwork-path", str(root), *args],
@@ -81,6 +108,56 @@ class DistillTests(unittest.TestCase):
             self.assertIn("Private memory from agent: host-a/codex", completed.stdout)
             self.assertIn("Private memory from agent: host-b/claude-ab12", completed.stdout)
             self.assertNotIn("Private memory from agent: host-c/gemini", completed.stdout)
+
+    @unittest.skipIf(
+        sys.platform == "win32",
+        "PATH shims without an executable extension cannot shadow a real "
+        "binary on win32, so the fixture would invoke the machine's own CLI",
+    )
+    def test_run_claude_dry_run_prints_candidate_and_disables_tools(self) -> None:
+        """The claude runner must stay a pure text transform.
+
+        Without `--tools ''` / `--setting-sources ''` the distiller loads the
+        nest's own CLAUDE.md bootstrap and answers with a session-start summary
+        instead of a shared/memory.md candidate -- the failure looks like a bad
+        LLM response, not a missing flag, so it is asserted here.
+        """
+        TMP_ROOT.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=TMP_ROOT) as tmp:
+            root = Path(tmp)
+            self.create_repo_fixture(root)
+
+            bin_dir = root / "bin"
+            self.create_fake_claude(
+                bin_dir,
+                "```markdown\n# SHARED MEMORY\n\n- merged fact\n```\n",
+            )
+
+            env = os.environ.copy()
+            env["PATH"] = f"{bin_dir}:{env['PATH']}"
+
+            completed = self.run_distill(root, "--run-claude", "--dry-run", env=env)
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            self.assertEqual(completed.stdout, "# SHARED MEMORY\n\n- merged fact\n")
+            self.assertIn("Last compiled: old", (root / "shared" / "memory.md").read_text(encoding="utf-8"))
+
+            argv = (bin_dir / "claude-args.txt").read_text(encoding="utf-8").splitlines()
+            self.assertIn("-p", argv)
+            self.assertIn("--tools", argv)
+            self.assertIn("--setting-sources", argv)
+
+    def test_runners_are_mutually_exclusive(self) -> None:
+        """Asking for both runners must fail loudly instead of silently picking one."""
+        TMP_ROOT.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=TMP_ROOT) as tmp:
+            root = Path(tmp)
+            self.create_repo_fixture(root)
+
+            completed = self.run_distill(root, "--run-claude", "--run-codex")
+
+            self.assertEqual(completed.returncode, 2)
+            self.assertIn("mutually exclusive", completed.stderr)
 
     def test_run_codex_dry_run_prints_candidate_without_writing(self) -> None:
         TMP_ROOT.mkdir(exist_ok=True)

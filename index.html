@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>nestwork — git-native memory protocol for AI coding agents</title>
+<meta name="description" content="nestwork is a git-native memory protocol for AI coding agents — persistent memory and shared context that live in your own private git repo. No server, no plugin, no vendor lock-in.">
+<meta property="og:title" content="nestwork — git-native memory protocol for AI coding agents">
+<meta property="og:description" content="nestwork is a git-native memory protocol for AI coding agents — persistent memory and shared context that live in your own private git repo. No server, no plugin, no vendor lock-in.">
+<meta property="og:type" content="website">
+<script>
+(function () {
+  var lang = 'en';
+  try {
+    var stored = localStorage.getItem('nestwork_lang');
+    if (stored === 'en' || stored === 'zh') {
+      lang = stored;
+    } else {
+      var nav = (navigator.language || '').toLowerCase();
+      lang = nav.indexOf('zh') === 0 ? 'zh' : 'en';
+    }
+  } catch (e) {}
+  document.documentElement.setAttribute('data-lang', lang);
+})();
+</script>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0d0f12;
+  --surface: #16191f;
+  --border: #252a33;
+  --text: #e6e8ec;
+  --muted: #9aa3b2;
+  --accent: #f0b429;
+  --mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html[data-lang="en"] [lang="zh"] {
+  display: none !important;
+}
+
+html[data-lang="zh"] [lang="en"] {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(240, 180, 41, 0.28);
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ---------- header ---------- */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(13, 15, 18, 0.78);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+.header-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.wordmark {
+  font-family: var(--mono);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+.wordmark:hover {
+  color: #f6c64a;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.lang-toggle {
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: border-color 150ms ease, color 150ms ease;
+}
+
+.lang-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.header-link {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+.header-link:hover {
+  color: var(--text);
+}
+
+/* ---------- hero ---------- */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: 72px 0 96px;
+  text-align: center;
+}
+
+.hero-glow {
+  position: absolute;
+  top: -140px;
+  left: 50%;
+  width: 820px;
+  height: 540px;
+  transform: translateX(-50%);
+  background: radial-gradient(closest-side, rgba(240, 180, 41, 0.09), transparent 72%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.ascii-art {
+  margin: 0 0 36px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--muted);
+  text-align: left;
+  white-space: pre;
+}
+
+.hero h1 {
+  margin: 0 0 16px;
+  font-size: 42px;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.lead {
+  margin: 0 auto 30px;
+  max-width: 660px;
+  font-size: 18px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 34px;
+}
+
+.pill {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 14px;
+}
+
+.cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+}
+
+/* ---------- buttons ---------- */
+
+.btn {
+  display: inline-block;
+  padding: 12px 22px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+}
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0d0f12;
+}
+
+.btn-primary:hover {
+  background: #f5c04a;
+  border-color: #f5c04a;
+}
+
+.btn-secondary {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.btn-secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ---------- sections ---------- */
+
+.section {
+  padding: 96px 0;
+}
+
+.section h2 {
+  margin: 0 0 44px;
+  font-size: 28px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  text-align: center;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  transition: border-color 150ms ease;
+}
+
+.card:hover {
+  border-color: var(--accent);
+}
+
+.card p {
+  margin: 0;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+/* ---------- steps ---------- */
+
+.step-num {
+  display: block;
+  margin-bottom: 14px;
+  font-family: var(--mono);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.step h3 {
+  margin: 0 0 8px;
+  font-size: 16.5px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.card.step p {
+  font-size: 14.5px;
+}
+
+/* ---------- code blocks ---------- */
+
+.code-label {
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.priority-block {
+  margin-top: 40px;
+}
+
+.priority-block pre,
+.code-block pre {
+  margin: 0;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+  white-space: pre;
+}
+
+.code-block {
+  margin-bottom: 20px;
+}
+
+.code-block:last-child {
+  margin-bottom: 0;
+}
+
+.code-block-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.code-block-head .code-label {
+  margin-bottom: 0;
+}
+
+.copy-btn {
+  font: inherit;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: border-color 150ms ease, color 150ms ease;
+}
+
+.copy-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.copy-btn .copied-label {
+  display: none;
+}
+
+.copy-btn.copied .copy-label {
+  display: none;
+}
+
+.copy-btn.copied .copied-label {
+  display: inline;
+}
+
+/* ---------- features ---------- */
+
+.feature h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* ---------- quickstart ---------- */
+
+.quickstart-intro {
+  margin: 0 0 32px;
+  max-width: 640px;
+  font-size: 16px;
+  color: var(--muted);
+}
+
+/* ---------- docs links ---------- */
+
+.docs-list {
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  max-width: 620px;
+}
+
+.docs-list li + li {
+  margin-top: 10px;
+}
+
+.docs-list a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 15px;
+  text-decoration: none;
+  transition: border-color 150ms ease, color 150ms ease;
+}
+
+.docs-list a:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.docs-list .arrow {
+  font-family: var(--mono);
+  color: var(--accent);
+}
+
+/* ---------- footer ---------- */
+
+.site-footer {
+  margin-top: 48px;
+  padding: 34px 0;
+  border-top: 1px solid var(--border);
+}
+
+.footer-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.footer-inner p {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+.footer-inner a {
+  font-size: 13.5px;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+.footer-inner a:hover {
+  color: var(--accent);
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 720px) {
+  .hero {
+    padding: 48px 0 72px;
+  }
+  .section {
+    padding: 72px 0;
+  }
+  .hero h1 {
+    font-size: 30px;
+  }
+  .lead {
+    font-size: 16px;
+  }
+  .section h2 {
+    font-size: 23px;
+    margin-bottom: 32px;
+  }
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="wordmark" href="https://github.com/songth1ef/nestwork" target="_blank" rel="noopener">nestwork</a>
+    <div class="header-actions">
+      <button id="lang-toggle" class="lang-toggle" type="button">
+        <span lang="en">中文</span>
+        <span lang="zh">EN</span>
+      </button>
+      <a class="header-link" href="https://github.com/songth1ef/nestwork" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="hero-inner">
+      <pre class="ascii-art" aria-hidden="true">          ♕           //  _   __ ______ _____ ______ _       __ ____  ____  __ __
+       \  |  /       //  / | / // ____// ___//_  __/| |     / // __ \/ __ \/ //_/
+        .-♡-.       //  /  |/ // __/   \__ \  / /   | | /| / // / / / /_/ / ,&lt;
+      ʚ(˶ᵔᴗᵔ˶)ɞ    //  / /|  // /___ ___/ / / /    | |/ |/ // /_/ / _, _/ /| |
+       /づ Q づ\   //  /_/ |_//_____//____/ /_/     |__/|__/ \____/_/ |_/_/ |_|
+      ╰─╯ ♡ ╰─╯       ╱ ╱ ╱       Y O U R   A G E N T S   R E M E M B E R       ╱ ╱ ╱
+        ʚ   ɞ        [ HOME ] ⇄ [ WORK ] ⇄ [ CLOUD ]</pre>
+      <h1><span lang="en">Your agents remember.</span><span lang="zh">让你的 AI agent 记得住。</span></h1>
+      <p class="lead"><span lang="en">nestwork is a git-native memory protocol for AI coding agents — persistent memory and shared context that live in your own private git repo. No server, no plugin, no vendor lock-in.</span><span lang="zh">nestwork 是面向 AI 编码 agent 的 git 原生记忆协议——持久记忆与共享上下文，全部存在你自己的私有 git 仓库里。不需要服务器，不需要插件，不绑定任何厂商。</span></p>
+      <div class="pills">
+        <span class="pill">Protocol 2.4</span>
+        <span class="pill">v0.6.0</span>
+        <span class="pill">Claude · Codex · Gemini · Hermes · OpenClaw</span>
+      </div>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://github.com/songth1ef/nestwork/generate" target="_blank" rel="noopener"><span lang="en">Use this template</span><span lang="zh">用模板创建我的仓库</span></a>
+        <a class="btn btn-secondary" href="https://github.com/songth1ef/nestwork" target="_blank" rel="noopener"><span lang="en">View on GitHub</span><span lang="zh">查看 GitHub 仓库</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="problem">
+    <div class="container">
+      <h2><span lang="en">Every new session, your agent starts from zero</span><span lang="zh">每开一个新会话，你的 agent 都从零开始</span></h2>
+      <div class="grid-2">
+    <div class="card">
+<p lang="en">The agent on your work machine knows your rules. The one on your laptop starts blank.</p>
+<p lang="zh">公司电脑上的 agent 知道你的规矩，个人电脑上的那个一片空白。</p>
+    </div>
+    <div class="card">
+<p lang="en">A cloud dev box cannot see the progress you recorded somewhere else.</p>
+<p lang="zh">云端开发机看不到你在别的机器上记录的项目进度。</p>
+    </div>
+    <div class="card">
+<p lang="en">Switching sessions or tools means re-explaining who you are and what was decided.</p>
+<p lang="zh">切会话、换工具，就得重新解释一遍你是谁、之前定了什么。</p>
+    </div>
+    <div class="card">
+<p lang="en">Vendor-private memory locks your context into one ecosystem.</p>
+<p lang="zh">厂商私有的记忆功能，把你的上下文锁死在一个生态里。</p>
+    </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="how">
+    <div class="container">
+      <h2><span lang="en">One private git repo as the shared brain</span><span lang="zh">一个私有 git 仓库，当所有 agent 的共享大脑</span></h2>
+      <div class="grid-3">
+    <div class="card step">
+      <span class="step-num">01</span>
+<h3 lang="en">Create your repo</h3>
+<h3 lang="zh">创建你的仓库</h3>
+<p lang="en">Click "Use this template" on GitHub and set it private. The memory is yours alone.</p>
+<p lang="zh">在 GitHub 上点 "Use this template"，设为 private。记忆完全属于你自己。</p>
+    </div>
+    <div class="card step">
+      <span class="step-num">02</span>
+<h3 lang="en">Install the hooks</h3>
+<h3 lang="zh">装上 hook</h3>
+<p lang="en">One script per tool wires up session-start context injection and per-write auto-commit.</p>
+<p lang="zh">每个工具一行安装脚本，自动接好「会话启动注入上下文」和「每次写入自动提交」。</p>
+    </div>
+    <div class="card step">
+      <span class="step-num">03</span>
+<h3 lang="en">Every agent reads the same context</h3>
+<h3 lang="zh">所有 agent 读同一份上下文</h3>
+<p lang="en">Claude, Codex, Gemini, Hermes — same versioned memory, across sessions, machines and vendors.</p>
+<p lang="zh">Claude、Codex、Gemini、Hermes——同一份带版本的记忆，跨会话、跨机器、跨厂商。</p>
+    </div>
+      </div>
+  <div class="priority-block">
+    <div class="code-label"><span lang="en">Context priority chain</span><span lang="zh">上下文优先级链</span></div>
+    <pre><code>queen/agent-rules.md  &gt;  queen/strategy.md  &gt;  shared/memory.md  &gt;  agents/*/*/memory.md  &gt;  projects/*.md  &gt;  workflow/*.md</code></pre>
+  </div>
+    </div>
+  </section>
+
+  <section class="section" id="features">
+    <div class="container">
+      <h2><span lang="en">What you get</span><span lang="zh">你会得到什么</span></h2>
+      <div class="grid-3">
+    <div class="card feature">
+<h3 lang="en">Git-native</h3>
+<h3 lang="zh">git 原生</h3>
+<p lang="en">Plain markdown in a git repo. No database, no daemon, no third-party service.</p>
+<p lang="zh">就是 git 仓库里的普通 markdown。没有数据库，没有常驻进程，没有第三方服务。</p>
+    </div>
+    <div class="card feature">
+<h3 lang="en">Cross-tool</h3>
+<h3 lang="zh">跨工具</h3>
+<p lang="en">Works with any markdown-config agent: Claude Code, Codex CLI, Gemini CLI, Hermes, OpenClaw.</p>
+<p lang="zh">任何用 markdown 配置的 agent 都能接：Claude Code、Codex CLI、Gemini CLI、Hermes、OpenClaw。</p>
+    </div>
+    <div class="card feature">
+<h3 lang="en">Cross-machine</h3>
+<h3 lang="zh">跨机器</h3>
+<p lang="en">Clone the repo on a new machine and the agent already knows your stack, rules and open threads.</p>
+<p lang="zh">在新机器上 clone 一下，agent 就已经知道你的技术栈、规矩和在飞的活。</p>
+    </div>
+    <div class="card feature">
+<h3 lang="en">Encrypted mode</h3>
+<h3 lang="zh">加密模式</h3>
+<p lang="en">Optional git-crypt layer keeps private memory unreadable even to the git host.</p>
+<p lang="zh">可选的 git-crypt 层，让私有记忆连 git 托管方也读不到。</p>
+    </div>
+    <div class="card feature">
+<h3 lang="en">Agent mailbox</h3>
+<h3 lang="zh">Agent 信箱</h3>
+<p lang="en">Git-native inter-agent messaging: one agent leaves a note, another picks it up at session start.</p>
+<p lang="zh">基于 git 的 agent 间通信：一个 agent 留言，另一个在会话启动时自动收到。</p>
+    </div>
+    <div class="card feature">
+<h3 lang="en">Memory distillation</h3>
+<h3 lang="zh">记忆蒸馏</h3>
+<p lang="en">Private per-agent memory is merged into shared memory on demand — union, never destructive.</p>
+<p lang="zh">按需把各 agent 的私有记忆合并进共享记忆——只做并集，永不删除。</p>
+    </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="quickstart">
+    <div class="container">
+      <h2><span lang="en">Quickstart</span><span lang="zh">快速开始</span></h2>
+      <p class="quickstart-intro"><span lang="en">After creating your repo from the template, clone it and run the installer for your tool:</span><span lang="zh">用模板创建仓库后，clone 下来，跑对应工具的安装脚本：</span></p>
+  <div class="code-block">
+    <div class="code-block-head">
+      <span class="code-label">macOS / Linux</span>
+      <button class="copy-btn" type="button">
+        <span lang="en" class="copy-label">Copy</span>
+        <span lang="zh" class="copy-label">复制</span>
+        <span lang="en" class="copied-label">Copied</span>
+        <span lang="zh" class="copied-label">已复制</span>
+      </button>
+    </div>
+    <pre><code>git clone https://github.com/&lt;you&gt;/&lt;your-repo&gt;.git nestwork
+bash nestwork/scripts/install/claude.sh
+bash nestwork/scripts/install/codex.sh
+bash nestwork/scripts/install/gemini.sh</code></pre>
+  </div>
+
+  <div class="code-block">
+    <div class="code-block-head">
+      <span class="code-label">Windows PowerShell</span>
+      <button class="copy-btn" type="button">
+        <span lang="en" class="copy-label">Copy</span>
+        <span lang="zh" class="copy-label">复制</span>
+        <span lang="en" class="copied-label">Copied</span>
+        <span lang="zh" class="copied-label">已复制</span>
+      </button>
+    </div>
+    <pre><code>git clone https://github.com/&lt;you&gt;/&lt;your-repo&gt;.git nestwork
+.\nestwork\scripts\install\claude.ps1
+.\nestwork\scripts\install\codex.ps1
+.\nestwork\scripts\install\gemini.ps1</code></pre>
+  </div>
+    </div>
+  </section>
+
+  <section class="section" id="docs">
+    <div class="container">
+      <h2><span lang="en">Read more</span><span lang="zh">继续了解</span></h2>
+      <ul class="docs-list">
+    <li><a href="https://github.com/songth1ef/nestwork/blob/main/AGENTS.md" target="_blank" rel="noopener"><span lang="en">The protocol (AGENTS.md)</span><span lang="zh">协议全文（AGENTS.md）</span><span class="arrow" aria-hidden="true">→</span></a></li>
+    <li><a href="https://github.com/songth1ef/nestwork/tree/main/docs" target="_blank" rel="noopener"><span lang="en">Documentation</span><span lang="zh">文档</span><span class="arrow" aria-hidden="true">→</span></a></li>
+    <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/faq.md" target="_blank" rel="noopener"><span lang="en">FAQ</span><span lang="zh">常见问题</span><span class="arrow" aria-hidden="true">→</span></a></li>
+    <li><a href="https://github.com/songth1ef/nestwork" target="_blank" rel="noopener"><span lang="en">Source code</span><span lang="zh">源码仓库</span><span class="arrow" aria-hidden="true">→</span></a></li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <p><span lang="en">nestwork — your agents remember.</span><span lang="zh">nestwork——让你的 agent 记得住。</span></p>
+    <a href="https://github.com/songth1ef/nestwork" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  var root = document.documentElement;
+
+  /* ----- language toggle ----- */
+  var toggle = document.getElementById('lang-toggle');
+  if (toggle) {
+    function updateToggleLabel() {
+      var isZh = root.getAttribute('data-lang') === 'zh';
+      toggle.setAttribute('aria-label', isZh ? 'Switch to English' : '切换到中文');
+    }
+    updateToggleLabel();
+    toggle.addEventListener('click', function () {
+      var next = root.getAttribute('data-lang') === 'zh' ? 'en' : 'zh';
+      root.setAttribute('data-lang', next);
+      try {
+        localStorage.setItem('nestwork_lang', next);
+      } catch (e) {}
+      updateToggleLabel();
+    });
+  }
+
+  /* ----- copy buttons ----- */
+  function legacyCopy(text) {
+    return new Promise(function (resolve, reject) {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.top = '0';
+      ta.style.left = '0';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        ta.setSelectionRange(0, text.length);
+      } catch (e) {}
+      var ok = false;
+      try {
+        ok = document.execCommand('copy');
+      } catch (e) {
+        ok = false;
+      }
+      document.body.removeChild(ta);
+      if (ok) {
+        resolve();
+      } else {
+        reject(new Error('copy failed'));
+      }
+    });
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).catch(function () {
+        return legacyCopy(text);
+      });
+    }
+    return legacyCopy(text);
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('.copy-btn'), function (btn) {
+    btn.addEventListener('click', function () {
+      var block = btn.closest('.code-block');
+      if (!block) {
+        return;
+      }
+      var codeEl = block.querySelector('pre code');
+      var text = codeEl ? codeEl.textContent : '';
+      copyText(text).then(function () {
+        btn.classList.add('copied');
+        if (btn._copyTimer) {
+          clearTimeout(btn._copyTimer);
+        }
+        btn._copyTimer = setTimeout(function () {
+          btn.classList.remove('copied');
+        }, 1500);
+      }).catch(function () {
+        /* clipboard unavailable — fail silently */
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

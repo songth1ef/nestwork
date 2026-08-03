@@ -476,7 +476,7 @@ nestwork/
 | Claude Code | Anthropic | `~/.claude/CLAUDE.md` + hooks | `bash scripts/install/claude.sh` | 已适配，个人在用 |
 | Codex CLI | OpenAI | `~/.codex/AGENTS.md` + 兼容入口 | `bash scripts/install/codex.sh` | 已适配，个人在用 |
 | Gemini CLI | Google | `~/.gemini/GEMINI.md` | `bash scripts/install/gemini.sh` | 有入口，未亲测 |
-| Kimi Code | Moonshot AI | `~/.kimi-code/NESTWORK.md` + hooks | `bash scripts/install/kimi.sh` | 有入口，未亲测 |
+| Kimi Code | Moonshot AI | `~/.kimi-code/AGENTS.md` + hooks | `bash scripts/install/kimi.sh` | 有入口，未亲测 |
 | OpenClaw | 开源 | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install/openclaw.sh` | 有入口，未亲测 |
 | Hermes Agent | 开源 | `~/.hermes/SOUL.md` | `bash scripts/install/hermes.sh` | 有入口，未亲测 |
 

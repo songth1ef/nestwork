@@ -212,6 +212,50 @@ class DocsConsistencyTests(unittest.TestCase):
                         f"{surface} does not mention the '{tool}' installer",
                     )
 
+    def test_installer_entry_file_matches_readme_and_uninstaller(self) -> None:
+        """The file an installer writes must be the file the docs advertise.
+
+        Both sides are derived: the path comes from the `_bootstrap.py` call in
+        `scripts/install/<tool>.sh`, the advertised path from that tool's row in
+        the Supported tools table. Kimi Code shipped writing its bootstrap to
+        `~/.kimi-code/NESTWORK.md`, a filename Kimi Code never loads (it reads
+        `$KIMI_CODE_HOME/AGENTS.md` and `<project>/AGENTS.md`, nothing else) --
+        and the README advertised the same wrong path, so the two agreed with
+        each other while the agent started with no nestwork context at all. The
+        install printed success either way, which is why this failure mode has
+        to be caught here rather than at install time.
+
+        The uninstaller is checked against the same derived list: whatever an
+        installer writes, its uninstaller must be able to remove.
+        """
+        for script in sorted((REPO_ROOT / "scripts" / "install").glob("*.sh")):
+            tool = script.stem
+            if tool.startswith("_") or tool == "generic":
+                continue
+
+            targets = _bootstrap_targets(script)
+            with self.subTest(tool=tool):
+                self.assertTrue(targets, f"{script.name} calls no _bootstrap.py")
+
+                for readme in ("README.md", "README.zh.md"):
+                    cell = _supported_tools_entry_cell(REPO_ROOT / readme, tool)
+                    self.assertTrue(
+                        any(target in cell for target in targets),
+                        f"{readme} advertises {cell!r} as the entry file for "
+                        f"'{tool}', but {script.name} writes the bootstrap to "
+                        f"{targets}",
+                    )
+
+                uninstaller = REPO_ROOT / "scripts" / "uninstall" / f"{tool}.sh"
+                removed = _unbootstrap_targets(uninstaller)
+                for target in targets:
+                    self.assertIn(
+                        target,
+                        removed,
+                        f"{script.name} writes {target}, but "
+                        f"{uninstaller.name} never removes it",
+                    )
+
 
 def _readme_badge(path: Path) -> str:
     """The tools badge line, lowercased and URL-unescaped enough to match names."""
@@ -219,6 +263,48 @@ def _readme_badge(path: Path) -> str:
         if "badge/tools-" in line:
             return line.replace("%20", " ").replace("%7C", "|").lower()
     raise AssertionError(f"{path.name} has no tools badge")
+
+
+def _bootstrap_targets(script: Path) -> list[str]:
+    """Every path a shell installer hands to `_bootstrap.py`, in `~/...` form."""
+    return _helper_targets(script, r"(?<![a-z])_bootstrap\.py")
+
+
+def _unbootstrap_targets(script: Path) -> list[str]:
+    """Every path a shell uninstaller hands to `_unbootstrap.py`, in `~/...` form."""
+    return _helper_targets(script, r"_unbootstrap\.py")
+
+
+def _helper_targets(script: Path, helper: str) -> list[str]:
+    text = script.read_text(encoding="utf-8")
+
+    variables: dict[str, str] = {}
+    for name, raw in re.findall(r'^([A-Z_][A-Z_0-9]*)="([^"]*)"', text, re.MULTILINE):
+        variables[name] = _expand_shell_path(raw, variables)
+
+    pattern = re.compile(helper + r'"\s*\\?\s*"([^"]+)"')
+    return [_expand_shell_path(raw, variables) for raw in pattern.findall(text)]
+
+
+def _expand_shell_path(value: str, variables: dict[str, str]) -> str:
+    """Resolve `${VAR:-default}`, `$VAR` and `$HOME` far enough to compare paths."""
+    value = re.sub(r"\$\{[A-Z_][A-Z_0-9]*:-([^}]*)\}", r"\1", value)
+    # Longest name first so `$CODEX_DIR` is not eaten by a shorter prefix.
+    for name in sorted(variables, key=len, reverse=True):
+        value = value.replace("${" + name + "}", variables[name])
+        value = value.replace("$" + name, variables[name])
+    return value.replace("$HOME/", "~/")
+
+
+def _supported_tools_entry_cell(path: Path, tool: str) -> str:
+    """The "Entry file" cell of the Supported tools row that installs `tool`."""
+    needle = f"scripts/install/{tool}.sh"
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.startswith("|") and needle in line:
+            cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+            if len(cells) >= 3:
+                return cells[2]
+    raise AssertionError(f"{path.name} has no Supported tools row installing '{tool}'")
 
 
 if __name__ == "__main__":

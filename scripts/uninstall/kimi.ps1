@@ -27,8 +27,13 @@ Write-Host "-> nestwork path : $NestworkPath"
 Write-Host "-> host           : $(if ($HostId) { $HostId } else { '<unknown>' })"
 Write-Host "-> agent id       : $(if ($AgentId) { $AgentId } else { '<unknown>' })"
 
-# 1. Remove the bootstrap block from NESTWORK.md (user content preserved)
-& $PythonCmd (Join-Path $NestworkPath "scripts\uninstall\_unbootstrap.py") "$KimiCodeHome\NESTWORK.md"
+# 1. Remove the bootstrap block from AGENTS.md (user content preserved), plus
+#    the legacy NESTWORK.md left by installs made before 2026-08-02.
+& $PythonCmd (Join-Path $NestworkPath "scripts\uninstall\_unbootstrap.py") "$KimiCodeHome\AGENTS.md"
+$LegacyBootstrap = "$KimiCodeHome\NESTWORK.md"
+if (Test-Path $LegacyBootstrap) {
+    & $PythonCmd (Join-Path $NestworkPath "scripts\uninstall\_unbootstrap.py") $LegacyBootstrap
+}
 
 # 2. Remove the nestwork hook block from config.toml (user hooks preserved)
 & $PythonCmd (Join-Path $NestworkPath "scripts\uninstall\_kimi_unhooks.py") "$KimiCodeHome\config.toml"

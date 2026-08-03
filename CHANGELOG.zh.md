@@ -52,6 +52,7 @@
 
 ### 修复（Fixed）
 
+- **Kimi Code 装完等于没装：上下文一条都没加载。** `scripts/install/kimi.{sh,ps1}` 把 bootstrap 块写进了 `~/.kimi-code/NESTWORK.md`——而 Kimi Code 根本不读这个文件名。它的指令文件只有两个：`$KIMI_CODE_HOME/AGENTS.md`（用户级，默认 `~/.kimi-code/AGENTS.md`）和 `<project>/AGENTS.md`。所有可见信号都显示安装成功：脚本打印 OK、hooks 注册并正常触发（SessionStart 拉取、逐次写入同步、Stop 兜底）、`git pull` 也按时在跑——但 agent 每次会话都是零 nestwork 上下文启动。Kimi Code 又不支持从 hook 注入上下文（hook 只能返回权限决策），所以那个文件是唯一通道，而它是静默失效的。安装脚本现在写入 `AGENTS.md`，并清理旧版 `NESTWORK.md` 里的残留块（标记之外的用户内容原样保留）；卸载脚本两个文件都清。新增测试 `test_installer_entry_file_matches_readme_and_uninstaller`：入口文件从各安装脚本自己的 `_bootstrap.py` 调用推导，要求 README「支持的工具」表那一行**和**对应卸载脚本都与之一致——此前 README 宣传的是同一个错误路径，两份副本互相印证着一个已经失效的功能，而硬编码断言只会给这种一致性盖章。已安装用户：重跑 `bash scripts/install/kimi.sh`（或 `.\scripts\install\kimi.ps1`）。
 - **`update.sh` 不再把上游明文提交进 git-crypt 加密的 nest。** `git checkout <tree-ish> -- <path>` 会把上游 blob 原样写进 index、绕过 clean filter——全仓加密的实例跑一次更新，提交里全是上游明文。应用步骤现在对协议路径补跑 `git add --renormalize` 重过 clean filter（未加密实例为 no-op）。
 - **`compile.sh` 不再损坏记忆内容。** 之前用 `printf "%b"` 输出，会把 agent 记忆正文里的反斜杠序列（`\n`、`\t`、`C:\temp`、正则）当转义解释；现在内容原样直通。头部剥离不再假设固定 3 行头，也不再把安装模板的第二行 blockquote 泄漏进 `shared/memory.md`。
 - **pre-write hook 的 autostash 防护。** `git pull --rebase --autostash` 在 stash 回放冲突时仍然 exit 0——git 把未提交改动留在 stash、工作树复位为干净，随后的 Write 会把它静默覆盖。hook 现在检测 stash 残留条目（与 locale 无关）并阻断写入、给出恢复提示。

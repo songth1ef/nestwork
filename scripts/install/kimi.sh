@@ -41,12 +41,26 @@ EOF
   echo "[ok] created $AGENT_DIR/memory.md"
 fi
 
-# 2. Inject nestwork bootstrap into Kimi Code's startup reference file.
-#    Kimi Code does not (yet) support SessionStart additionalContext, so the
-#    bootstrap instructs the agent to Read the priority-chain files itself.
+# 2. Inject nestwork bootstrap into Kimi Code's user-level instruction file.
+#    Kimi Code reads exactly two instruction files: `$KIMI_CODE_HOME/AGENTS.md`
+#    (user level, default `~/.kimi-code/AGENTS.md`) and `<project>/AGENTS.md`.
+#    No other filename is loaded, so the bootstrap has to live there.
+#    Kimi Code also does not support SessionStart additionalContext -- a hook may
+#    only return a permission decision -- so the bootstrap instructs the agent to
+#    Read the priority-chain files itself.
 mkdir -p "$KIMI_CODE_HOME"
 python3 "$NESTWORK_PATH/scripts/install/_bootstrap.py" \
-  "$KIMI_CODE_HOME/NESTWORK.md" "$NESTWORK_PATH" "$HOST" "$AGENT_ID" --tool=kimi
+  "$KIMI_CODE_HOME/AGENTS.md" "$NESTWORK_PATH" "$HOST" "$AGENT_ID" --tool=kimi
+
+# 2b. Migrate installs made before 2026-08-02: they wrote the bootstrap to
+#     NESTWORK.md, a filename Kimi Code never reads (the install looked fine,
+#     hooks ran, and the agent still started with zero nestwork context). Drop
+#     the stale block so two copies cannot drift; content the user added outside
+#     the markers is preserved, and the file is removed only if nothing is left.
+if [ -f "$KIMI_CODE_HOME/NESTWORK.md" ]; then
+  python3 "$NESTWORK_PATH/scripts/uninstall/_unbootstrap.py" \
+    "$KIMI_CODE_HOME/NESTWORK.md"
+fi
 
 # 3. Register hooks in ~/.kimi-code/config.toml.
 #    - SessionStart: git pull --rebase (keeps context fresh)

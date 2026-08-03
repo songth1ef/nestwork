@@ -476,7 +476,7 @@ Split mechanics and worked examples: [AGENTS.md](AGENTS.md) §6.
 | Claude Code | Anthropic | `~/.claude/CLAUDE.md` + hooks | `bash scripts/install/claude.sh` | Adopted, daily-driven |
 | Codex CLI | OpenAI | `~/.codex/AGENTS.md` + compatibility entry | `bash scripts/install/codex.sh` | Adopted, daily-driven |
 | Gemini CLI | Google | `~/.gemini/GEMINI.md` | `bash scripts/install/gemini.sh` | Entry exists, untested by author |
-| Kimi Code | Moonshot AI | `~/.kimi-code/NESTWORK.md` + hooks | `bash scripts/install/kimi.sh` | Entry exists, untested by author |
+| Kimi Code | Moonshot AI | `~/.kimi-code/AGENTS.md` + hooks | `bash scripts/install/kimi.sh` | Entry exists, untested by author |
 | OpenClaw | Open source | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install/openclaw.sh` | Entry exists, untested by author |
 | Hermes Agent | Open source | `~/.hermes/SOUL.md` | `bash scripts/install/hermes.sh` | Entry exists, untested by author |
 

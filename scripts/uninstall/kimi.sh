@@ -4,9 +4,10 @@ set -euo pipefail
 # ---------------------------------------------
 # nestwork x Kimi Code uninstaller
 #
-# Unbinds only: removes the bootstrap block from ~/.kimi-code/NESTWORK.md and
-# the nestwork hook block from ~/.kimi-code/config.toml. Memory and identity
-# files are never deleted.
+# Unbinds only: removes the bootstrap block from ~/.kimi-code/AGENTS.md (and
+# from the pre-2026-08-02 ~/.kimi-code/NESTWORK.md, if that install left one)
+# plus the nestwork hook block from ~/.kimi-code/config.toml. Memory and
+# identity files are never deleted.
 #
 # Usage:
 #   bash uninstall/kimi.sh [--purge-identity]
@@ -26,8 +27,12 @@ echo "-> nestwork path : $NESTWORK_PATH"
 echo "-> host           : ${HOST:-<unknown>}"
 echo "-> agent id       : ${AGENT_ID:-<unknown>}"
 
-# 1. Remove the bootstrap block from NESTWORK.md (user content preserved)
-python3 "$NESTWORK_PATH/scripts/uninstall/_unbootstrap.py" "$KIMI_CODE_HOME/NESTWORK.md"
+# 1. Remove the bootstrap block from AGENTS.md (user content preserved), plus
+#    the legacy NESTWORK.md left by installs made before 2026-08-02.
+python3 "$NESTWORK_PATH/scripts/uninstall/_unbootstrap.py" "$KIMI_CODE_HOME/AGENTS.md"
+if [ -f "$KIMI_CODE_HOME/NESTWORK.md" ]; then
+  python3 "$NESTWORK_PATH/scripts/uninstall/_unbootstrap.py" "$KIMI_CODE_HOME/NESTWORK.md"
+fi
 
 # 2. Remove the nestwork hook block from config.toml (user hooks preserved)
 python3 "$NESTWORK_PATH/scripts/uninstall/_kimi_unhooks.py" "$KIMI_CODE_HOME/config.toml"

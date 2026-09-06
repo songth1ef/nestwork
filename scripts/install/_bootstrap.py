@@ -35,131 +35,45 @@ LEGACY_CODEX_BOOTSTRAP_RE = re.compile(
 
 BLOCK_TEMPLATE = """\
 {begin}
-# Nestwork Startup Protocol
+# Nestwork Startup Protocol — resident and on-demand context
 
-Before any analysis, planning, or implementation in a fresh session, ensure
-nestwork context is loaded.
+At session start, pull `{hp}` with `git pull --rebase` unless a startup
+hook already refreshed it. If unavailable, report the limitation and use local context.
+Read only these resident files (skip a missing optional resident file):
+- `{hp}/queen/agent-rules.md`
+- `{hp}/shared/resident.md`
+- `{hp}/agents/{host}/{aid}/resident.md`
 
-On Claude Code, the SessionStart hook auto-runs `git pull` and inlines
-`agent-rules.md` plus a `READ-ON-START` manifest with absolute paths
-(because hook stdout is truncated near 2KB, only `agent-rules.md` fits
-inline -- the rest you Read via the listed paths). On Codex / Gemini /
-other agents there is no SessionStart hook; you must do every step below
-yourself.
+A hook may provide a READ-ON-START manifest; read those paths unless their
+contents are already supplied. Missing resident files do not make historical
+memory mandatory. Do not recursively load links from resident files.
 
-Required at session start:
+On demand: search headings/keywords before reading relevant sections of
+`{hp}/shared/memory.md`, `{hp}/agents/{host}/{aid}/memory.md`,
+`{hp}/projects/`, and `{hp}/workflow/`. Read `{hp}/queen/strategy.md`
+when prioritizing work or discussing direction. Check recent git activity only
+when resuming work, coordinating agents, or maintaining Nestwork.
+Follow the user's current task; unrelated project history is not an assignment.
 
-1. Pull: `git -C {hp} pull --rebase`
-2. Read each of the following (use your Read tool; on Claude Code,
-   `agent-rules.md` is already inlined, but you still must Read items 2-4):
-   - `{hp}/queen/agent-rules.md`
-   - `{hp}/queen/strategy.md`
-   - `{hp}/shared/memory.md`
-   - `{hp}/agents/{host}/{aid}/memory.md`
-3. Read on demand when task-relevant:
-   - `{hp}/workflow/*.md` (portable methodology)
-   - `{hp}/projects/<name>.md` (current task scope)
+Within the Nestwork repository, ordinary memory writes belong only in
+`{hp}/agents/{host}/{aid}/`. This restriction does not govern files in other
+projects or user-requested artifacts. Protocol/shared changes need task-specific
+authorization. Read `{hp}/AGENTS.md` and `{hp}/docs/context-loading.md`
+when maintaining Nestwork or changing shared context.
 
-Skipping step 2 is a protocol violation: `agent-rules.md` requires you to
-"say so -- do not guess" when context is missing, and step 2 is what
-prevents the missing-context state.
-
-## After loading -- self-direct, do not ask
-
-You have enough signal to pick a next action without user prompting.
-Before your first reply:
-
-1. `git -C {hp} log --oneline -10 -- agents/` -- recent activity across
-   every instance
-2. `git -C {hp} log --oneline -5` -- recent protocol / shared changes
-3. Cross-reference with `queen/strategy.md` **Current Priorities** and
-   the latest entries in `shared/memory.md` / `agents/{host}/{aid}/memory.md`
-
-Open with: **(a) state summary** (2-3 bullets on what's in flight, what
-priorities say, what's blocking) and **(b) one concrete proposal** for
-the next action (plus a short alternative if meaningful).
-
-FORBIDDEN first replies: "What would you like me to do?" / "How can I
-help?" / "Tell me what to do." Only if every source above is empty may
-you ask -- and you must state that you checked and found nothing.
-
-## Write protocol
-
-- Only write to `{hp}/agents/{host}/{aid}/`
-- When the session ends and memory changed:
-
+If memory changed and no sync hooks handle it, sync only your agent directory:
 ```bash
 git -C {hp} add agents/{host}/{aid}/
 git -C {hp} diff --cached --quiet -- agents/{host}/{aid}/ || \
   git -C {hp} commit -m "memory: update {host}/{aid}" -- agents/{host}/{aid}/
 git -C {hp} push
 ```
-
-See full protocol: `{hp}/AGENTS.md`
 {end}
 """
 
-KIMI_BLOCK_TEMPLATE = """\
-{begin}
-# Nestwork Startup Protocol
-
-Before any analysis, planning, or implementation in a fresh session, ensure
-nestwork context is loaded.
-
-Kimi Code's SessionStart hook runs `git -C {hp} pull --rebase` for you, but
-it does not inject additionalContext. Therefore you MUST Read the files
-below yourself with your Read tool before your first reply.
-
-Required at session start:
-
-1. Pull: `git -C {hp} pull --rebase` (already done by the SessionStart hook)
-2. Read each of the following (use your Read tool):
-   - `{hp}/queen/agent-rules.md`
-   - `{hp}/queen/strategy.md`
-   - `{hp}/shared/memory.md`
-   - `{hp}/agents/{host}/{aid}/memory.md`
-3. Read on demand when task-relevant:
-   - `{hp}/workflow/*.md` (portable methodology)
-   - `{hp}/projects/<name>.md` (current task scope)
-
-Skipping step 2 is a protocol violation: `agent-rules.md` requires you to
-"say so -- do not guess" when context is missing, and step 2 is what
-prevents the missing-context state.
-
-## After loading -- self-direct, do not ask
-
-You have enough signal to pick a next action without user prompting.
-Before your first reply:
-
-1. `git -C {hp} log --oneline -10 -- agents/` -- recent activity across
-   every instance
-2. `git -C {hp} log --oneline -5` -- recent protocol / shared changes
-3. Cross-reference with `queen/strategy.md` **Current Priorities** and
-   the latest entries in `shared/memory.md` / `agents/{host}/{aid}/memory.md`
-
-Open with: **(a) state summary** (2-3 bullets on what's in flight, what
-priorities say, what's blocking) and **(b) one concrete proposal** for
-the next action (plus a short alternative if meaningful).
-
-FORBIDDEN first replies: "What would you like me to do?" / "How can I
-help?" / "Tell me what to do." Only if every source above is empty may
-you ask -- and you must state that you checked and found nothing.
-
-## Write protocol
-
-- Only write to `{hp}/agents/{host}/{aid}/`
-- PreToolUse / PostToolUse hooks handle commit+push for every Write/Edit
-  under `agents/{host}/{aid}/`. If hooks are unavailable, run manually:
-
-```bash
-git -C {hp} add agents/{host}/{aid}/
-git -C {hp} diff --cached --quiet -- agents/{host}/{aid}/ ||   git -C {hp} commit -m "memory: update {host}/{aid}" -- agents/{host}/{aid}/
-git -C {hp} push
-```
-
-See full protocol: `{hp}/AGENTS.md`
-{end}
-"""
+# Kimi runs SessionStart but does not inject additionalContext; the explicit
+# file reads in the common bootstrap work with and without injected context.
+KIMI_BLOCK_TEMPLATE = BLOCK_TEMPLATE
 
 
 def strip_legacy_codex_bootstrap(content: str) -> str:

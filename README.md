@@ -1,5 +1,7 @@
 # nestwork
 
+> Protocol 3.0: only core rules and small shared/agent resident summaries load at startup. History and project context are on demand. Existing users must refresh their tool bootstrap; [migration guide](docs/context-loading.md).
+
 ```text
           ♕           //  _   __ ______ _____ ______ _       __ ____  ____  __ __
        \  |  /       //  / | / // ____// ___//_  __/| |     / // __ \/ __ \/ //_/
@@ -12,9 +14,9 @@
 
 [中文](README.zh.md) | English
 
-Version: v0.6.0 | Protocol: 2.5
+Version: v0.6.0 | Protocol: 3.0
 
-[![Protocol](https://img.shields.io/badge/protocol-2.5-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Kimi%20%7C%20Hermes%20%7C%20OpenClaw-green)](#supported-tools) [![Storage](https://img.shields.io/badge/storage-git-orange)](#how-it-works)
+[![Protocol](https://img.shields.io/badge/protocol-3.0-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Kimi%20%7C%20Hermes%20%7C%20OpenClaw-green)](#supported-tools) [![Storage](https://img.shields.io/badge/storage-git-orange)](#how-it-works)
 
 **nestwork is a git-native memory protocol for AI coding agents: persistent memory and shared context that live in your own git repo.** Your AI agent memory follows you across sessions, machines, and tools.
 
@@ -175,7 +177,7 @@ In practice: when you hit a non-sensitive decision, a lesson, or a cross-project
 | [Context layers](#context-layers-workflow-and-external-ingestion) | `workflow/` cross-project knowledge layer + `nestwork.config.json` ingestion contract for external dirs |
 | [Real workflow examples](#real-workflow-examples) | Multi-machine collaboration / tool migration / employer-project knowledge ingestion |
 | [Compile shared memory](#compile-shared-memory-distillation) | `compile.sh` concat vs `distill.py` LLM distillation, non-destructive merge into `shared/` |
-| [Agent mailbox](#agent-mailbox-inter-agent-messaging) | git-native inter-agent messaging: single-writer outbox, auto-injected on session start, zero external deps |
+| [Agent mailbox](#agent-mailbox-inter-agent-messaging) | git-native inter-agent messaging: single-writer outbox, available on demand, zero external deps |
 | [Directory structure](#directory-structure) / [Line limits](#file-size-limits-and-split-protocol) | Repo layout + file split protocol |
 | [Supported tools](#supported-tools) | Claude Code / Codex / Gemini / Kimi Code / Hermes / OpenClaw / generic any markdown-config CLI + IDE plugin symlinks |
 | [Staying up to date](#staying-up-to-date) | GitHub Action auto-PR or `update.sh` manual sync, never touches your private data |
@@ -201,9 +203,9 @@ Session starts
   ↓
 git pull --rebase                          (SessionStart hook, automatic)
   ↓
-Load context by priority chain             (injected as agent system prompt)
+Load core rules + optional shared/agent resident.md (paths from hook)
   ↓
-Agent self-orients (reads git log + strategy.md, gives state summary + next-action proposal)
+Follow current task; retrieve history / strategy / git log only when relevant
   ↓
 ─── During work ────────────────────────
   ↓
@@ -231,7 +233,7 @@ The race window shrinks from "the whole session" to "a single write." Multiple a
 
 | Hook event | Action | Purpose |
 |---|---|---|
-| SessionStart | pull + inject agent-rules / strategy / shared / agent memory / `workflow/*` into additionalContext | Replaces manual session-start protocol |
+| SessionStart | pull + emit resident file paths; history / workflow / inbox on demand | Replaces manual session-start protocol |
 | PreToolUse (Write\|Edit, scoped to `agents/<id>/`) | `git pull --rebase`; conflicts → `exit 2` blocks the write | Prevent overwriting remote updates |
 | PostToolUse (same scope) | `git add/commit/push`; on push failure, retry 3× (re-pulling each time) | Instant sync |
 | Stop | Safety-net commit+push (no-op when clean) | Backstop |
@@ -329,7 +331,7 @@ Monday morning (office computer):
 
 - Launch Claude Code, SessionStart hook auto-`git pull` and injects context
 - You say "continue last night's NestJS module work"
-- Claude reads `agents/macbook/claude-xxx/memory.md`, sees yesterday's progress
+- Claude retrieves the relevant sections of `agents/macbook/claude-xxx/memory.md` to resume yesterday's work
 - Also loads `shared/memory.md`, knows your stack preferences (Vue 3 + NestJS)
 - Picks up directly without re-explaining
 
@@ -352,7 +354,7 @@ bash ~/nestwork/scripts/install/codex.sh
 Codex starts up, reads `~/.codex/AGENTS.md` (the installer injected the nestwork bootstrap there). It will:
 
 - pull your queen
-- read `queen/`, `shared/`, and its own `agents/<host>/codex/memory.md`
+- read core rules and optional shared/agent `resident.md`; retrieve history for the current task
 - know your preferences, past decisions, current project state
 - use a `~/.codex/config.toml` + `~/.codex/hooks.json` SessionEnd hook for optional local-history snapshots when enabled
 
@@ -408,7 +410,7 @@ bash scripts/comms/read.sh            # view unread addressed to me
 bash scripts/comms/read.sh --mark     # mark seen after acting on them
 ```
 
-Read state lives in a git-ignored local file, so marking mail read creates no commits. Unread mail is auto-injected at session start through a git-ignored local inbox, so agents pick it up without being asked. Full reference: [docs/agent-mailbox.md](docs/agent-mailbox.md).
+Read state lives in a git-ignored local file, so marking mail read creates no commits. Unread mail is snapshotted into a git-ignored local inbox; its path is listed on demand for coordination. Full reference: [docs/agent-mailbox.md](docs/agent-mailbox.md).
 
 ---
 
@@ -424,8 +426,10 @@ nestwork/
 │   └── strategy.md
 ├── agents/
 │   └── <host>/<agent-id>/
-│       ├── memory.md           Private memory (hot — injected at session start)
+│       ├── resident.md         Small startup facts and retrieval pointers
+│       ├── memory.md           Private history (on demand)
 │       └── carryover/          Distilled tool-native memory (cold — never injected, v2.5+)
+├── shared/resident.md          Small shared startup index
 ├── shared/memory.md            Cross-agent compiled memory
 ├── projects/<project>.md       Project context
 ├── workflow/<topic>.md         Cross-project portable knowledge
@@ -753,7 +757,7 @@ Full protocol: [AGENTS.md](AGENTS.md).
 
 ## Related docs
 
-- [AGENTS.md](AGENTS.md): Protocol spec (authoritative; agents read this on startup)
+- [AGENTS.md](AGENTS.md): Protocol spec (authoritative reference for Nestwork maintenance)
 - [docs/workflow-protocol.md](docs/workflow-protocol.md): v2.2 workflow deep dive
 - [docs/desensitization-prompt.md](docs/desensitization-prompt.md): AI desensitization methodology
 - [docs/encrypted-memory.md](docs/encrypted-memory.md): Optional git-crypt encryption for private memory

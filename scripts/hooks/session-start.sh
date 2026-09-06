@@ -5,19 +5,10 @@
 # Usage (registered by installer in Claude Code settings.json):
 #   session-start.sh <host> <agent-id>
 #
-# Behavior:
-#   - Pull latest nestwork (rebase, autostash) so context is fresh.
-#   - Emit a *small* context skeleton (<~1.8KB) that Claude Code's SessionStart
-#     hook will reliably inject without truncation:
-#       1. bundle header
-#       2. agent-rules full text (highest priority, smallest file)
-#       3. READ-ON-START manifest pointing to strategy / shared / agent memory
-#       4. READ-ON-DEMAND manifest pointing to workflow/*.md
-#   - The agent is required (by CLAUDE.md / AGENTS.md) to Read the manifest
-#     paths before its first response. Large files are pulled in via the agent's
-#     Read tool, not via stdout, because Claude Code truncates hook stdout
-#     around 2KB regardless of plain-text or JSON-mode output.
-#   - Always exit 0. SessionStart must never block session startup.
+# Emits resident file paths only, keeping stdout independent of memory size.
+# History, strategy, projects, workflows and inbox contents are on demand.
+# Missing resident summaries never fall back to loading historical memory.
+# Always exits 0 so unavailable context does not block the host application.
 # -----------------------------------------------------------------------------
 
 set -u
@@ -43,25 +34,15 @@ fi
 # Refresh, but never block on failure (offline, conflict, etc.)
 git pull --rebase --autostash -q 2>/dev/null || git rebase --abort 2>/dev/null || true
 
-# Agent mailbox (Tier 1): refresh this agent's unread-message snapshot into its
+# Agent mailbox (on demand): refresh this agent's unread-message snapshot into its
 # git-ignored local/ dir, so it can be surfaced via the manifest below without
-# spending the hook's ~2KB stdout budget (the agent Reads the file, like memory).
+# expanding hook stdout with message contents.
 # Deletes the snapshot when there is nothing unread. Never blocks startup.
 if [ -f scripts/comms/read.sh ]; then
   NESTWORK_SELF="$HOST_ID/$AGENT_ID" \
     bash scripts/comms/read.sh --write "agents/$HOST_ID/$AGENT_ID/local/inbox.md" 2>/dev/null || true
 fi
 
-emit_file() {
-  local label="$1" path="$2"
-  if [ -f "$path" ]; then
-    printf '\n=== %s (%s) ===\n' "$label" "$path"
-    cat "$path"
-  fi
-}
-
-# Compact manifest entry: one path per line, absolute, no purpose annotation
-# (the section header carries that semantic). Skip missing files silently.
 manifest_line() {
   local rel="$1"
   if [ -f "$NESTWORK_PATH/$rel" ]; then
@@ -70,23 +51,23 @@ manifest_line() {
 }
 
 printf 'nestwork context bundle for %s/%s\n' "$HOST_ID" "$AGENT_ID"
-emit_file "agent-rules" "queen/agent-rules.md"
+printf '\n=== READ-ON-START (resident files only) ===\n'
+manifest_line "queen/agent-rules.md"
+manifest_line "shared/resident.md"
+manifest_line "agents/$HOST_ID/$AGENT_ID/resident.md"
+if [ ! -f queen/agent-rules.md ]; then
+  printf '[!] Missing queen/agent-rules.md; report missing rules, do not guess.\n'
+fi
+if [ ! -f shared/resident.md ]; then
+  printf '[!] Resident summary absent; history remains on demand. See docs/context-loading.md.\n'
+fi
 
-printf '\n=== READ-ON-START (MANDATORY before first reply; see CLAUDE.md) ===\n'
+printf '\n=== READ-ON-DEMAND (search relevant sections, do not load all) ===\n'
 manifest_line "queen/strategy.md"
 manifest_line "shared/memory.md"
 manifest_line "agents/$HOST_ID/$AGENT_ID/memory.md"
 manifest_line "agents/$HOST_ID/$AGENT_ID/local/inbox.md"
-
-printf '\n=== READ-ON-DEMAND (when task-relevant) ===\n'
-if [ -d workflow ]; then
-  for f in workflow/*.md; do
-    [ -f "$f" ] || continue
-    base="$(basename "$f")"
-    [ "$base" = "_template.md" ] && continue
-    manifest_line "$f"
-  done
-fi
+printf -- '- %s/projects/ and %s/workflow/ (select by task)\n' "$NESTWORK_PATH_NATIVE" "$NESTWORK_PATH_NATIVE"
 
 # Upstream protocol-version check (AGENTS.md §11, v2.3+).
 # Compressed to one line so a triggered advisory does not blow the ~2KB budget.

@@ -1,5 +1,7 @@
 # nestwork
 
+> 协议 3.0：启动只读核心规则和少量共享/实例常驻摘要，历史与项目资料按需查阅。旧实例须刷新工具启动块；见[迁移指南](docs/context-loading.md)。
+
 ```text
           ♕           //  _   __ ______ _____ ______ _       __ ____  ____  __ __
        \  |  /       //  / | / // ____// ___//_  __/| |     / // __ \/ __ \/ //_/
@@ -12,9 +14,9 @@
 
 [English](README.md) | 中文
 
-版本：v0.6.0 | 协议：2.5
+版本：v0.6.0 | 协议：3.0
 
-[![Protocol](https://img.shields.io/badge/protocol-2.5-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Kimi%20%7C%20Hermes%20%7C%20OpenClaw-green)](#支持的工具) [![Storage](https://img.shields.io/badge/storage-git-orange)](#工作原理)
+[![Protocol](https://img.shields.io/badge/protocol-3.0-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Kimi%20%7C%20Hermes%20%7C%20OpenClaw-green)](#支持的工具) [![Storage](https://img.shields.io/badge/storage-git-orange)](#工作原理)
 
 **nestwork 是面向 AI 编程 agent 的 git 原生记忆协议：持久记忆与共享上下文都存在你自己的 git 仓里。** 你的 AI agent 记忆跟着你跨 session、跨机器、跨工具。
 
@@ -115,7 +117,7 @@ bash ~/nestwork/scripts/uninstall/claude.sh     # macOS / Linux
 
 装完之后没有新东西要学——你照常用你的 agent 就行。
 
-- **它自动记得。** 在任何机器上开一个 session，agent 会先 pull 你的 nest，加载你的规则、偏好，以及每个项目停在哪。不用再“你是谁”地重新自我介绍。
+- **它自动记得。** 在任何机器上开一个 session，agent 会先 pull 你的 nest，加载规则与少量常驻摘要，相关项目进度按需检索。不用再“你是谁”地重新自我介绍。
 - **由你决定留什么。** 遇到一个决策、一条教训、或项目状态变化，让 agent 记下来（或采纳它的提议）。它写到自己的 `agents/<host>/<agent-id>/` 目录并 push——有版本、归你所有。
 - **它跨机器、跨工具跟着你走。** 换到笔记本、云服务器，或从 Claude 换到 Codex，下一个 session 读到同一份上下文。记忆在你的 git 仓里，不在厂商那里。
 
@@ -201,9 +203,9 @@ Session 开始
   ↓
 git pull --rebase                          (SessionStart hook 自动)
   ↓
-按优先级链加载上下文                       (注入到 agent 的 system prompt)
+只读规则和共享/实例 resident.md             (hook 提供路径)
   ↓
-agent 自我定向（看 git log + strategy.md，给状态摘要 + 下一步建议）
+围绕当前任务执行；需要续接/协调时再查历史和方向
   ↓
 ─── 工作中 ─────────────────────────────
   ↓
@@ -231,7 +233,7 @@ SessionEnd hook：claude-mem export + 本地 history sync（如开启）
 
 | Hook 事件 | 动作 | 作用 |
 |---|---|---|
-| SessionStart | pull + 注入 agent-rules / strategy / shared / agent memory / `workflow/*` 到 additionalContext | 替代手动启动协议 |
+| SessionStart | pull + 输出常驻文件路径；历史、方法论、收件箱按需 | 替代手动启动协议 |
 | PreToolUse (Write\|Edit, scoped to `agents/<id>/`) | `git pull --rebase`；冲突 `exit 2` 阻止写入 | 防止覆盖远程更新 |
 | PostToolUse (同 scope) | `git add/commit/push`；push 失败 3 次重试（每次重 pull） | 即时同步 |
 | Stop | 安全网 commit+push（clean 时为 no-op） | 兜底 |
@@ -352,7 +354,7 @@ bash ~/nestwork/scripts/install/codex.sh
 Codex 启动时读 `~/.codex/AGENTS.md`，里面已经被 installer 注入了 nestwork bootstrap。它会：
 
 - pull 你的 queen
-- 读 `queen/`、`shared/`、自己的 `agents/<host>/codex/memory.md`
+- 读取核心规则和共享/实例的 `resident.md`，再按当前任务检索历史
 - 知道你的偏好、过去决策、当前项目状态
 - 启用时通过 `~/.codex/config.toml` + `~/.codex/hooks.json` 的 SessionEnd hook 同步可选的本地 history 快照
 
@@ -408,7 +410,7 @@ bash scripts/comms/read.sh            # 查看发给我的未读
 bash scripts/comms/read.sh --mark     # 处理完再标记已读
 ```
 
-已读状态存在被 git 忽略的本地文件里，所以标记已读不产生任何 commit。未读消息在会话启动时经由被忽略的本地收件箱自动注入，agent 不用你提醒就能收到。完整说明：[docs/agent-mailbox.md](docs/agent-mailbox.md)。
+已读状态存在被 git 忽略的本地文件里，所以标记已读不产生任何 commit。未读消息生成到被忽略的本地收件箱；启动清单只提供按需入口，协调任务时再读取。完整说明：[docs/agent-mailbox.md](docs/agent-mailbox.md)。
 
 ---
 
@@ -424,8 +426,10 @@ nestwork/
 │   └── strategy.md
 ├── agents/
 │   └── <host>/<agent-id>/
-│       ├── memory.md           该 agent 的私有记忆（热——会话启动时注入）
+│       ├── resident.md         少量常驻事实与检索入口
+│       ├── memory.md           该 agent 的历史记忆（按需）
 │       └── carryover/          蒸馏过的工具原生记忆（冷——永不注入，v2.5+）
+├── shared/resident.md          少量共享常驻索引
 ├── shared/memory.md            跨 agent 编译后的记忆
 ├── projects/<project>.md       项目上下文
 ├── workflow/<topic>.md         跨项目可迁移知识

@@ -6,6 +6,7 @@
 
 ### Documentation alignment (protocol 3.0)
 
+- Fix encrypted-instance updates: extract upstream files without smudge filters, then stage through the private clean filter. This preserves short files such as `VERSION`; dirty worktrees and filter failures stop the update. Covered by a real git-crypt regression test.
 - Align both README timelines, upgrade instructions and retention/loading guidance; software release v0.6.0 and protocol 3.0 are independently numbered.
 - Correct stale startup behavior in Claude/AGENTS.md guides, mailbox docs, carryover routing, limits examples and acquisition articles. Inbox snapshots still refresh but are read only on demand.
 - Add consistency checks for current protocol documentation, resident paths, migration steps and inbox loading tier.

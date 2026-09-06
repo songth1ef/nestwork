@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -e -o pipefail
 
 # -----------------------------------------------------------------------------
 # nestwork updater
@@ -49,6 +49,12 @@ PROTOCOL_FILES=(
 
 cd "$NESTWORK_PATH"
 
+# Refuse to overwrite local edits or include unrelated staged work in the commit.
+if [ -n "$(git status --porcelain)" ]; then
+  echo "ERROR: commit or stash local changes before updating the protocol." >&2
+  exit 1
+fi
+
 # -- 1. Ensure upstream remote exists -----------------------------------------
 if ! git remote get-url upstream > /dev/null 2>&1; then
   git remote add upstream "$UPSTREAM_URL"
@@ -91,16 +97,18 @@ fi
 # Per-path so one file missing upstream (renamed/removed in a future protocol
 # version) skips with a note instead of aborting the whole update mid-way.
 for p in "${PROTOCOL_FILES[@]}"; do
-  if ! git checkout upstream/"$UPSTREAM_BRANCH" -- "$p" 2>/dev/null; then
+  if ! git cat-file -e "upstream/$UPSTREAM_BRANCH:${p%/}" 2>/dev/null; then
     echo "[skip] $p (not present upstream)"
+    continue
   fi
+  # Extract upstream plaintext without running the private nest's smudge filter.
+  # Checking plaintext out through git-crypt can truncate short files (VERSION).
+  # Stage through the nest's clean filter so committed blobs remain encrypted.
+  git archive "upstream/$UPSTREAM_BRANCH" -- "$p" | tar -x -C "$NESTWORK_PATH"
+  git add -- "$p"
 done
 
-# `git checkout <tree-ish> -- <path>` stages upstream blobs verbatim, bypassing
-# clean filters. On a nest with git-crypt enabled that would commit upstream's
-# PLAINTEXT into the encrypted repo. Renormalize re-runs clean filters over the
-# staged paths (no-op for unencrypted nests).
-git add --renormalize -- "${PROTOCOL_FILES[@]}" 2>/dev/null || true
+# Extraction/staging failures abort before commit; never suppress filter errors.
 echo "[ok] protocol layer updated"
 
 # -- 7. Commit ----------------------------------------------------------------

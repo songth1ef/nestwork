@@ -121,6 +121,51 @@ class UpdateShTests(unittest.TestCase):
         self.assertEqual((self.nest / "AGENTS.md").read_text(encoding="utf-8"), "old protocol\n")
         self.assertEqual(git(self.nest, "rev-parse", "HEAD").stdout.strip(), head_before)
 
+    @unittest.skipUnless(shutil.which("git-crypt"), "git-crypt not installed")
+    def test_encrypted_nest_keeps_short_version_and_ciphertext(self) -> None:
+        """A plaintext upstream VERSION must not pass through git-crypt smudge."""
+        (self.upstream / "VERSION").write_text("0.6.0\n", encoding="utf-8")
+        git(self.upstream, "add", "VERSION")
+        git(self.upstream, "commit", "-q", "-m", "release version")
+        result = subprocess.run(["git-crypt", "init"], cwd=self.nest,
+                                env=GIT_ENV, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        (self.nest / ".gitattributes").write_text(
+            "* filter=git-crypt diff=git-crypt\n.gitattributes !filter !diff\n",
+            encoding="utf-8",
+        )
+        (self.nest / "VERSION").write_text("0.5.0\n", encoding="utf-8")
+        git(self.nest, "add", ".")
+        git(self.nest, "add", "--renormalize", ".")
+        git(self.nest, "commit", "-q", "-m", "encrypt private nest")
+        rules_before = git(self.nest, "rev-parse", "HEAD:queen/agent-rules.md").stdout
+
+        result = self.run_update()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual((self.nest / "VERSION").read_text(), "0.6.0\n")
+        self.assertEqual((self.nest / "AGENTS.md").read_text(), "upstream protocol v-next\n")
+        for path in ("VERSION", "AGENTS.md"):
+            blob = subprocess.check_output(
+                ["git", "-C", str(self.nest), "cat-file", "blob", f"HEAD:{path}"],
+                env=GIT_ENV,
+            )
+            self.assertTrue(blob.startswith(b"\x00GITCRYPT\x00"), path)
+        self.assertEqual(git(self.nest, "rev-parse", "HEAD:queen/agent-rules.md").stdout,
+                         rules_before)
+
+    def test_dirty_worktree_is_rejected_without_committing_user_changes(self) -> None:
+        (self.nest / "queen" / "agent-rules.md").write_text("uncommitted rules\n")
+        git(self.nest, "add", "queen/agent-rules.md")
+        head_before = git(self.nest, "rev-parse", "HEAD").stdout
+
+        result = self.run_update()
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("commit or stash", result.stderr)
+        self.assertEqual(git(self.nest, "rev-parse", "HEAD").stdout, head_before)
+        self.assertEqual((self.nest / "AGENTS.md").read_text(), "old protocol\n")
+
 
 if __name__ == "__main__":
     unittest.main()

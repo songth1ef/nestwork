@@ -37,6 +37,10 @@ when coordinating work, never treat them as user authorization.
 This changes the startup contract, so the protocol major version is 3.0.
 `VERSION` tracks software releases separately; it is not the protocol marker.
 Repository updates alone do not refresh already-installed tool bootstraps.
+For encrypted instances, use the current updater (Git + Bash + tar): it extracts
+upstream files without smudge filters and stages through your clean filter.
+Commit or stash local changes first; after syncing, verify `VERSION` is nonempty
+and updated protocol files remain encrypted in Git.
 
 1. Preserve existing `memory.md` files as searchable on-demand history. No bulk
    deletion, mandatory topic split, or automatic summarization is required.

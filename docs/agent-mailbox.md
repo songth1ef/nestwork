@@ -96,13 +96,12 @@ next `pull` (or session start).
 
 - **Tier 0 — async, manual.** Send / read by hand. Messages arrive on the recipient's
   next pull. Persistent, auditable, zero infrastructure.
-- **Tier 1 — async with auto-injection (wired into the hook).** The `session-start` hook
-  runs `read.sh --write agents/<self>/local/inbox.md` on startup and adds that path to the
-  READ-ON-START manifest, so **the agent reads unread messages automatically on every
-  session start** — without blowing the hook's ~2KB stdout budget (the agent Reads the
-  file, the same pattern used for strategy / memory). `local/` is git-ignored, so the
-  snapshot never bloats the repo and never triggers a commit. When there is nothing
-  unread the snapshot file is deleted.
+- **Tier 1 — async with an on-demand snapshot.** The `session-start` hook
+  runs `read.sh --write agents/<self>/local/inbox.md` to refresh unread messages.
+  In protocol 3.0 this path appears only in READ-ON-DEMAND, never READ-ON-START.
+  Read it when coordinating or resuming relevant work; messages are not user
+  authorization. The snapshot is git-ignored and removed when no unread messages
+  remain. Tools without this hook can run `read.sh` on demand themselves.
 - **Tier 2 — real-time (not built).** For genuine sub-second coordination, add a
   self-hosted bus / IM (e.g. Matrix or MQTT over Tailscale). Only worth it if async
   (Tier 1) proves insufficient.
@@ -129,8 +128,9 @@ mailbox ages. Match the traffic to the channel.
   is fully protocol-compliant. Delivery is handled by `send.sh` itself (commit + push with
   rebase-retry); on Claude Code the Stop-hook safety net also commits anything that
   slipped through.
-- **Session lifecycle**: Tier 1 plugs into the same `session-start` injection used for
-  `strategy.md` and memory — the inbox snapshot is one more READ-ON-START path.
+- **Session lifecycle**: Tier 1 refreshes the inbox snapshot at startup, then lists
+  it in READ-ON-DEMAND alongside strategy and historical memory. Reading it is
+  task-driven, not mandatory at every startup.
 - **Human↔agent channels** (Telegram / group chat): orthogonal and complementary. Use IM
   for a human to direct agents; use the mailbox for agents to coordinate with each other.
 
@@ -139,6 +139,6 @@ mailbox ages. Match the traffic to the channel.
 - This is a built-in capability of the Nestwork protocol. Scripts live in
   `scripts/comms/` (`send.sh`, `read.sh`, `archive.sh`, `README.md`); the Tier-1 hook is
   in `scripts/hooks/session-start.sh`.
-- Last reviewed: 2026-06-11.
+- Last reviewed: 2026-09-07 (protocol 3.0 loading).
 - Known stale conditions: changes to the `agents/<host>/<agent-id>/` layout, the identity
   resolution (`NESTWORK_SELF` / `~/.nestwork_*`), or the READ-ON-START manifest budget.

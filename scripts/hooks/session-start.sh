@@ -35,8 +35,8 @@ fi
 git pull --rebase --autostash -q 2>/dev/null || git rebase --abort 2>/dev/null || true
 
 # Agent mailbox (on demand): refresh this agent's unread-message snapshot into its
-# git-ignored local/ dir, so it can be surfaced via the manifest below without
-# expanding hook stdout with message contents.
+# git-ignored local/ dir. List it only in READ-ON-DEMAND; refreshing the snapshot
+# does not require the agent to read messages at every startup.
 # Deletes the snapshot when there is nothing unread. Never blocks startup.
 if [ -f scripts/comms/read.sh ]; then
   NESTWORK_SELF="$HOST_ID/$AGENT_ID" \

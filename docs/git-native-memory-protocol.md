@@ -23,6 +23,15 @@ Priority order:
 queen/agent-rules.md > queen/strategy.md > shared/memory.md > agents/*/*/memory.md > projects/*.md > workflow/*.md
 ```
 
+## Loading in protocol 3.0
+
+The priority chain above controls authority, not loading frequency. Startup
+reads `queen/agent-rules.md`, optional `shared/resident.md`, and optional
+`agents/<host>/<agent-id>/resident.md`. Strategy, historical memory, projects,
+workflows, carryover and inbox contents are on demand. Summaries inherit their
+source scope and priority; missing summaries do not trigger full-history reads.
+See [context loading and migration](context-loading.md).
+
 ## Why git?
 
 Git gives nestwork:

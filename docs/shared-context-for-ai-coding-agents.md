@@ -2,7 +2,7 @@
 
 ## Short answer
 
-Shared context for AI coding agents is the set of rules, goals, memory, and project facts that multiple agents load before they work. nestwork stores shared context in git so Claude Code, Codex CLI, Gemini CLI, Kimi Code, and other agents can start from the same source of truth.
+Shared context for AI coding agents is the set of rules, goals, memory, and project facts that multiple agents retrieve as their tasks require. nestwork stores shared context in git so Claude Code, Codex CLI, Gemini CLI, Kimi Code, and other agents can start from the same source of truth.
 
 ## Why shared context matters
 
@@ -13,7 +13,10 @@ Without shared context, each AI agent session depends on whatever the user remem
 - decisions are forgotten across sessions
 - multiple machines accumulate different context
 
-nestwork solves this by making context load order explicit and versioned.
+Protocol 3.0 starts with `queen/agent-rules.md` and optional shared/agent
+`resident.md` summaries. Strategy, historical memory and project context are
+on demand. Priority controls authority, not which files must load at startup.
+See [context loading and migration](context-loading.md).
 
 ## nestwork shared context layers
 

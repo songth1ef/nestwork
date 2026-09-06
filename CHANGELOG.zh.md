@@ -16,6 +16,12 @@
 
 ## Unreleased
 
+### 文档修正（协议 3.0）
+
+- 校准中英文 README 的版本历史、升级说明和保存/加载区别；v0.6.0 软件版本与 3.0 协议版本独立编号。
+- 修正 Claude/AGENTS.md 指南、邮箱文档、常驻结转表、限制覆盖示例和获客博客的旧启动行为。邮箱快照仍刷新，但仅按需读取。
+- 补充文档一致性检查，保护当前协议说明、常驻路径、迁移步骤及邮箱读取层级。
+
 ### Protocol v3.0 — resident / on demand
 
 - Startup reads core rules and optional shared/agent `resident.md` only. Existing memory, strategy, projects and workflows remain on demand; no automatic legacy fallback.

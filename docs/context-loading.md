@@ -35,6 +35,8 @@ when coordinating work, never treat them as user authorization.
 ## Migration from 2.x
 
 This changes the startup contract, so the protocol major version is 3.0.
+`VERSION` tracks software releases separately; it is not the protocol marker.
+Repository updates alone do not refresh already-installed tool bootstraps.
 
 1. Preserve existing `memory.md` files as searchable on-demand history. No bulk
    deletion, mandatory topic split, or automatic summarization is required.
@@ -42,11 +44,13 @@ This changes the startup contract, so the protocol major version is 3.0.
    The examples below are routing-only. Promoting facts from old memory is a
    separate semantic review under the distillation protocol.
 3. Update scripts and the canonical protocol. Rerun the appropriate installer,
-   or run `scripts/install/_bootstrap.py OUTPUT NEST_PATH HOST AGENT` for an
+   or run `python3 scripts/install/_bootstrap.py OUTPUT NEST_PATH HOST AGENT` for an
    existing configured tool. The injector preserves text outside its markers.
 4. Start a fresh session. Existing conversations retain earlier injected
    instructions; changing a file cannot remove that context retroactively.
-5. Verify the READ-ON-START manifest contains only the three resident paths.
+5. Where a hook emits a manifest, verify READ-ON-START lists only existing
+   resident paths. Inbox snapshots belong in READ-ON-DEMAND. For tools without
+   a manifest, inspect the installed bootstrap for the same resident-only list.
    Missing summaries must not cause full-history loading. Check budgets.
 
 Shared routing-only example (paths relative to `shared/`):

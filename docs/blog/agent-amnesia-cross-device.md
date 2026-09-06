@@ -1,5 +1,7 @@
 # Your AI agent forgets everything the moment you switch devices
 
+> Current behavior aligned with protocol 3.0: resident startup; history and inbox on demand. [Loading and migration](../context-loading.md).
+
 > Candidate titles:
 > - Your AI agent forgets everything the moment you switch devices
 > - One git repo, 16 agents, one shared notebook
@@ -57,7 +59,7 @@ Conflicts get an arbiter, and it doesn't split the difference. Memory is layered
 
 Memory gets distilled. The scattered private observations of each agent get merged into shared memory. This step isn't crude: it first sends a sub-agent to review, checking for sensitive information, factual errors, and contradictions, then hands it to a human to confirm, and it only merges and only adds, never deleting your original records.
 
-Agents can also leave each other messages. There's a built-in git-native mailbox, where one agent leaves another an asynchronous note, and the other picks up unread messages automatically when it starts. For the first time, agents across machines have a "you've got mail."
+Agents can also leave each other messages. There's a built-in git-native mailbox, where one agent leaves another an asynchronous note, and the other reads unread messages on demand when coordinating relevant work. For the first time, agents across machines have a "you've got mail."
 
 ## Your memory, in your own repo
 

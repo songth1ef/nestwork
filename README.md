@@ -142,19 +142,20 @@ The git sync, the priority chain, and the hooks all run automatically. See [How 
 
 ---
 
-## Why it's worth writing more
+## Why it's worth keeping history
 
-Context windows keep growing. 200K was the ceiling in 2024, 1M reached production in 2025, 1M becomes default from 2026 with 10M in labs. Three years from now an agent can read everything you've ever written in one shot, and cross-project pattern recognition starts to work.
+Retention and loading are separate. Protocol 3.0 starts with core rules and small
+shared/agent resident summaries. Historical memory, strategy, projects and
+workflows are searched for the current task, not loaded in full at startup.
 
-Until then, an agent only pulls in 3–5 memory files per session. You store 100, 95% of reads look wasted. They aren't. Git storage cost is near zero, writes happen once, read value grows linearly with the window size. The 95 files no one reads today are the base layer of cross-employer, cross-project retrieval three years from now.
+Keep decisions, lessons and methods with lasting value in the on-demand tier,
+organized for retrieval. Promote only reviewed, stable facts and essential
+boundaries needed across tasks into resident summaries.
 
-A few uses are independent of any agent:
-
-- A versioned decision archive that can answer "why did I choose NestJS over Express in 2023?"
-- Training material for your future personal fine-tuned model
-- A cognitive layer that doesn't disappear when you switch device, employer, or tool
-
-In practice: when you hit a non-sensitive decision, a lesson, or a cross-project methodology, write it down. Even one line. Split per v2.2 when files get long. Don't ration writes against "the agent can't read it all today." Nestwork is for portable context, not secrets or unreviewed employer-confidential material.
+Missing summaries do not trigger full-history reads, and links do not require
+recursive loading. Follow file-splitting rules and resident byte budgets during
+maintenance; see [loading and migration](docs/context-loading.md). Nestwork is for
+portable context, not secrets or unreviewed employer-confidential material.
 
 ---
 
@@ -239,7 +240,7 @@ The race window shrinks from "the whole session" to "a single write." Multiple a
 | Stop | Safety-net commit+push (no-op when clean) | Backstop |
 | SessionEnd | claude-mem export + local history sync | Cross-machine reach |
 
-Only Claude Code registers the full atomic per-write synchronization hooks. Codex registers a SessionEnd hook only for optional local-history snapshots; Codex memory edits still follow the manual commit/push bootstrap protocol. Other tools follow their bootstrap protocol (see [Supported tools](#supported-tools)).
+Claude Code and Kimi Code register per-write memory synchronization hooks. Codex registers a SessionEnd hook only for optional local-history snapshots; Codex memory edits still follow the manual commit/push bootstrap protocol. Other tools follow their bootstrap protocol (see [Supported tools](#supported-tools)).
 
 ---
 
@@ -329,10 +330,10 @@ You use Claude Code on an office computer, a personal laptop, and optionally a c
 
 Monday morning (office computer):
 
-- Launch Claude Code, SessionStart hook auto-`git pull` and injects context
+- Launch Claude Code; the SessionStart hook pulls and lists core rules plus optional resident summaries
 - You say "continue last night's NestJS module work"
 - Claude retrieves the relevant sections of `agents/macbook/claude-xxx/memory.md` to resume yesterday's work
-- Also loads `shared/memory.md`, knows your stack preferences (Vue 3 + NestJS)
+- Retrieves relevant preferences from `shared/memory.md` only if this task needs them
 - Picks up directly without re-explaining
 
 Same evening (personal laptop or cloud host):
@@ -554,6 +555,8 @@ bash scripts/install/generic.sh <prefix> <config-path>
 
 ## Staying up to date
 
+**Migrating to 3.0 also requires refreshing tool bootstraps.** `update.sh` and sync PRs update repository files; they do not rewrite tool configuration on each machine. After syncing, rerun the installer for each tool in use (or `_bootstrap.py`), then open a new session. Missing `resident.md` does not require loading full history. See the [migration guide](docs/context-loading.md).
+
 Two paths, neither touches your private data (`agents/`, `queen/`, `shared/`, `projects/`, `workflow/<topic>.md`).
 
 ### Manual (recommended default)
@@ -598,7 +601,7 @@ No. Only if you explicitly create a `nestwork.config.json` at the project root a
 
 ### Can tools other than Claude Code use nestwork?
 
-Yes. Any "reads a markdown file as system prompt at startup" CLI can use `install/generic.sh`. Only Claude Code has the hook system for atomic per-write; other tools rely on "commit on session end", with a slightly larger race window but rarely an issue in practice.
+Yes. Any "reads a markdown file as system prompt at startup" CLI can use `install/generic.sh`. Claude Code and Kimi Code have per-write sync hooks; tools without them rely on "commit on session end", with a slightly larger race window but rarely an issue in practice.
 
 ### Do multiple agents writing concurrently cause conflicts?
 
@@ -633,7 +636,7 @@ Two different needs. **Secrets / API keys**: no — never store them here, encry
 
 ### Will the protocol break compatibility often?
 
-No. `protocol-version` uses `MAJOR.MINOR`. MAJOR changes need downstream action and should be avoided; MINOR is additive-compatible. v1 → v2.0 → v2.1 → v2.2 are all additive.
+The current protocol is **3.0**. `protocol-version` uses `MAJOR.MINOR`: MINOR is additive-compatible; MAJOR may require migration. Moving from 2.x to 3.0 changes startup loading: update the protocol, refresh each installed tool bootstrap, then open a new session. Historical memory stays intact; see the [migration guide](docs/context-loading.md). The software release in `VERSION` (currently v0.6.0) is numbered independently from the protocol.
 
 ### How to handle multilingual / mixed-language content?
 
@@ -750,6 +753,7 @@ If you need any of the above, nestwork may not be the right fit. Pick a dedicate
 - v2.3 (2026-05-08): Added §10 nestwork-vs-repo-5-doc boundary (`projects/<name>.md` 5-field convention + `decisions/` for protocol-level ADRs + `workflow/lessons.md` for cross-repo lessons); SessionStart hook now auto-checks upstream protocol version (24h cache, advisory only, never auto-applies)
 - v2.4 (2026-05-08): Added §12 orphan-branch strategy for high-churn artefacts. `agents/*/*/local/` is now in default `.gitignore`; `agent-history-<host>-<agent-id>` orphan branches hold a single rolling-overwrite snapshot (force-push). Fixes unbounded main-history bloat when `sync_local_history` is enabled (observed mynestwork: 177 MB → 1.6 MB).
 - v2.5 (2026-07-28): Added §13 tool-native memory carryover. Every coding agent's own memory is machine-local (Claude Code, Codex, Kimi Code alike), so it dies with the disk — and account-bound memory dies with the account. New reserved cold path `agents/<host>/<agent-id>/carryover/<tool>.md` receives that memory **distilled** through the §7 pipeline, never raw-mirrored, and is never injected at session start.
+- v3.0 (current protocol): core rules + optional resident summaries at startup; history, strategy, projects, workflows and inbox on demand. Existing instances must refresh tool bootstraps and open a new session; historical data stays intact.
 
 Full protocol: [AGENTS.md](AGENTS.md).
 

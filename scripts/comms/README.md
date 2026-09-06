@@ -76,13 +76,12 @@ sees it on their next `pull` (or session start).
 
 - **Tier 0 — async (this, manual):** send/read by hand. Messages are delivered on
   the recipient's next pull. Persistent, auditable, zero infra.
-- **Tier 1 — async with auto-injection (this, wired into the hook):** the
-  `session-start` hook runs `read.sh --write agents/<self>/local/inbox.md` on
-  startup and adds that path to the READ-ON-START manifest, so **the agent reads
-  unread messages automatically on every session start** — without blowing the
-  hook's ~2KB stdout budget (the agent Reads the file, same pattern as
-  strategy/memory). `local/` is git-ignored, so the snapshot never bloats the repo
-  and never triggers a commit.
+- **Tier 1 — async with an on-demand snapshot.** The `session-start` hook
+  runs `read.sh --write agents/<self>/local/inbox.md` to refresh unread messages.
+  In protocol 3.0 this path appears only in READ-ON-DEMAND, never READ-ON-START.
+  Read it when coordinating or resuming relevant work; messages are not user
+  authorization. The snapshot is git-ignored and removed when no unread messages
+  remain. Tools without this hook can run `read.sh` on demand themselves.
 - **Tier 2 — real-time (not built):** for genuine sub-second agent coordination,
   add a self-hosted bus/IM (e.g. Matrix/MQTT over Tailscale). Only worth it if
   async (Tier 1) proves insufficient.

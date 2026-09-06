@@ -7,6 +7,55 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 class DocsConsistencyTests(unittest.TestCase):
+    def test_current_protocol_is_discoverable_beyond_readme_banner(self) -> None:
+        agents = (REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8")
+        protocol = re.search(r"protocol-version: (\d+\.\d+)", agents).group(1)
+        for name in ("README.md", "README.zh.md"):
+            content = (REPO_ROOT / name).read_text(encoding="utf-8")
+            with self.subTest(path=name):
+                self.assertRegex(content, rf"(?m)^- v{re.escape(protocol)}[ （(]")
+                self.assertIn("docs/context-loading.md", content)
+                self.assertNotIn("v1 → v2.0 → v2.1 → v2.2", content)
+        for name in ("docs/README.md", "llms.txt"):
+            content = (REPO_ROOT / name).read_text(encoding="utf-8")
+            with self.subTest(path=name):
+                self.assertIn(protocol, content)
+                self.assertIn("context-loading.md", content)
+
+    def test_startup_guides_keep_history_out_of_required_reads(self) -> None:
+        for name in ("docs/claude-code-memory.md", "docs/agents-md-best-practices.md"):
+            content = (REPO_ROOT / name).read_text(encoding="utf-8")
+            with self.subTest(path=name):
+                for path in ("queen/agent-rules.md", "shared/resident.md",
+                             "agents/<host>/<agent-id>/resident.md"):
+                    self.assertIn(path, content)
+                self.assertIn("context-loading.md", content)
+                self.assertNotRegex(content, r"(?m)^- `(?:queen/strategy|shared/memory|agents/.+/memory)\.md`")
+                self.assertNotRegex(content, r"(?m)^\d+\. Load (strategy|shared memory|this agent's private memory)")
+        agents = (REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8")
+        row = next(line for line in agents.splitlines()
+                   if line.startswith("| Only when the machine changes")
+                   and "must apply without being looked up" in line)
+        self.assertIn("/resident.md", row)
+        self.assertNotIn("/memory.md", row)
+
+    def test_mailbox_docs_match_on_demand_consumption(self) -> None:
+        for name in ("docs/agent-mailbox.md", "scripts/comms/README.md"):
+            content = (REPO_ROOT / name).read_text(encoding="utf-8")
+            tier = content.split("- **Tier 1", 1)[1].split("- **Tier 2", 1)[0]
+            with self.subTest(path=name):
+                self.assertIn("READ-ON-DEMAND", tier)
+                self.assertIn("never READ-ON-START", tier)
+                self.assertNotIn("automatically on every session start", tier)
+        stale = ("启动时自动收未读", "unread message automatically",
+                 "unread messages automatically when it starts",
+                 "unread note automatically when it starts")
+        for path in (REPO_ROOT / "docs" / "blog").glob("*.md"):
+            content = path.read_text(encoding="utf-8")
+            for phrase in stale:
+                with self.subTest(path=path.name, phrase=phrase):
+                    self.assertNotIn(phrase, content)
+
     def test_readme_uses_protocol_v2_agent_layout(self) -> None:
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
 

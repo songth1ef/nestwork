@@ -1,5 +1,7 @@
 # nestwork: one shared brain for all your AI agents, across machines and vendors
 
+> Current behavior aligned with protocol 3.0: resident startup; history and inbox on demand. [Loading and migration](../context-loading.md).
+
 > Title candidates:
 > - nestwork: one shared brain for all your AI agents
 > - One git repo that holds the memory of every machine and every agent you run
@@ -57,7 +59,7 @@ Layered priority and resolution. Memory is ranked: behavior rules > strategy > s
 
 Distillation. How do the scattered private observations of each agent settle into facts the whole fleet shares? Through a distillation flow: first a sub-agent reviews for sensitive data, contradictions, and stale entries, then a human confirms, and finally it is merged into shared memory non-destructively, merge and add only, never deleting the original records.
 
-Agents can leave each other notes. There is a built-in git-native mailbox. An agent on machine A finishes a stretch and leaves a line for the agent on machine B: "I'm done with this part, you take it from here," and B picks up the unread note automatically when it starts. No message queue, no service, just write a file into the repo and push it up.
+Agents can leave each other notes. There is a built-in git-native mailbox. An agent on machine A finishes a stretch and leaves a line for the agent on machine B: "I'm done with this part, you take it from here," and B reads the unread note on demand when coordinating the relevant task. No message queue, no service, just write a file into the repo and push it up.
 
 ![multiple agents each tending their own square, collaborating in order and leaving each other notes through the mailbox](images/nestwork-overview-coordination-nw.png)
 
@@ -65,7 +67,7 @@ Agents can leave each other notes. There is a built-in git-native mailbox. An ag
 
 Calling it a protocol is not just rhetoric. Beyond storing and syncing, it also lays down a full set of rules for "how to use memory."
 
-Auto-injection at startup. Tools with hooks installed pull automatically at the start of every session and inject the behavior rules, the current strategy, shared memory, this agent's private memory, and the relevant methodology into context together. You do not have to dig through a pile of files by hand.
+Resident startup, on-demand history. In protocol 3.0, the hook pulls and emits paths for core rules and optional shared/agent resident summaries. Strategy, historical memory, projects, methodology and inbox contents are retrieved only when the task needs them. Missing summaries never cause full-history fallback.
 
 There are explicit rules for where memory goes. Project conventions and lessons go into the project's own docs, cross-project reusable methodology goes into workflow, the current project's business and decisions go into projects, cross-device protocol goes into the agent's private memory, and stable cross-agent facts go into shared memory. Knowledge has a fixed home, so it does not turn into a mess.
 

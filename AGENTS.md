@@ -37,7 +37,7 @@ Residency controls loading, not authority: summaries inherit their source's
 scope and priority. Verify dated project state before acting on it.
 See [loading and migration](docs/context-loading.md) when maintaining context.
 
-**Directory layout** (protocol v2.0): agents are grouped by host.
+**Directory layout** (introduced in protocol v2.0, retained in v3.0): agents are grouped by host.
 `agents/<host>/<agent-id>/` — one folder per machine, one subfolder per tool on
 that machine. Example: `agents/desktop-rkv5ls4/claude-a7k2/`.
 
@@ -75,14 +75,15 @@ Ask a narrow question only if missing context blocks the task.
 
 ## 3. Session End
 
-**If hooks are installed** (via `scripts/install/<tool>.sh`), per-write sync
+**If your tool has per-write sync hooks installed** (Claude Code or Kimi Code), per-write sync
 happens automatically: every Write/Edit under `agents/<host>/<agent-id>/`
 triggers `pull --rebase` before and `commit + push` after. The Stop hook
 runs the same safety-net commit+push once per turn (cheap no-op when
-clean), and the SessionEnd hook performs the claude-mem export + local
-history sync once when the session truly ends. **Do nothing extra.**
+clean). Claude Code also registers a SessionEnd hook for claude-mem export +
+optional local history sync. **Do not duplicate automatic memory sync.**
 
-**If hooks are NOT available** for your tool, run manually at session end:
+**If per-write memory sync hooks are NOT available** for your tool, run manually
+at session end. A history-only hook (such as Codex SessionEnd) does not replace this:
 
 ```bash
 git -C $NESTWORK_PATH add agents/<host>/<agent-id>/
@@ -510,12 +511,12 @@ Filter by one question: **when does this stop being true?**
 | Already recorded in the nest | skip — do not write it twice |
 | Its own stated delete-condition has fired | do not carry; propose removing the source |
 | It is a fast-moving progress snapshot | do not carry — it expires the moment it is committed |
-| Only when the machine changes, **and it must apply without being looked up** | `agents/<host>/<agent-id>/memory.md` |
+| Only when the machine changes, **and it must apply without being looked up** | `agents/<host>/<agent-id>/resident.md` — after scope review and within the byte budget |
 | Only when the machine changes, **and it is needed only on restore** | `agents/<host>/<agent-id>/carryover/<tool>.md` |
 | Never (portable method, cross-tool pitfall) | `workflow/<topic>.md` — desensitise first |
 | When the project changes | that repository's own `docs/` — propose only, never write across repositories |
 
-The hot/cold split is the one people get wrong. Ask whether the entry has to take effect *when nobody went looking for it*. A universal boundary may qualify — put it in `resident.md`; an API limitation belongs on demand unless every task needs it. How a local tool was installed must not — put it in `carryover/`. Hot entries compete for the session-start context budget; when in doubt, choose cold.
+The resident/on-demand split is the one people get wrong. Ask whether the entry has to take effect *when nobody went looking for it*. A universal boundary may qualify — put it in `resident.md`; an API limitation belongs on demand unless every task needs it. How a local tool was installed must not — put it in `carryover/`. Resident entries compete for the session-start context budget; when in doubt, choose on demand.
 
 ### Restoring onto another machine
 
@@ -550,6 +551,9 @@ Rationale and rejected alternatives: `decisions/2026-07-28-tool-memory-carryover
 ```
 queen/agent-rules.md  >  queen/strategy.md  >  shared/memory.md  >  agents/*/*/memory.md  >  projects/*.md  >  workflow/*.md
 ```
+
+This is authority order, not startup load order. Resident summaries inherit their
+source scope and priority; only the resident files in Section 1 load at startup.
 
 When instructions conflict, follow the higher priority source.
 Do not merge conflicting instructions — choose one.

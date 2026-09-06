@@ -2,7 +2,7 @@
 
 ## Short answer
 
-nestwork gives Claude Code persistent memory by injecting a startup protocol into `~/.claude/CLAUDE.md` and registering hooks that sync Claude's own memory directory with git.
+nestwork gives Claude Code persistent memory by injecting a startup protocol into `~/.claude/CLAUDE.md` and registering hooks that sync its Nestwork agent directory with git. Tool-native memory carryover is a separate, reviewed workflow (AGENTS.md §13).
 
 ## How it works with Claude Code
 
@@ -31,13 +31,17 @@ Claude Code can read instruction files, but project rules and long-term context 
 
 ## What gets loaded at session start?
 
-Claude Code loads:
+Protocol 3.0 startup reads only:
 
 - `queen/agent-rules.md`
-- `queen/strategy.md`
-- `shared/memory.md`
-- `agents/<host>/<agent-id>/memory.md`
-- relevant `projects/*.md`
+- `shared/resident.md`, if present
+- `agents/<host>/<agent-id>/resident.md`, if present
+
+The SessionStart hook emits these paths in READ-ON-START; the agent reads the
+files. Strategy, historical `memory.md`, projects, workflows and the inbox are
+on demand. Missing optional summaries never cause a full-history fallback.
+Existing installations must refresh their bootstrap and open a new session;
+see [context loading and migration](context-loading.md).
 
 ## Related docs
 

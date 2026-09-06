@@ -142,19 +142,13 @@ git 同步、优先级链、hook 全自动运行。想了解机制看 [工作原
 
 ---
 
-## 为什么值得多写
+## 为什么值得保留历史
 
-上下文窗口在涨。2024 年 200K 是顶配，2025 年 1M 进了生产，2026 起 1M 是默认值，10M 在实验室。3 年后 agent 一次能读完你写过的全部笔记，跨项目模式识别在那一刻才会出现。
+保存与加载是两件事。协议 3.0 启动只读核心规则和共享/实例常驻摘要；历史记忆、战略、项目和工作流按当前任务检索，不追求开场全量读取。
 
-在那之前，agent 每次只挑 3–5 个 memory 文件读。你存了 100 个，95% 的读取看起来像浪费。它不是。git 存储成本接近零，写入只发生一次，读取价值随窗口大小线性放大。今天没人读的那 95 个文件，是你 3 年后跨雇主、跨项目检索的基底。
+有长期价值的决策、经验和方法仍值得记录。先保存到按需层，按主题保持可检索；只有每类任务都需要的稳定事实和必要边界，才经过复核进入常驻摘要。
 
-还有几个用途和 agent 无关：
-
-- 版本化决策档案，能回答"我 2023 年为什么选 NestJS 而不是 Express"
-- 个人微调模型的语料
-- 换设备 / 换雇主 / 换工具时不会丢的认知层
-
-实操：遇到非敏感决策、踩坑、跨项目方法论就写。一行也写。按 v2.2 拆分规则该拆就拆。别为"agent 现在读不完"省字。Nestwork 保存的是可携带上下文，不是密钥仓库，也不是未经审查的雇主机密存档。
+摘要缺失不回退加载整份历史，摘要中的链接也不是递归读取要求。维护时遵守文件拆分和常驻字节预算，见[加载与迁移指南](docs/context-loading.md)。Nestwork 保存可携带上下文，不存密钥或未经审查的雇主机密。
 
 ---
 
@@ -239,7 +233,7 @@ SessionEnd hook：claude-mem export + 本地 history sync（如开启）
 | Stop | 安全网 commit+push（clean 时为 no-op） | 兜底 |
 | SessionEnd | claude-mem export + 本地 history sync | 跨机可达 |
 
-只有 Claude Code 注册完整的原子逐次写入同步 hooks。Codex 只注册用于可选本地 history 快照的 SessionEnd hook；Codex memory 编辑仍按 bootstrap 的手动 commit/push 协议处理。其他工具按各自 bootstrap 协议运行（详见 [支持的工具](#支持的工具)）。
+Claude Code 和 Kimi Code 注册逐次写入同步 hooks。Codex 只注册用于可选本地 history 快照的 SessionEnd hook；Codex memory 编辑仍按 bootstrap 的手动 commit/push 协议处理。其他工具按各自 bootstrap 协议运行（详见 [支持的工具](#支持的工具)）。
 
 ---
 
@@ -329,10 +323,10 @@ nestwork 的答案是用 git 仓做 agent 大脑。每个 agent 把记忆写到 
 
 周一上午（公司电脑）：
 
-- 启动 Claude Code，SessionStart hook 自动 `git pull` 并注入上下文
+- 启动 Claude Code，SessionStart hook 自动 `git pull`，列出核心规则与可选常驻摘要
 - 你说"继续昨晚那个 NestJS 模块的事"
 - Claude 读取 `agents/macbook/claude-xxx/memory.md`，看到昨晚的进度
-- 同时加载 `shared/memory.md`，知道你的技术栈偏好（Vue 3 + NestJS）
+- 如果任务需要，再检索 `shared/memory.md` 中相关的技术栈偏好
 - 直接接续工作，不需要重新解释
 
 当晚（个人电脑或云服务器）：
@@ -554,6 +548,8 @@ bash scripts/install/generic.sh <prefix> <config-path>
 
 ## 跟踪上游更新
 
+**迁移到 3.0 还需刷新工具启动块。** `update.sh` 和同步 PR 只更新仓库文件，不会自动重写各机器的工具配置。同步后，在每台机器重跑已使用工具的安装器（或 `_bootstrap.py`），再开启新会话。不要因缺少 `resident.md` 而加载整份历史。见[迁移指南](docs/context-loading.md)。
+
 两条路径，都不碰你的私有数据（`agents/`、`queen/`、`shared/`、`projects/`、`workflow/<topic>.md`）。
 
 ### 手动（默认推荐）
@@ -598,7 +594,7 @@ Fork 默认公开，且与上游强关联。每次上游更新都会与你私有
 
 ### Claude Code 之外的工具能用 nestwork 吗？
 
-能。任何"启动时读 markdown 作为 system prompt"的 CLI 都能用 `install/generic.sh` 接入。但只有 Claude Code 有 hook 系统能实现原子逐次写入。其他工具靠"会话结束提交"协议，竞态窗口稍大但实际很少出问题。
+能。任何"启动时读 markdown 作为 system prompt"的 CLI 都能用 `install/generic.sh` 接入。Claude Code 和 Kimi Code 有逐次写入同步 hooks；没有这些 hooks 的工具靠"会话结束提交"协议，竞态窗口稍大但实际很少出问题。
 
 ### 多 agent 同时写会冲突吗？
 
@@ -633,7 +629,7 @@ PreToolUse hook 在每次写入前 `git pull --rebase`，把竞态窗口压到�
 
 ### 协议会经常 breaking change 吗？
 
-不会。`protocol-version` 用 `MAJOR.MINOR`。MAJOR 改动需要下游动作，应避免；MINOR 是 additive 兼容。从 v1 → v2.0 → v2.1 → v2.2 都是 additive。
+当前协议为 **3.0**。`protocol-version` 用 `MAJOR.MINOR`；MINOR 是增量兼容，MAJOR 可能需要迁移。2.x → 3.0 改变启动加载契约：同步协议后，须刷新每个工具的启动块并开启新会话。历史记忆保留，见[迁移指南](docs/context-loading.md)。仓库软件版本 `VERSION`（目前 v0.6.0）与协议版本独立编号。
 
 ### 跨语言 / 中英文混用怎么处理？
 
@@ -750,6 +746,7 @@ git remote set-url origin <你的私有 git>
 - v2.3（2026-05-08）：新增 §10 nestwork 与 repo 5-doc 边界（`projects/<name>.md` 5 字段建议 + `decisions/` 协议级 ADR + `workflow/lessons.md` 跨 repo 教训）；SessionStart hook 增加上游版本自动检测（24h 缓存，仅提醒，绝不自动应用）
 - v2.4（2026-05-08）：新增 §12 高频 artefact 的孤儿分支策略。`agents/*/*/local/` 默认 `.gitignore`，由 `agent-history-<host>-<agent-id>` 单 commit 滚动覆盖快照（force-push）。解决启用 `sync_local_history` 后 main 历史无界膨胀（实测 mynestwork 从 177 MB 降到 1.6 MB）。
 - v2.5（2026-07-28）：新增 §13 工具原生记忆结转。每个编码 agent 自己的记忆都是机器本地的（Claude Code / Codex / Kimi Code 一样），换机器即归零——而账号级记忆则随账号一起消失。新增保留冷路径 `agents/<host>/<agent-id>/carryover/<tool>.md`，接收经 §7 流程**蒸馏**过的工具原生记忆（不是原样镜像），且绝不在会话启动时注入。
+- v3.0（当前协议）：启动仅核心规则 + 可选常驻摘要；历史、战略、项目、工作流与邮箱按需检索。旧实例需刷新工具启动块并开启新会话，历史数据保留。
 
 完整协议规范见 [AGENTS.md](AGENTS.md)。
 
@@ -757,7 +754,7 @@ git remote set-url origin <你的私有 git>
 
 ## 相关文档
 
-- [AGENTS.md](AGENTS.md)：协议规范（最权威，agent 启动时读这个）
+- [AGENTS.md](AGENTS.md)：协议规范（权威；维护与迁移时查阅，启动按常驻清单读取）
 - [docs/workflow-protocol.md](docs/workflow-protocol.md)：v2.2 workflow 详解
 - [docs/desensitization-prompt.md](docs/desensitization-prompt.md)：AI 脱敏方法论
 - [docs/encrypted-memory.md](docs/encrypted-memory.md)：用 git-crypt 加密私密记忆（可选）

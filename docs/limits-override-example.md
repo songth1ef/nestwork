@@ -22,8 +22,8 @@ updated: YYYY-MM-DD
 The limits in `AGENTS.md` §6 are protocol defaults synced from upstream. This
 file lets a private instance tune them **without editing the protocol layer**,
 which `update.sh` would overwrite. It lives in `queen/`, so upstream sync never
-touches it, and agents load it at session start as part of the high-priority
-`queen/` layer.
+touches it. Agents load it before context maintenance, on demand. Its
+high-priority `queen/` location does not make it a startup requirement.
 
 The right variable to tune against is **retrieval quality / attention**, not raw
 context-window size. A larger model window does **not** justify proportionally

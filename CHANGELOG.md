@@ -4,6 +4,12 @@
 
 ## Unreleased
 
+### Documentation alignment (protocol 3.0)
+
+- Align both README timelines, upgrade instructions and retention/loading guidance; software release v0.6.0 and protocol 3.0 are independently numbered.
+- Correct stale startup behavior in Claude/AGENTS.md guides, mailbox docs, carryover routing, limits examples and acquisition articles. Inbox snapshots still refresh but are read only on demand.
+- Add consistency checks for current protocol documentation, resident paths, migration steps and inbox loading tier.
+
 ### Protocol v3.0 — resident / on demand
 
 - Startup reads core rules and optional shared/agent `resident.md` only. Existing memory, strategy, projects and workflows remain on demand; no automatic legacy fallback.

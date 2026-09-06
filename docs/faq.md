@@ -2,7 +2,7 @@
 
 ## What is nestwork?
 
-nestwork is a git-native memory protocol for AI coding agents. It helps Claude Code, Codex CLI, Gemini CLI, Kimi Code, and other agents load persistent memory and shared context at session start.
+nestwork is a git-native memory protocol for AI coding agents. It helps Claude Code, Codex CLI, Gemini CLI, Kimi Code, and other agents share persistent memory across sessions. Protocol 3.0 loads only core rules and optional resident summaries at startup; history and project context are on demand. See [context loading and migration](context-loading.md).
 
 ## Is nestwork a vector database?
 

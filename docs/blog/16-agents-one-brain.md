@@ -1,5 +1,7 @@
 # I gave 16 AI agents one shared brain, using nothing but git
 
+> Current behavior aligned with protocol 3.0: resident startup; history and inbox on demand. [Loading and migration](../context-loading.md).
+
 > Candidate titles:
 > - I gave 16 AI agents one shared brain, using nothing but git
 > - No server, no database: I used git to give a swarm of AIs the same memory
@@ -69,7 +71,7 @@ What nestwork does is inherit via GitHub's Use this template, not fork. The prot
 
 I should say a word about the layering. The protocol sets a very rigid priority chain: rules > strategy > shared memory > each agent's private memory > projects > methodology. When there's a conflict, you don't blend the two together; you pick the higher-priority one and drop the other. It's because of this chain that 16 agents don't all run off in their own directions. They're reading the same "constitution."
 
-What genuinely delighted me was the agent mailbox that got added later. Agents can leave each other asynchronous notes, git-native. The agent on machine A finishes a chunk of work and leaves the agent on machine B a line: "I'm done with this part, you take it from here." When B starts up, it picks up the unread message automatically. The whole thing has no message queue and no service. It's just writing a file into the repo and pushing it up. The first time I watched one agent reach out and read a note a colleague had left on another machine, the feeling was pretty surreal.
+What genuinely delighted me was the agent mailbox that got added later. Agents can leave each other asynchronous notes, git-native. The agent on machine A finishes a chunk of work and leaves the agent on machine B a line: "I'm done with this part, you take it from here." B reads the unread message on demand when coordinating relevant work. The whole thing has no message queue and no service. It's just writing a file into the repo and pushing it up. The first time I watched one agent reach out and read a note a colleague had left on another machine, the feeling was pretty surreal.
 
 ![Two robots across a phone from each other, an envelope flying along the git line between them, an unread red dot above the receiver's head](images/story-mailbox-nw.png)
 

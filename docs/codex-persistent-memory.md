@@ -29,7 +29,11 @@ Install on Windows:
 
 ## What Codex remembers
 
-Codex can load:
+Startup reads only core rules and optional `shared/resident.md` and
+`agents/<host>/codex/resident.md`. Other sources below are retrieved on demand.
+See [loading and migration](context-loading.md).
+
+Codex can retrieve:
 
 - global behavior rules from `queen/agent-rules.md`
 - current strategy from `queen/strategy.md`

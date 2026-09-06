@@ -1,6 +1,6 @@
 # NESTWORK BOOTSTRAP
 
-<!-- protocol-version: 2.5 -->
+<!-- protocol-version: 3.0 -->
 
 Every agent that loads this file returns context to the same shared nest.
 Follow this protocol exactly on every session.
@@ -23,14 +23,19 @@ git -C $NESTWORK_PATH pull --rebase
 
 If pull fails, note the reason and continue.
 
-Then load context in this order:
+Load only the resident tier:
 
-1. `queen/agent-rules.md` — behavior rules (highest priority, cannot be overridden)
-2. `queen/strategy.md` — current decision direction
-3. `shared/memory.md` — shared memory across all agents
-4. `agents/<host>/<agent-id>/memory.md` — this instance's private memory (if exists)
-5. `projects/<relevant>.md` — current task context (if relevant)
-6. `workflow/<relevant>.md` — portable user-level workflow knowledge (if relevant; see Section 8)
+1. `queen/agent-rules.md` — core behavior rules
+2. `shared/resident.md` — small, current cross-agent facts and retrieval pointers, if present
+3. `agents/<host>/<agent-id>/resident.md` — small instance-specific facts and pointers, if present
+
+Everything else is **on demand**, including `queen/strategy.md`, historical
+`shared/memory.md`, agent `memory.md`, projects, workflows and carryover.
+Search headings/keywords and read relevant sections; do not recursively follow
+all links. Missing resident summaries do not trigger full-history fallback.
+Residency controls loading, not authority: summaries inherit their source's
+scope and priority. Verify dated project state before acting on it.
+See [loading and migration](docs/context-loading.md) when maintaining context.
 
 **Directory layout** (protocol v2.0): agents are grouped by host.
 `agents/<host>/<agent-id>/` — one folder per machine, one subfolder per tool on
@@ -48,40 +53,19 @@ installing one tool never replaces another tool's identity. Older
 `~/.nestwork_id` files are imported automatically. Override via
 `NESTWORK_HOST` and/or `NESTWORK_AGENT_ID` env vars.
 
-### After loading — orient first, then propose or ask
+### Follow the current task
 
-Before your first reply, orient yourself:
-
-1. `git -C $NESTWORK_PATH log --oneline -10 -- agents/` — recent activity
-   across every instance
-2. `git -C $NESTWORK_PATH log --oneline -5` — recent protocol / shared
-   changes
-3. Cross-reference against `queen/strategy.md` **Current Priorities** and
-   the latest entries in `shared/memory.md` and your own
-   `agents/<host>/<agent-id>/memory.md`
-
-Then decide:
-
-- **If the context gives clear signal** (in-flight work, an obvious next
-  step from memory, a stated priority) → open with a **state summary**
-  (2-3 bullets on what's in flight and what priorities say) plus **one
-  concrete proposal** for the next action. Do NOT open by asking "what
-  would you like me to do?" — the protocol exists so you already know
-  enough to propose.
-- **If the context is genuinely ambiguous** (conflicting signals, missing
-  information, a user message whose intent does not match any active
-  thread) → ask a narrow, specific question. `queen/agent-rules.md`
-  Decision Rules require asking over guessing when unclear. State briefly
-  what you checked and where the ambiguity is.
-
-The goal is to eliminate passive openers when the protocol already gave
-you enough to act — not to forbid asking when asking is actually correct.
+When the user gives a task, proceed with that task. Do not inject unrelated
+project status or treat historical assignments as current authorization.
+When asked to resume, coordinate, or choose work, inspect relevant project
+context, strategy and recent git activity, then propose a concrete next action.
+Ask a narrow question only if missing context blocks the task.
 
 ---
 
 ## 2. Write Protocol
 
-- **ONLY** write to `agents/<host>/<agent-id>/`
+- For ordinary memory writes **within this Nestwork repository**, write only to `agents/<host>/<agent-id>/`. This does not restrict work in other repositories or user-requested artifact destinations. Explicit maintenance authorization can cover protocol/shared changes.
 - **NEVER** write to `queen/` — read-only, human-managed only
 - **NEVER** write to another host's folder (`agents/<other-host>/...`)
 - `shared/memory.md` is read-only for agents **except during distillation** (see Section 7)
@@ -189,8 +173,8 @@ When a specific file does not appear in the table below, use these defaults:
 The limits above are protocol defaults. A private instance may override them
 without editing this protocol file: create `queen/limits.md` declaring its own
 limits table. When present, `queen/limits.md` is authoritative over the defaults
-here. It lives in the high-priority `queen/` layer, so agents load it at session
-start and apply its numbers; `update.sh` never touches `queen/`, so the override
+here. It lives in the high-priority `queen/` layer, so agents load it before context maintenance
+and apply its numbers; `update.sh` never touches `queen/`, so the override
 survives protocol updates. Point to it from `queen/agent-rules.md` (or rely on
 this section) so agents know to read it.
 
@@ -217,7 +201,8 @@ need to read first — they follow links only when the topic is relevant.
 **Agent rule**: before writing to or extending any markdown file, check its
 current line count against the limit (specific or default). If approaching the
 hard limit, split first, then write to the appropriate topic file. This applies
-to all markdown files, not only those listed in the table.
+to Nestwork context markdown, not unrelated project artifacts. Resident files
+also have byte budgets; see `docs/context-loading.md`.
 
 ---
 
@@ -246,14 +231,14 @@ Only agents explicitly triggered for distillation may write to `shared/`.
 3. **Spawn a sub-agent to review**: check for sensitive data, factual errors, contradictions, and outdated entries — sub-agent reports only, does not write
 4. Present review report to human for confirmation
 5. Merge: remove duplicates, unify consistent facts, keep divergent observations as-is
-6. Write result to `shared/memory.md` — **never delete**, only merge and add
+6. Preserve historical evidence in the on-demand tier. Update current summaries by replacing superseded facts, with provenance and scope; do not turn the resident tier into an append-only log.
 7. Commit with message: `memory: distill shared`
 
 ### Rules
 
 - `shared` is the union of agent knowledge, not an intersection — don't drop unique observations
 - Each agent's private memory is preserved unchanged — distillation is non-destructive
-- After distillation, agents only need to read `shared/memory.md` + their own `agents/<host>/<agent-id>/memory.md`
+- Distillation does not make its output resident. Startup reads only the resident tier; history remains searchable on demand.
 
 ---
 
@@ -504,7 +489,8 @@ Nestwork already solves this one layer up. This section connects tool-native mem
 
 ```
 agents/<host>/<agent-id>/
-├── memory.md          # hot — injected at every session start
+├── resident.md        # resident — current facts and retrieval pointers
+├── memory.md          # on-demand history
 └── carryover/         # cold — never injected
     ├── claude-code.md
     ├── codex.md
@@ -529,7 +515,7 @@ Filter by one question: **when does this stop being true?**
 | Never (portable method, cross-tool pitfall) | `workflow/<topic>.md` — desensitise first |
 | When the project changes | that repository's own `docs/` — propose only, never write across repositories |
 
-The hot/cold split is the one people get wrong. Ask whether the entry has to take effect *when nobody went looking for it*. A known API limitation must — put it in `memory.md`. How a local tool was installed must not — put it in `carryover/`. Hot entries compete for the session-start context budget; when in doubt, choose cold.
+The hot/cold split is the one people get wrong. Ask whether the entry has to take effect *when nobody went looking for it*. A universal boundary may qualify — put it in `resident.md`; an API limitation belongs on demand unless every task needs it. How a local tool was installed must not — put it in `carryover/`. Hot entries compete for the session-start context budget; when in doubt, choose cold.
 
 ### Restoring onto another machine
 

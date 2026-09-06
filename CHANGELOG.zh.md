@@ -16,6 +16,13 @@
 
 ## Unreleased
 
+### Protocol v3.0 — resident / on demand
+
+- Startup reads core rules and optional shared/agent `resident.md` only. Existing memory, strategy, projects and workflows remain on demand; no automatic legacy fallback.
+- Reinstall the marked tool bootstrap after updating scripts. See `docs/context-loading.md` for migration and byte-budget checks. Historical data is preserved.
+- Memory write limits explicitly apply inside Nestwork, not user project artifacts. Current tasks no longer require unrelated status reports.
+
+
 ### Protocol v2.5
 
 - **工具原生记忆结转（AGENTS.md §13）。** 每个编码 agent 都维护自己的记忆，而截至 2026-07 **全部是机器本地的**——Claude Code（`~/.claude/projects/<project>/memory/`，官方文档原话「不跨机器、不跨云环境共享」）、Codex（`~/.codex/memories/`）、Kimi Code（`~/.kimi-code/`）。这让积累的上下文有三条失效路径：换台机器从零开始、工具停服时记忆随之消失、账号级记忆随账号丢失（停用、区域限制、订阅到期）而消失。**共同根因是「归属」**——厂商决定你的上下文存在哪、能活多久，而 nestwork 在上一层已经解决了同一个问题。新增保留路径 `agents/<host>/<agent-id>/carryover/<tool>.md`，接收经 §7 流程（读取 → 判据过滤 → 人审 → 合并 → 提交）**蒸馏**过的工具原生记忆，**不是原样镜像**——原样镜像会把重复条目和已过期的笔记一起搬进来，制造 §2 明令禁止的「同一记忆两份」漂移。`carryover/` 是**冷层**：绝不在会话启动时注入，`memory.md` 至多用一行指针引用它。分诊按「这条什么时候不再成立？」归类，并显式区分冷热——**必须在没人主动去查的情况下也生效**的条目进 `memory.md`，其余进 `carryover/`。每条记录同时保存原 project 目录名**与**其对应仓库，因为部分工具由仓库绝对路径推导该目录名，换台机器就对不上。Additive：不改动任何既有路径、hook 或优先级链行为。取舍与被否方案见 `decisions/2026-07-28-tool-memory-carryover.md`。

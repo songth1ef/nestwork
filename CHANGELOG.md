@@ -4,6 +4,13 @@
 
 ## Unreleased
 
+### Protocol v3.0 — resident / on demand
+
+- Startup reads core rules and optional shared/agent `resident.md` only. Existing memory, strategy, projects and workflows remain on demand; no automatic legacy fallback.
+- Reinstall the marked tool bootstrap after updating scripts. See `docs/context-loading.md` for migration and byte-budget checks. Historical data is preserved.
+- Memory write limits explicitly apply inside Nestwork, not user project artifacts. Current tasks no longer require unrelated status reports.
+
+
 ### Protocol v2.5
 
 - **Tool-native memory carryover (AGENTS.md §13).** Every coding agent keeps its own memory and, as of 2026-07, all of it is machine-local — Claude Code (`~/.claude/projects/<project>/memory/`, documented as "not shared across machines or cloud environments"), Codex (`~/.codex/memories/`), Kimi Code (`~/.kimi-code/`). That exposes accumulated context three ways: a new machine starts from zero, a discontinued tool takes its memory with it, and account-bound memory disappears with the account. The root cause is ownership, and nestwork already solves that one layer up. New reserved path `agents/<host>/<agent-id>/carryover/<tool>.md` receives tool-native memory **distilled** through the §7 pipeline (read → filter → human review → merge → commit), not raw-mirrored — a raw mirror would carry duplicates and expired notes across and create the drift §2 forbids. `carryover/` is a **cold layer**: never auto-injected at session start, referenced from `memory.md` by a single pointer line at most. Triage sorts each entry by "when does this stop being true?", and the hot/cold split is explicit — an entry that must apply *without being looked up* belongs in `memory.md`, everything else in `carryover/`. Entries record the original project-directory name **and** its repository, because some tools derive that name from the repository's absolute path and it will not match on another machine. Additive: no existing path, hook, or priority-chain behaviour changes. Rationale and rejected alternatives in `decisions/2026-07-28-tool-memory-carryover.md`.

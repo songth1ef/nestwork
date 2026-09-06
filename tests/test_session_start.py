@@ -58,6 +58,8 @@ class SessionStartTests(unittest.TestCase):
         memory = self.repo / "agents" / "h1" / "a1" / "memory.md"
         memory.parent.mkdir(parents=True)
         memory.write_text("# MEMORY\n", encoding="utf-8")
+        memory.with_name("resident.md").write_text("# RESIDENT\n", encoding="utf-8")
+        (self.repo / "shared/resident.md").write_text("# SHARED RESIDENT\n", encoding="utf-8")
         (self.repo / "workflow").mkdir()
         (self.repo / "workflow" / "lessons.md").write_text("# LESSONS\n", encoding="utf-8")
         (self.repo / "workflow" / "_template.md").write_text("# TEMPLATE\n", encoding="utf-8")
@@ -97,30 +99,37 @@ class SessionStartTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         return result.stdout
 
-    def test_bundle_inlines_rules_and_lists_read_on_start_manifest(self) -> None:
+    def test_only_resident_paths_are_mandatory(self):
         out = self.run_hook()
+        hot = out.split("=== READ-ON-START", 1)[1].split("=== READ-ON-DEMAND", 1)[0]
+        for rel in ("queen/agent-rules.md", "shared/resident.md", "agents/h1/a1/resident.md"):
+            self.assertIn(f"- {self.repo}/{rel}", hot)
+        for rel in ("queen/strategy.md", "shared/memory.md", "agents/h1/a1/memory.md"):
+            self.assertNotIn(rel, hot)
+        self.assertNotIn("lead with the conclusion", out)
 
-        self.assertIn("nestwork context bundle for h1/a1", out)
-        # agent-rules is the only file small enough to inline fully.
-        self.assertIn("=== agent-rules (queen/agent-rules.md) ===", out)
-        self.assertIn("lead with the conclusion", out)
-        # The rest arrives as absolute paths the agent must Read.
-        self.assertIn("=== READ-ON-START", out)
-        self.assertIn(f"- {self.repo}/queen/strategy.md", out)
-        self.assertIn(f"- {self.repo}/shared/memory.md", out)
-        self.assertIn(f"- {self.repo}/agents/h1/a1/memory.md", out)
-
-    def test_missing_files_are_skipped_silently(self) -> None:
-        (self.repo / "shared" / "memory.md").unlink()
+    def test_missing_summaries_do_not_load_legacy_history(self):
+        (self.repo / "shared/resident.md").unlink()
+        (self.repo / "agents/h1/a1/resident.md").unlink()
         out = self.run_hook()
-        self.assertNotIn("shared/memory.md", out)
-        self.assertIn(f"- {self.repo}/queen/strategy.md", out)
+        hot = out.split("=== READ-ON-START", 1)[1].split("=== READ-ON-DEMAND", 1)[0]
+        self.assertIn("history remains on demand", hot)
+        self.assertNotIn("memory.md", hot)
+        self.assertIn("queen/agent-rules.md", hot)
 
-    def test_read_on_demand_lists_workflow_but_not_template(self) -> None:
-        out = self.run_hook()
-        self.assertIn("=== READ-ON-DEMAND", out)
-        self.assertIn(f"- {self.repo}/workflow/lessons.md", out)
-        self.assertNotIn("_template.md", out)
+    def test_output_does_not_grow_with_history_or_workflows(self):
+        before = self.run_hook()
+        (self.repo / "shared/memory.md").write_text("large history" * 100000)
+        (self.repo / "queen/agent-rules.md").write_text("large rules" * 10000)
+        for n in range(100):
+            (self.repo / f"workflow/topic{n}.md").write_text("topic")
+        self.assertEqual(before, self.run_hook())
+        self.assertIn("/workflow/", before)
+        self.assertNotIn("/workflow/lessons.md", before)
+
+    def test_missing_core_rules_reported(self):
+        (self.repo / "queen/agent-rules.md").unlink()
+        self.assertIn("Missing queen/agent-rules.md", self.run_hook())
 
     def test_unread_mail_is_snapshotted_into_manifest(self) -> None:
         env = dict(self.env)

@@ -1,9 +1,6 @@
 # AI Agent Memory Isn't a Database Problem, It's a Protocol Problem
 
-> Candidate titles:
-> - AI Agent Memory Isn't a Database Problem, It's a Protocol Problem
-> - When Multiple Agents Work Together, the Hard Part Was Never "Where to Store Memory"
-> - 16 Agents Sharing One Memory Need a Protocol, Not Another Database
+> Current behavior, aligned with protocol 3.1: at startup an agent reads only the small resident tier; strategy, history, projects and the inbox are fetched on demand. A memory scope can also opt into topic memory, where `memory.md` becomes a generated index over topic files. See [Loading and migration](../context-loading.md) and [AGENTS.md](../../AGENTS.md) §6.
 
 ![Not a database but a protocol: a database on the left, a protocol network on the right](images/memory-protocol-cover-nw.png)
 
@@ -29,7 +26,7 @@ nestwork aims straight at that gap. It isn't another memory database. It's a col
 
 The form nestwork takes is almost counterintuitively simple. Memory is just plain markdown in a git repo, and that repo is the single source of truth. No server, no hosted backend, no SaaS to sign up for. Agents sync through pull / commit / push, and the git remote is the transport layer. That means cross-machine sync is genuinely cross-machine, not sync inside some cloud tenant.
 
-Onboarding is git's native tongue too. Use GitHub's Use this template to inherit the entire protocol, and you're connected the moment you clone. There's an underrated benefit here: what you inherit is your own private repo. Your memory grows in your hands from day one, instead of sitting in some vendor's backend. For sensitive content you can layer git-crypt on top, so it's encrypted on the way in and the repo host only ever sees ciphertext. Inheriting rather than forking also means that when upstream updates the protocol, it never touches your private data.
+Onboarding is pure git, too. Click GitHub's Use this template to inherit the entire protocol, and you're connected the moment you clone. There's an underrated benefit here: what you inherit is your own private repo. Your memory grows in your hands from day one, instead of sitting in some vendor's backend. For sensitive content you can layer git-crypt on top, so it's encrypted on the way in and the repo host only ever sees ciphertext. Inheriting rather than forking also means that when upstream updates the protocol, it never touches your private data.
 
 A hosted memory service can't give you this. Once you hand your context over, it lives in someone else's database. One of the upsides of being git-native is that ownership of the data never leaves you, start to finish.
 
@@ -47,13 +44,13 @@ Layered priority plus conflict adjudication. Memory is layered: behavior rules >
 
 Write permissions isolated per machine and per agent. Each agent writes only its own directory. The moment a pull hits a conflict, the resolution is deterministic: take local for your own directory, take remote for someone else's, take remote for upstream-managed layers. Concurrent writers don't fight at the root.
 
-Every write is an atomic sync. Pull --rebase before writing, commit and push with retry after. The race window is squeezed down to the instant of a single write, instead of staying open across an entire session.
+Every write is an atomic sync. On tools with per-write hooks (currently Claude Code and Kimi Code), each memory write is wrapped in a `pull --rebase` before and a commit and push with retry after. The race window is squeezed down to the instant of a single write, instead of staying open across an entire session. Tools without those hooks, such as Codex and Gemini, commit and push their own directory at the end of the session.
 
-Distillation. How do several agents' separate private memories settle into facts everyone shares? Through a distillation flow: first dispatch a sub-agent to review, checking for sensitive information, contradictions, and stale entries, then hand it to a human to confirm, and finally merge it non-destructively into shared memory, only combining and only adding, never deleting anyone else's observations.
+Distillation. How do several agents' separate private memories settle into facts everyone shares? Through a distillation flow: first dispatch a sub-agent to review, checking for sensitive information, factual errors, contradictions, and stale entries, then hand it to a human to confirm, and only then merge it into shared memory. The merge is non-destructive: shared memory is a union, not an intersection, so an observation only one agent made is kept, and every agent's private memory is left untouched.
 
 Agent mailbox. Agents can do more than read the same shared memory. They can leave messages for each other, a git-native form of asynchronous communication. Collaboration goes from "everyone staring at the same whiteboard" up to "able to talk point to point."
 
-Protocol version governance. Protocol evolution is marked with MAJOR.MINOR, and limits can even be overridden per instance. It behaves like a spec that iterates, not a static software package.
+Protocol version governance. Protocol evolution is marked with MAJOR.MINOR, the session-start hook flags a newer upstream version without applying anything, and file-size limits can be overridden per instance. It behaves like a spec that iterates, not a static software package.
 
 ![A pyramid of layered priorities, the top layer wearing a crown to show the rules rank highest](images/memory-protocol-layers-nw.png)
 
@@ -73,6 +70,4 @@ At that moment, what you need isn't another database. It's a protocol.
 bash scripts/install/claude.sh   # codex / gemini work the same way
 ```
 
-GitHub: songth1ef/nestwork. If this framework speaks to you, give it a star. If you want to run it right away, use Use this template to inherit the protocol, and you're connected the moment you clone.
-
-<!-- category-creation angle | humanized | EN -->
+GitHub: songth1ef/nestwork. If this framing speaks to you, give it a star. If you want to run it right away, click Use this template to inherit the protocol, and you're connected the moment you clone.

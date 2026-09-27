@@ -16,6 +16,10 @@
 
 ## Unreleased
 
+### 新增
+
+- 新增 `scripts/maintenance/measure-context.py`：以某个 agent 的视角，报告 2.x 式全量启动、常驻启动、常驻 + 索引 + 主题的任务、整个仓库四种情况的字节数与估算 token。零依赖；装了 tiktoken 就用它，否则用在中英混合仓库上校准过的字符类别估算（中位误差约 6%）。README 与 `docs/context-loading.md` 改为引用实测数字，而不只是字节预算。
+
 ### 协议一致性（3.1，澄清）——定时蒸馏需要下游动作
 
 - **`distill.py --run-claude/--run-codex` 默认不再提交。** 它写入 `shared/` 并打印审阅提示，与 §7 第 3–4 步（审核、人工确认）一致。加 `--commit` 才在同一次运行中提交并推送（`--no-push` 只提交不推送）；`--no-commit` 仍可用，但已无作用。**如果有 cron 或定时任务无人值守地跑蒸馏，必须加上 `--commit`**，否则它每次只留下未提交的工作区，共享记忆会悄悄停止更新。

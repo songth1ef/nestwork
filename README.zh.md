@@ -144,6 +144,17 @@ git 同步、优先级链、hook 全自动运行。想了解机制看 [工作原
 
 保存与加载是两件事。自协议 3.0 起，启动只读核心规则和共享/实例常驻摘要；历史记忆、战略、项目和工作流按当前任务检索，不追求开场全量读取。
 
+实际能省多少？以作者自己的记忆仓库实测（10 台机器、30 多个 agent 实例，2026-09；token 用 `o200k_base` 估算）：
+
+| 场景 | 文件数 | 大小 | token |
+|---|---|---|---|
+| 2.x 式全量启动（规则、战略、全部共享与本 agent 记忆、工作流） | 37 | 224 KB | 约 69,600 |
+| 3.x 启动（只读常驻层） | 2 | 2.6 KB | **约 640** |
+| 3.x 做一次 git 操作（常驻 + 索引 + 一个主题） | 4 | 11.8 KB | 约 3,600 |
+| 仓库里全部记忆文件 | 180 | 1.2 MB | 约 369,000 |
+
+全部记忆已经超过大多数模型的上下文窗口，所以加载必须有选择。用 `python3 scripts/maintenance/measure-context.py` 可以量自己的仓库（字节数精确；token 装了 tiktoken 就精确计数，否则用校准过的估算）。
+
 有长期价值的决策、经验和方法仍值得记录。先保存到按需层，按主题保持可检索（可选用主题文件 + 生成索引）；只有每类任务都需要的稳定事实和必要边界，才经过复核进入常驻摘要。
 
 摘要缺失不回退加载整份历史，摘要中的链接也不是递归读取要求。维护时遵守文件拆分和常驻字节预算，见[加载与迁移指南](docs/context-loading.md)。Nestwork 保存可携带上下文，不存密钥或未经审查的雇主机密。
@@ -442,7 +453,7 @@ nestwork/
     ├── uninstall/              按工具卸载器（只解绑，记忆与身份保留）
     ├── hooks/                  运行时 hook（pre/post/stop、session-start、可选同步）
     ├── comms/                  Agent 邮箱（send / read / archive）
-    └── maintenance/            compile.sh · distill.py · memory-index.py · check-resident.py
+    └── maintenance/            compile.sh · distill.py · memory-index.py · check-resident.py · measure-context.py
                                 update.sh · sync-claude-md.sh · migrate-v2.sh
 ```
 

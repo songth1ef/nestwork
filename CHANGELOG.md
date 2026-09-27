@@ -16,6 +16,10 @@ Conventions:
 
 ## Unreleased
 
+### Added
+
+- New `scripts/maintenance/measure-context.py`: reports bytes and estimated tokens for a 2.x-style full startup, the resident startup, a resident + index + topic task, and the whole nest, from one agent's point of view. Zero dependencies; uses tiktoken when installed, otherwise a character-class estimate calibrated on a bilingual nest (median error ~6%). README and `docs/context-loading.md` now cite measured numbers instead of the byte budget alone.
+
 ### Protocol consistency (3.1, clarifications) — action needed for scheduled distillation
 
 - **`distill.py --run-claude/--run-codex` no longer commits by default.** It writes `shared/` and prints a review hint, matching §7 steps 3–4 (review, then human confirmation). Pass `--commit` to commit and push in the same run (`--no-push` keeps it local). `--no-commit` is still accepted as a no-op. **If a cron or scheduled job runs the distiller unattended, add `--commit`**, or it will keep writing an uncommitted working tree and shared memory will silently stop updating.

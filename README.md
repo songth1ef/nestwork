@@ -146,6 +146,21 @@ Retention and loading are separate. Since protocol 3.0, startup loads core rules
 shared/agent resident summaries. Historical memory, strategy, projects and
 workflows are searched for the current task, not loaded in full at startup.
 
+How much this saves, measured on the author's own nest (10 machines, 30+ agent
+instances, 2026-09; tokens estimated with `o200k_base`):
+
+| Scenario | Files | Size | Tokens |
+|---|---|---|---|
+| 2.x-style full startup (rules, strategy, all shared + agent memory, workflows) | 37 | 224 KB | ~69,600 |
+| 3.x startup (resident tier only) | 2 | 2.6 KB | **~640** |
+| 3.x task: a git operation (resident + index + one topic) | 4 | 11.8 KB | ~3,600 |
+| Every memory file in the nest | 180 | 1.2 MB | ~369,000 |
+
+The whole nest no longer fits in most context windows, which is why loading
+has to be selective. Measure your own nest with
+`python3 scripts/maintenance/measure-context.py` (bytes are exact; tokens use
+tiktoken if installed, otherwise a calibrated estimate).
+
 Keep decisions, lessons and methods with lasting value in the on-demand tier,
 organized for retrieval (optionally as topic files behind a generated index). Promote only reviewed, stable facts and essential
 boundaries needed across tasks into resident summaries.
@@ -449,7 +464,7 @@ nestwork/
     ├── uninstall/              Per-tool uninstallers (unbind only; memory & identity kept)
     ├── hooks/                  Runtime hooks (pre/post/stop, session-start, optional sync)
     ├── comms/                  Agent mailbox (send / read / archive)
-    └── maintenance/            compile.sh · distill.py · memory-index.py · check-resident.py
+    └── maintenance/            compile.sh · distill.py · memory-index.py · check-resident.py · measure-context.py
                                 update.sh · sync-claude-md.sh · migrate-v2.sh
 ```
 

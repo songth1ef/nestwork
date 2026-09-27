@@ -16,6 +16,14 @@
 
 ## Unreleased
 
+### Protocol v3.1 — 主题记忆
+
+- 记忆作用域（`shared/` 或 `agents/<host>/<agent-id>/`）可选择切换到主题存储：`memory.md` 变成由各主题文件 `description` / `updated` 前置元数据生成的索引，agent 读索引后只打开描述匹配当前任务的文件——与 skill 的路由方式相同。§6 的拆分规则自 v2 就存在但从未真正生效：按行数的上限会被长行绕过（某私有实例 430 行却有 114 KB），且 `distill.py` / `compile.sh` 每次都把内容合回单文件。
+- 新增 `scripts/maintenance/memory-index.py`（生成 / `--check`）：索引过期、主题缺 `description`、单文件超 32 KB、嵌套超过两层都会失败。
+- `distill.py` 识别主题模式，与 runner 以 `<<<FILE shared/<topic>.md … >>>END` 块交换内容，校验路径与前置元数据，只写有变化的主题并重建索引。`compile.sh` 拒绝压平主题模式的 `shared/`。
+- 分类治理：agent 查过索引后可新增叶子主题；改名、合并、新增顶层目录只在经人工审核的蒸馏中进行。
+- 增量兼容：没有索引标记的作用域继续使用单文件记忆；hook 与启动块无需改动。
+
 ### 文档修正（协议 3.0）
 
 - 修复加密实例更新：直接提取上游文件，再经私有仓 clean filter 暂存，避免 `VERSION` 等短文件被 smudge filter 截空；工作区不干净或过滤器失败时停止更新。新增真实 git-crypt 回归测试。

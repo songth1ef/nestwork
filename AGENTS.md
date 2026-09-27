@@ -1,6 +1,6 @@
 # NESTWORK BOOTSTRAP
 
-<!-- protocol-version: 3.0 -->
+<!-- protocol-version: 3.1 -->
 
 Every agent that loads this file returns context to the same shared nest.
 Follow this protocol exactly on every session.
@@ -205,6 +205,55 @@ hard limit, split first, then write to the appropriate topic file. This applies
 to Nestwork context markdown, not unrelated project artifacts. Resident files
 also have byte budgets; see `docs/context-loading.md`.
 
+### Topic memory (v3.1+)
+
+A **memory scope** is `shared/` or `agents/<host>/<agent-id>/`. A scope opts in
+to topic storage by putting the generated index markers in its `memory.md`;
+from then on `memory.md` is a routing table and the facts live in topic files.
+Retrieval works like skills: read the index, pick files by their description,
+read only those.
+
+```
+shared/
+  memory.md            ← index only; block between markers is generated
+  owner.md             ← topic file
+  engineering.md
+  tooling/             ← a topic that outgrew one file
+    mailbox.md
+```
+
+Every topic file starts with front matter. `description` is the only thing an
+agent sees before deciding to open the file, so write it as a trigger — *when*
+to read, not a title:
+
+```markdown
+---
+description: Machine-specific quirks, ports and paths; read before touching a host's setup
+updated: 2026-09-27
+---
+```
+
+Rules:
+
+- **Regenerate, never hand-edit, the index**: `python3 scripts/maintenance/memory-index.py`
+  after changing topic files; `--check` fails on a stale index, a topic without
+  `description`, a file over 32 KB (soft limit 16 KB), or nesting deeper than
+  `<topic>/<subtopic>.md`.
+- **Reuse before creating.** Read the index first; write into the topic whose
+  description already covers the fact. Create a new file only when none does.
+- **Agents may add leaf topics; only distillation reshapes.** Renaming, merging,
+  deleting topics or adding a new top-level folder in `shared/` happens during
+  distillation with human review (Section 7), so 30 agents do not grow
+  `owner.md`, `user.md` and `identity.md` side by side.
+- **Split by when it is needed, not by who wrote it.** A topic is the unit an
+  agent loads for one kind of task. Project state stays in `projects/`, portable
+  methods in `workflow/`; do not duplicate them as shared topics.
+- `memory.md`, `resident.md` and `outbox/`, `local/`, `carryover/`, `comms/`,
+  `inbox/`, `archive/` and names starting with `_` or `.` are never topics.
+- Scopes without markers keep single-file memory; nothing migrates automatically.
+  `compile.sh` refuses to run on a topic-mode `shared/`, because concatenation
+  would undo the split.
+
 ---
 
 ## 7. Memory Distillation Protocol
@@ -227,13 +276,14 @@ Only agents explicitly triggered for distillation may write to `shared/`.
 
 ### How to distill
 
-1. Read all `agents/*/*/memory.md`
-2. Read current `shared/memory.md`
+1. Read all `agents/*/*/memory.md` (plus their topic files, for topic-mode scopes)
+2. Read current `shared/memory.md` — in topic mode, the index and every `shared/` topic file
 3. **Spawn a sub-agent to review**: check for sensitive data, factual errors, contradictions, and outdated entries — sub-agent reports only, does not write
 4. Present review report to human for confirmation
 5. Merge: remove duplicates, unify consistent facts, keep divergent observations as-is
 6. Preserve historical evidence in the on-demand tier. Update current summaries by replacing superseded facts, with provenance and scope; do not turn the resident tier into an append-only log.
-7. Commit with message: `memory: distill shared`
+7. In topic mode, write changed topic files only, regenerate the index, and run `memory-index.py --check`. Structural changes (rename / merge / delete / new top-level folder) are listed separately in the review report.
+8. Commit with message: `memory: distill shared`
 
 ### Rules
 

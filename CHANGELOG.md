@@ -4,6 +4,14 @@
 
 ## Unreleased
 
+### Protocol v3.1 — topic memory
+
+- A memory scope (`shared/` or `agents/<host>/<agent-id>/`) can opt in to topic storage: `memory.md` becomes an index generated from each topic file's `description` / `updated` front matter, and agents open only the files whose description matches the task — the same routing pattern as skills. The split rule in §6 existed since v2 but never held in practice: a line-count limit is bypassed by long lines (one private instance reached 114 KB in 430 lines), and `distill.py` / `compile.sh` rewrote everything back into one file.
+- New `scripts/maintenance/memory-index.py` (generate / `--check`): fails on a stale index, a topic without `description`, a file over 32 KB, or nesting deeper than two levels.
+- `distill.py` detects topic mode and exchanges `<<<FILE shared/<topic>.md … >>>END` blocks with the runner, validates paths and front matter, writes changed topics only and regenerates the index. `compile.sh` refuses to flatten a topic-mode `shared/`.
+- Taxonomy governance: agents add leaf topics after checking the index; renames, merges and new top-level folders happen only in reviewed distillation.
+- Additive: scopes without markers keep single-file memory; hooks and bootstraps are unchanged.
+
 ### Documentation alignment (protocol 3.0)
 
 - Fix encrypted-instance updates: extract upstream files without smudge filters, then stage through the private clean filter. This preserves short files such as `VERSION`; dirty worktrees and filter failures stop the update. Covered by a real git-crypt regression test.

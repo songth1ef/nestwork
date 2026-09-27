@@ -3,8 +3,10 @@
 # Single-writer design: writes ONLY into the caller's own outbox, so there are
 # never write conflicts. The script commits and pushes the message itself
 # (tool-neutral: works the same from Claude Code, Codex, or a plain shell);
-# the recipient reads it on their next pull / session start. On Claude Code
-# the Stop-hook safety net additionally covers any message whose push failed.
+# the recipient reads it on their next pull / session start. If the push
+# fails, the message stays committed locally and goes out with the next
+# successful push from this checkout (the Stop hook does not retry it: it only
+# acts when there are uncommitted changes).
 #
 # Usage: send.sh <to-host/agent | all> <task|message|broadcast> <subject> [thread] [reply_to]
 #        body is read from stdin.
@@ -51,7 +53,7 @@ EOF
 # Deliver: commit + push the message ourselves. The per-write hooks only match
 # Write/Edit tool calls, so a Bash-invoked send must not rely on them. Push
 # failures are non-fatal — the message is durable in the local commit and will
-# reach the remote on the next successful push (or the Stop-hook safety net).
+# reach the remote on the next successful push from this checkout.
 MSG_REL="agents/$SELF/outbox/$ID.md"
 deliver() {
   cd "$ROOT" || return 1

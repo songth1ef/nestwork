@@ -16,6 +16,12 @@
 
 ## Unreleased
 
+### 协议一致性（3.1，澄清）——定时蒸馏需要下游动作
+
+- **`distill.py --run-claude/--run-codex` 默认不再提交。** 它写入 `shared/` 并打印审阅提示，与 §7 第 3–4 步（审核、人工确认）一致。加 `--commit` 才在同一次运行中提交并推送（`--no-push` 只提交不推送）；`--no-commit` 仍可用，但已无作用。**如果有 cron 或定时任务无人值守地跑蒸馏，必须加上 `--commit`**，否则它每次只留下未提交的工作区，共享记忆会悄悄停止更新。
+- 解决 `AGENTS.md` 中五处自相矛盾：§1 在启动 hook 已 pull 过时跳过手动 pull（与已安装的启动块一致）；§2 改为「扩展已覆盖该主题的文件」，不再「优先新建」（与 §6 一致）；§6 规定 agent 只能在自己目录新增叶子主题，`shared/` 的任何变更都只在蒸馏中进行；§7 去掉「会话结束时自动蒸馏」，改为 agent 把候选记在自己目录；§13 说明恢复是单向流程中唯一的、手动的反向步骤。
+- 修正脚本注释：`send.sh`（推送失败的消息不会被 Stop hook 重推，会随下一次推送上去）、`sync-local-history.sh`（开关在 `agents/<host>/settings.json`）、`generic.sh` / `generic.ps1`（旧名 `install-generic`）。
+
 ### Protocol v3.1 — 主题记忆
 
 - 记忆作用域（`shared/` 或 `agents/<host>/<agent-id>/`）可选择切换到主题存储：`memory.md` 变成由各主题文件 `description` / `updated` 前置元数据生成的索引，agent 读索引后只打开描述匹配当前任务的文件——与 skill 的路由方式相同。§6 的拆分规则自 v2 就存在但从未真正生效：按行数的上限会被长行绕过（某私有实例 430 行却有 114 KB），且 `distill.py` / `compile.sh` 每次都把内容合回单文件。

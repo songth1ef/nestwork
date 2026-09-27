@@ -55,6 +55,10 @@ def load_memory_index():
 
 
 MEMORY_INDEX = load_memory_index()
+REVIEW_HINT = (
+    "Not committed. Review with `git diff -- shared/`, then commit with "
+    "`git commit -m 'memory: distill shared' -- shared/` or rerun with --commit."
+)
 TOPIC_PATH = re.compile(r"^shared/[a-z0-9][a-z0-9-]*(?:/[a-z0-9][a-z0-9-]*)?\.md$")
 TOPIC_BLOCK = re.compile(r"^<<<FILE (\S+)[ \t]*\r?\n(.*?)\r?\n>>>END[ \t]*$", re.S | re.M)
 
@@ -462,20 +466,30 @@ def parse_args() -> argparse.Namespace:
         help="Run the distiller and print the candidate shared/memory.md instead of writing it.",
     )
     parser.add_argument(
+        "--commit",
+        action="store_true",
+        help="After writing, create the `memory: distill shared` commit and push it. "
+        "Without this flag the result is only written to the working tree, so a human "
+        "can review it first (AGENTS.md section 7).",
+    )
+    parser.add_argument(
         "--no-commit",
         action="store_true",
-        help="Write shared/memory.md without creating the `memory: distill shared` commit.",
+        help="Accepted for compatibility; not committing is already the default.",
     )
     parser.add_argument(
         "--no-push",
         action="store_true",
-        help="Commit locally but skip `git push`.",
+        help="With --commit: commit locally but skip `git push`.",
     )
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
+    # Writing shared memory skips the review step unless a human looks first, so
+    # committing is opt-in (AGENTS.md section 7, steps 3-4).
+    commit = args.commit and not args.no_commit
     nestwork_path = Path(args.nestwork_path).resolve()
     shared_file = nestwork_path / "shared" / "memory.md"
 
@@ -532,14 +546,16 @@ def main() -> int:
                 print(f"<<<FILE {name}\n{body}>>>END")
             return 0
         try:
-            write_topic_files(nestwork_path, topic_files, commit=not args.no_commit, push=not args.no_push)
+            write_topic_files(nestwork_path, topic_files, commit=commit, push=not args.no_push)
         except (ValueError, subprocess.CalledProcessError) as exc:
             stderr = getattr(exc, "stderr", None)
             print(f"Error: {stderr.strip() if stderr else exc}", file=sys.stderr)
             return 1
         print(f"Updated {len(topic_files)} shared topic file(s): {', '.join(topic_files)}")
-        if not args.no_commit:
+        if commit:
             print("Committed" + ("" if args.no_push else " and pushed") + ": memory: distill shared")
+        else:
+            print(REVIEW_HINT)
         return 0
 
     for warning in validate_shared_memory(shared_content):
@@ -553,7 +569,7 @@ def main() -> int:
         write_shared_memory(
             nestwork_path,
             shared_content,
-            commit=not args.no_commit,
+            commit=commit,
             push=not args.no_push,
         )
     except subprocess.CalledProcessError as exc:
@@ -562,11 +578,13 @@ def main() -> int:
         return 1
 
     print(f"Updated {shared_file}")
-    if not args.no_commit:
+    if commit:
         if args.no_push:
             print("Committed local change with message: memory: distill shared")
         else:
             print("Committed and pushed: memory: distill shared")
+    else:
+        print(REVIEW_HINT)
     return 0
 
 

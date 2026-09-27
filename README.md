@@ -390,10 +390,11 @@ bash ~/nestwork/scripts/maintenance/compile.sh
 # Vendor-agnostic: prints a distillation prompt for you to feed any agent session
 python3 ~/nestwork/scripts/maintenance/distill.py
 
-# One-shot runner: aggregate, write back to shared/, commit, push
-# (--dry-run previews without writing; --no-commit / --no-push stop earlier)
+# Runner: aggregate and write shared/ for you to review; it does not commit
+# (--dry-run only prints; add --commit to commit + push, --no-push to keep it local)
 python3 ~/nestwork/scripts/maintenance/distill.py --run-claude
 python3 ~/nestwork/scripts/maintenance/distill.py --run-codex --profile <your-profile>
+git -C ~/nestwork diff -- shared/        # review, then commit as `memory: distill shared`
 ```
 
 `--run-claude` (`claude -p`) and `--run-codex` (`codex exec`) are mutually exclusive; `--profile` applies to Codex only. None of these modify the original agent memory — distillation reads private memory and writes only `shared/`, with commit message `memory: distill shared`. Every agent picks up the result on its next `git pull`.

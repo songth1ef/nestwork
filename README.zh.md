@@ -383,10 +383,11 @@ bash ~/nestwork/scripts/maintenance/compile.sh
 # 不绑厂商：打印一段蒸馏提示词，喂给任意 agent 会话
 python3 ~/nestwork/scripts/maintenance/distill.py
 
-# 一把过的 runner：聚合、写回 shared/、commit、push
-#（--dry-run 只预览不写；--no-commit / --no-push 提前停下）
+# runner：聚合并写入 shared/ 供你审阅，不自动提交
+#（--dry-run 只打印；加 --commit 才提交并推送，--no-push 只提交不推送）
 python3 ~/nestwork/scripts/maintenance/distill.py --run-claude
 python3 ~/nestwork/scripts/maintenance/distill.py --run-codex --profile <你的-profile>
+git -C ~/nestwork diff -- shared/        # 审阅后以 `memory: distill shared` 提交
 ```
 
 `--run-claude`（`claude -p`）与 `--run-codex`（`codex exec`）二选一；`--profile` 只对 Codex 生效。这些方式都不改动各 agent 的原始记忆——蒸馏只读私有记忆、只写 `shared/`，commit message 为 `memory: distill shared`。其他 agent 下次 `git pull` 就能拿到。

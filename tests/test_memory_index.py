@@ -169,6 +169,42 @@ class DistillTopicModeTests(unittest.TestCase):
         self.assertIn("missing `description`", result.stderr)
         self.assertFalse((self.root / "shared/env.md").exists())
 
+    def git(self, *args):
+        return subprocess.run(["git", "-C", str(self.root), *args], capture_output=True, text=True, check=True).stdout
+
+    def init_repo(self):
+        self.git("init", "-q")
+        self.git("-c", "user.email=t@t", "-c", "user.name=t", "add", "-A")
+        self.git("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "init")
+
+    def test_run_writes_but_does_not_commit_by_default(self):
+        self.init_repo()
+        env, _ = self.fake_claude(f"<<<FILE shared/env.md\n{topic('Machines')}>>>END\n")
+        result = self.distill(env, "--run-claude")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Not committed", result.stdout)
+        self.assertTrue((self.root / "shared/env.md").exists())
+        self.assertEqual(self.git("log", "--format=%s").split(), ["init"])
+
+    def test_commit_flag_commits_shared_only(self):
+        self.init_repo()
+        env, _ = self.fake_claude(f"<<<FILE shared/env.md\n{topic('Machines')}>>>END\n")
+        # --commit pulls first; give the fixture a remote that has nothing to pull.
+        bare = self.root.parent / (self.root.name + "-remote.git")
+        subprocess.run(["git", "init", "-q", "--bare", str(bare)], check=True)
+        self.git("remote", "add", "origin", str(bare))
+        self.git("push", "-q", "origin", "HEAD:main")
+        self.git("branch", "-q", "--set-upstream-to=origin/main")
+        result = subprocess.run(
+            [sys.executable, str(DISTILL), "--nestwork-path", str(self.root), "--run-claude", "--commit", "--no-push"],
+            capture_output=True, text=True,
+            env={**env, "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t", "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t"},
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.git("log", "-1", "--format=%s").strip(), "memory: distill shared")
+        changed = self.git("show", "--name-only", "--format=", "HEAD").split()
+        self.assertEqual(sorted(changed), ["shared/env.md", "shared/memory.md"])
+
     def test_compile_refuses_to_flatten_topic_mode(self):
         (self.root / "scripts/maintenance").mkdir(parents=True)
         compile_sh = self.root / "scripts/maintenance/compile.sh"

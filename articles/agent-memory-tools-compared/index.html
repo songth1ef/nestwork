@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Memory Tools Compared — Mem0, Letta, Zep and More</title>
+<meta name="description" content="Mem0, Letta, Zep, Supermemory, claude-mem, built-in tool memory and nestwork compared on architecture, deployment, data ownership and best fit.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="songth1ef">
+<meta name="theme-color" content="#8fdcf7">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/articles/agent-memory-tools-compared/">
+<link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/agent-memory-tools-compared/">
+<link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/agent-memory-tools-compared/">
+<link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/agent-memory-tools-compared/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232ec4d6'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="nestwork">
+<meta property="og:title" content="Agent Memory Tools Compared — Mem0, Letta, Zep and More">
+<meta property="og:description" content="Mem0, Letta, Zep, Supermemory, claude-mem, built-in tool memory and nestwork compared on architecture, deployment, data ownership and best fit.">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/articles/agent-memory-tools-compared/">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Agent Memory Tools Compared — Mem0, Letta, Zep and More">
+<meta name="twitter:description" content="Mem0, Letta, Zep, Supermemory, claude-mem, built-in tool memory and nestwork compared on architecture, deployment, data ownership and best fit.">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://songth1ef.github.io/nestwork/articles/agent-memory-tools-compared/#article","headline":"Agent Memory Tools Compared — Mem0, Letta, Zep and More","description":"Mem0, Letta, Zep, Supermemory, claude-mem, built-in tool memory and nestwork compared on architecture, deployment, data ownership and best fit.","inLanguage":"en","datePublished":"2026-09-27","dateModified":"2026-09-27","author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"publisher":{"@type":"Organization","name":"nestwork","url":"https://songth1ef.github.io/nestwork/"},"image":["https://songth1ef.github.io/nestwork/og.png"],"mainEntityOfPage":"https://songth1ef.github.io/nestwork/articles/agent-memory-tools-compared/","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://songth1ef.github.io/nestwork/"},{"@type":"ListItem","position":2,"name":"Articles","item":"https://songth1ef.github.io/nestwork/articles/"},{"@type":"ListItem","position":3,"name":"Agent Memory Tools Compared — Mem0, Letta, Zep and More","item":"https://songth1ef.github.io/nestwork/articles/agent-memory-tools-compared/"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is the best Mem0 alternative?","acceptedAnswer":{"@type":"Answer","text":"It depends on why you are leaving. For another hosted memory API, compare Zep (temporal graph) and Supermemory (fact extraction, self-host option). For personal coding-agent memory without a service, a file-based approach such as nestwork or Letta's git-backed memory is lighter."}},{"@type":"Question","name":"Letta vs Mem0 — which should I use?","acceptedAnswer":{"@type":"Answer","text":"Use Mem0 if you already have an agent or application and want to add memory to it. Use Letta if you want the platform to run the agent and manage its memory for you. They solve adjacent problems rather than competing head-on."}},{"@type":"Question","name":"Can I use nestwork together with Mem0 or claude-mem?","acceptedAnswer":{"@type":"Answer","text":"Yes. nestwork only concerns the files your coding agents read and write. It has a built-in export for claude-mem digests, and nothing stops an application from using Mem0 while its developers use nestwork for their own agents."}},{"@type":"Question","name":"Where is my data in each tool?","acceptedAnswer":{"@type":"Answer","text":"Managed services keep it in the vendor's cloud unless you self-host; claude-mem and built-in memory keep it on each local machine; Letta keeps it in the agent's git repo; nestwork keeps it in a git repository you own."}}]}]}</script>
+<style>
+@font-face { font-family: "VT323"; src: url("../../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+:root {
+  --bg: #fbf8ef; --fg: #111; --muted: #5c5c5c; --teal: #2ec4d6; --teal-dark: #0a8fa0; --magenta: #ff2d8f;
+  --lime: #d6f25a; --yellow: #ffe53d; --sky: #29c6ec; --red: #ec2a33;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::selection { background: var(--yellow); }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 2px solid #111; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.badge { background: var(--teal); color: #000; font-weight: 800; letter-spacing: -0.03em; padding: 2px 10px 3px; border: 2px solid #000; outline: 2px solid var(--teal); text-decoration: none; font-size: 18px; }
+.nav { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 13px; }
+.nav a { text-decoration: none; color: #333; }
+.nav a:hover { background: var(--yellow); color: #000; }
+.nav .gh { background: #111; color: #fff; padding: 4px 10px; font-weight: 700; }
+.art-hero { background: linear-gradient(180deg, #8fdcf7 0%, #d4f3ff 60%, var(--bg) 100%); border-bottom: 2px solid #111; padding: 48px 0 44px; position: relative; overflow: hidden; }
+.art-hero::after { content: ""; position: absolute; right: -60px; top: -40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 11px 11px; -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%); mask-image: radial-gradient(circle, #000 50%, transparent 70%); pointer-events: none; }
+.crumbs { font-family: var(--pixel); font-size: 20px; letter-spacing: 0.04em; color: #0a5f6b; margin: 0 0 14px; position: relative; z-index: 1; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { background: var(--yellow); }
+.art-hero h1 { font-size: clamp(34px, 5.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 0; max-width: 880px; position: relative; z-index: 1; }
+:lang(zh) .art-hero h1 { line-height: 1.2; letter-spacing: -0.01em; }
+.art-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: #333; position: relative; z-index: 1; }
+.art-meta span { background: #fff; border: 2px solid #111; padding: 2px 8px; }
+.art-meta .kind { background: var(--magenta); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; padding-top: 48px; padding-bottom: 72px; }
+.layout.wide { grid-template-columns: 1fr; }
+.layout > * { min-width: 0; }
+.prose p code, .prose li code, .prose td code { overflow-wrap: anywhere; }
+.wide .prose { max-width: none; }
+.wide .toc { display: none; }
+.wide .prose > p:first-child { max-width: 72ch; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+.prose { max-width: 72ch; }
+.prose > p:first-child { font-size: 1.12em; }
+.prose h2 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; line-height: 1.2; margin: 2.1em 0 0.6em; padding-top: 0.2em; border-top: 2px solid #111; scroll-margin-top: 80px; }
+.prose h2::before { content: "// "; font-family: var(--pixel); color: var(--magenta); font-weight: 400; }
+.prose h3 { font-size: 21px; letter-spacing: -0.015em; margin: 1.6em 0 0.4em; scroll-margin-top: 80px; }
+.prose p, .prose li { color: #222; }
+.prose a { text-decoration-color: var(--magenta); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose a:hover { background: var(--yellow); }
+.prose code { font-family: var(--mono); font-size: 0.86em; background: #fff; border: 1.5px solid #111; padding: 0 5px; }
+.prose pre.code { background: #151515; color: #eee; border-left: 5px solid var(--teal); padding: 16px 18px; overflow-x: auto; font-size: 14.5px; line-height: 1.65; box-shadow: 6px 6px 0 #111; }
+.prose pre.code code { background: none; border: 0; padding: 0; font-size: 1em; color: inherit; }
+.prose blockquote { margin: 1.4em 0; padding: 14px 20px; background: #fff; border: 2px solid #111; border-left: 8px solid var(--magenta); box-shadow: 5px 5px 0 #111; }
+.prose blockquote p { margin: 0; font-weight: 600; }
+.prose figure { margin: 1.6em 0; }
+.prose img { width: 100%; height: auto; border: 2px solid #111; box-shadow: 6px 6px 0 #111; display: block; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin: 0.3em 0; }
+.prose li::marker { color: var(--magenta); font-weight: 700; }
+.table-wrap { overflow-x: auto; border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; margin: 1.4em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #0002; vertical-align: top; }
+thead th { background: #111; color: #fff; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.toc { position: sticky; top: 84px; align-self: start; background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 var(--teal); padding: 16px 18px; font-size: 14.5px; line-height: 1.45; }
+.toc b { display: block; font-family: var(--pixel); font-weight: 400; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 8px; }
+.toc a { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px dashed #0003; color: #222; }
+.toc a:hover { background: var(--yellow); }
+.cta { margin-top: 56px; background: var(--lime); border: 2px solid #111; box-shadow: 8px 8px 0 #111; padding: 28px 28px 30px; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; right: -40px; top: -30px; width: 200px; height: 120px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 12px, transparent 12px 24px); transform: rotate(-4deg); }
+.cta h2 { border: 0; margin: 0 0 8px; padding: 0; font-size: 30px; position: relative; z-index: 1; }
+.cta h2::before { content: none; }
+.cta p { margin: 0 0 18px; max-width: 520px; font-weight: 600; position: relative; z-index: 1; }
+.btn { display: inline-flex; gap: 8px; padding: 12px 20px; font-weight: 800; text-decoration: none; border: 2px solid #111; margin: 0 10px 10px 0; position: relative; z-index: 1; }
+.btn:hover { box-shadow: 5px 5px 0 #111; transform: translate(-2px, -2px); }
+.btn-ink { background: #111; color: #fff; }
+.btn-ghost { background: #fff; color: #111; }
+.more { border-top: 2px solid #111; background: #fff; padding: 48px 0 60px; }
+.more h2 { font-family: var(--pixel); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; margin: 0 0 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+.cards a { display: block; text-decoration: none; background: var(--bg); border: 2px solid #111; box-shadow: 5px 5px 0 #111; padding: 16px 18px; }
+.cards a:hover { background: var(--yellow); }
+.cards b { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; }
+.cards span { display: block; margin-top: 6px; font-size: 14px; color: #444; line-height: 1.5; }
+.site-footer { background: #111; color: #aaa; padding: 30px 0 40px; font-family: var(--mono); font-size: 12.5px; }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.site-footer a { color: #ddd; text-decoration: none; margin-left: 16px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="badge" href="../../">nestwork</a>
+    <nav class="nav" aria-label="Articles">
+      <a href="../">Articles</a>
+      <a href="https://songth1ef.github.io/nestwork/zh/articles/agent-memory-tools-compared/" hreflang="zh-CN" data-lang-switch="zh">中文</a>
+      <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="art-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="../../">Home</a> / <a href="../">Articles</a> /</p>
+      <h1>Agent Memory Tools Compared — Mem0, Letta, Zep and More</h1>
+      <div class="art-meta"><span class="kind">Guides</span><span>7 min read</span><span>Updated 2026-09-27</span></div>
+    </div>
+  </div>
+  <div class="wrap layout">
+    <article class="prose">
+<p>Agent memory tools split into three groups: <strong>memory services</strong> you call from your own application (Mem0, Zep, Supermemory), <strong>agent runtimes</strong> that manage memory for agents running inside them (Letta), and <strong>coding-agent add-ons</strong> that give tools like Claude Code or Codex memory across sessions (claude-mem, the tools' built-in memory, nestwork). If you are building a product that must remember thousands of end users, you want the first group; if you want your own coding agents to share rules and project state across machines and tools, look at the third. Letta sits in between and, since 2026, also keeps memory in git.</p>
+<h2 id="the-short-version">The short version</h2>
+<div class="table-wrap"><table><thead><tr><th>Tool</th><th>Architecture</th><th>Deployment</th><th>Where memory lives</th><th>Best fit</th></tr></thead><tbody><tr><td><a href="https://github.com/mem0ai/mem0" rel="noopener">Mem0</a></td><td>LLM extracts memories; vector store plus optional graph</td><td>Library, self-hosted server, or managed cloud</td><td>Your database or Mem0's cloud</td><td>Adding per-user memory to an AI application</td></tr><tr><td><a href="https://github.com/letta-ai/letta" rel="noopener">Letta</a></td><td>Runtime for stateful agents; memory blocks, now a git-backed memory filesystem</td><td>Letta Code locally, self-hosted server, or Letta Cloud</td><td>The agent's own git repo, hosted by Letta for cloud agents</td><td>Agents that live inside Letta and manage their own memory</td></tr><tr><td><a href="https://www.getzep.com/" rel="noopener">Zep</a></td><td>Temporal knowledge graph (<a href="https://github.com/getzep/graphiti" rel="noopener">Graphiti</a> is the open-source engine)</td><td>Zep Cloud, bring-your-own-key, or bring-your-own-cloud</td><td>Zep's cloud or your VPC; Graphiti on your graph DB</td><td>Enterprise context that combines conversations and business data</td></tr><tr><td><a href="https://github.com/supermemoryai/supermemory" rel="noopener">Supermemory</a></td><td>Fact extraction with temporal updates, contradictions and forgetting; hybrid search</td><td>Hosted API or a self-hosted binary</td><td>Supermemory's cloud or your machine</td><td>Memory API and plugins for apps and assistants</td></tr><tr><td><a href="https://github.com/thedotmack/claude-mem" rel="noopener">claude-mem</a></td><td>Hooks capture tool usage into SQLite plus a Chroma vector index</td><td>Local worker process</td><td>Local database on each machine</td><td>Automatic session capture for a coding agent on one machine</td></tr><tr><td>Built-in memory (Claude Code, Codex)</td><td>The agent writes markdown notes for itself</td><td>Built in</td><td><code>~/.claude/projects/…/memory/</code>, <code>~/.codex/memories/</code></td><td>One tool, one machine, zero setup</td></tr><tr><td><a href="https://github.com/songth1ef/nestwork" rel="noopener">nestwork</a></td><td>Protocol: markdown in a private git repo, loaded through each tool's instruction file</td><td>Template repo plus per-tool installers</td><td>Your own git repo</td><td>Several coding agents sharing rules and state across machines and tools</td></tr></tbody></table></div>
+<p>Each row is a snapshot as of September 2026; check each project's own documentation before relying on details.</p>
+<h2 id="tool-by-tool">Tool by tool</h2>
+<h3 id="mem0">Mem0</h3>
+<p>Mem0 describes itself as "The Memory Layer for AI Agents." It is Apache-2.0 licensed and comes in three forms: a Python/JavaScript library, a self-hosted server with Docker, and a managed platform. You send conversations; an LLM extracts memories; Mem0 stores them in a vector database, with graph memory as an option, and retrieves relevant ones on request. It integrates with frameworks such as LangGraph and CrewAI.</p>
+<p>Mem0's <a href="https://arxiv.org/abs/2504.19413" rel="noopener">paper</a> reports that on LoCoMo it used about 1,764 tokens per query against 26,031 for a full-context baseline, with 91% lower p95 latency. It is a strong choice when you need per-user memory inside a product. People searching for a <strong>mem0 alternative</strong> usually want one of two things: a different service with similar APIs (Zep, Supermemory), or no service at all for a smaller, personal use case.</p>
+<h3 id="letta">Letta</h3>
+<p>Letta, formerly MemGPT, is "a platform for stateful agents," Apache-2.0 licensed. In its classic API, agents carry labelled <strong>memory blocks</strong> (for example <code>human</code> and <code>persona</code>) that they edit with tools. Active development has moved to <a href="https://github.com/letta-ai/letta-code" rel="noopener">Letta Code</a>, and its newer memory system, <a href="https://docs.letta.com/concepts/memfs" rel="noopener">MemFS</a>, keeps each agent's memory in a git repository: files under <code>system/</code> load into the prompt every turn, the rest are read when needed. For cloud agents the repo is hosted by Letta; Letta Code <a href="https://www.letta.com/blog/context-repositories/" rel="noopener">clones it locally</a>, and subagents write concurrently through git worktrees.</p>
+<p><strong>Letta vs Mem0</strong> is mostly a question of where the agent runs. Mem0 is a memory component you bolt onto your own agent loop. Letta is the agent loop, with memory management built into how the agent thinks. If you are happy to work inside Letta, its git-backed memory is a mature option and overlaps with nestwork's ideas; the difference is that nestwork is aimed at other vendors' tools rather than Letta's own agents.</p>
+<h3 id="zep">Zep</h3>
+<p>Zep now calls itself "the unified context layer for enterprise data." Its core is a temporal knowledge graph in which each fact has "a validity window: when it became true, and when (if ever) it was superseded." The managed service offers Zep Cloud, bring-your-own-key encryption and deployment in your own VPC. The open-source engine, Graphiti (Apache-2.0), runs on Neo4j, FalkorDB or Amazon Neptune if you want to build the surrounding system yourself. Choose it when facts change over time and you need to query their history across business data.</p>
+<h3 id="supermemory">Supermemory</h3>
+<p>Supermemory is MIT-licensed and describes itself as a "memory and context engine." It extracts facts from conversations, handles temporal changes and contradictions, and offers automatic forgetting, with hybrid search over documents and memories. You can use the hosted API or run "one binary. Zero config." locally, and it ships an MCP server and plugins for Claude Code, Cursor, Windsurf and VS Code. Its README claims first place on LongMemEval, LoCoMo and ConvoMem; as with every vendor benchmark, those are <a href="../agent-memory-benchmarks/">self-reported numbers under the vendor's own setup</a>.</p>
+<h3 id="claude-mem">claude-mem</h3>
+<p>claude-mem uses five lifecycle hooks to capture what an agent does, generates summaries, and makes them searchable in later sessions. Storage is SQLite plus a Chroma vector index, served by a local worker. Its README lists Claude Code, OpenClaw, OpenCode and others. Because the database is local, memory stays on the machine running the worker. nestwork can run alongside it: when the claude-mem worker is reachable on <code>localhost:37777</code>, nestwork's Claude Code SessionEnd hook exports that day's observations to <code>agents/&lt;host&gt;/&lt;agent-id&gt;/claude-mem-digest.md</code>, which then travels through git.</p>
+<h3 id="built-in-tool-memory">Built-in tool memory</h3>
+<p>Claude Code's auto memory and Codex's memories need no setup and are written automatically. Both are machine-local: Claude Code's docs say auto memory files "are not shared across machines or cloud environments," and Codex stores memories under <code>~/.codex/memories/</code>. Codex's own guidance is to keep required rules in <code>AGENTS.md</code> and "treat memories as a helpful recall layer." For one person on one machine with one tool, this is often enough.</p>
+<h3 id="nestwork">nestwork</h3>
+<p>nestwork is a protocol, not a service. You create a private repository from the template, run an installer per tool, and each tool's instruction file gets a bootstrap: pull the repo, read a small resident tier, fetch everything else on demand. Each agent writes only to <code>agents/&lt;host&gt;/&lt;agent-id&gt;/</code>; shared memory changes only through a reviewed distillation; a fixed priority chain decides conflicts. On the author's nest (10 machines, 30+ agent instances), resident startup is about 640 tokens.</p>
+<p>Claude Code and Codex are the author's daily drivers; Gemini CLI, Kimi Code, Hermes and OpenClaw installers exist but are less battle-tested.</p>
+<h2 id="when-nestwork-is-the-wrong-choice">When nestwork is the wrong choice</h2>
+<p>Be clear about what nestwork does not do:</p>
+<ul><li><strong>End-user chat applications.</strong> It has no per-user API, no multi-tenant storage and no SDK. Use Mem0, Zep or Supermemory.</li><li><strong>Semantic search over large conversation archives.</strong> Retrieval is the agent searching headings and keywords, optionally routed by a topic index. There is no embedding index.</li><li><strong>Automatic capture of everything.</strong> nestwork stores what agents or you decide is worth keeping. If you want every session recorded, use claude-mem or built-in memory, and distill from them.</li><li><strong>Teams that need access control.</strong> Permissions are whatever your git host provides; there is no ACL layer.</li><li><strong>People who don't use git.</strong> Git is the transport. The README is blunt: "If you don't know git, nestwork isn't a good fit."</li><li><strong>Secrets.</strong> API keys do not belong in it, encrypted or not.</li></ul>
+<h2 id="how-to-choose">How to choose</h2>
+<ol><li>Building a product with many end users? Start with a memory service: Mem0, Zep or Supermemory.</li><li>Want agents whose whole runtime is memory-aware? Look at Letta.</li><li>One coding tool, one machine? Built-in memory, optionally with claude-mem.</li><li>Several coding tools or machines, and you want rules and project state as reviewable text you own? A file protocol such as nestwork.</li></ol>
+<p>These are not exclusive. A common setup is built-in memory for tool-local notes, periodically distilled into a git-based nest that every tool reads.</p>
+<h2 id="faq">FAQ</h2>
+<h3 id="what-is-the-best-mem0-alternative">What is the best Mem0 alternative?</h3>
+<p>It depends on why you are leaving. For another hosted memory API, compare Zep (temporal graph) and Supermemory (fact extraction, self-host option). For personal coding-agent memory without a service, a file-based approach such as nestwork or Letta's git-backed memory is lighter.</p>
+<h3 id="letta-vs-mem0-which-should-i-use">Letta vs Mem0 — which should I use?</h3>
+<p>Use Mem0 if you already have an agent or application and want to add memory to it. Use Letta if you want the platform to run the agent and manage its memory for you. They solve adjacent problems rather than competing head-on.</p>
+<h3 id="can-i-use-nestwork-together-with-mem0-or-claude-mem">Can I use nestwork together with Mem0 or claude-mem?</h3>
+<p>Yes. nestwork only concerns the files your coding agents read and write. It has a built-in export for claude-mem digests, and nothing stops an application from using Mem0 while its developers use nestwork for their own agents.</p>
+<h3 id="where-is-my-data-in-each-tool">Where is my data in each tool?</h3>
+<p>Managed services keep it in the vendor's cloud unless you self-host; claude-mem and built-in memory keep it on each local machine; Letta keeps it in the agent's git repo; nestwork keeps it in a git repository you own.</p>
+<h2 id="related">Related</h2>
+<ul><li><a href="../ai-agent-memory/">AI agent memory: four types and their trade-offs</a></li><li><a href="../agent-memory-benchmarks/">Agent memory benchmarks: LoCoMo, LongMemEval and BEAM</a></li><li><a href="../rescue-tool-native-memory/">Rescue your tool's native memory</a></li><li><a href="../multi-agent-memory-without-conflicts/">Multi-agent memory without conflicts</a></li><li><a href="../nestwork-getting-started-faq/">nestwork getting-started FAQ</a></li></ul>
+      <section class="cta" aria-label="Give your agents a memory">
+        <h2>Give your agents a memory</h2>
+        <p>nestwork turns one private git repo into shared, persistent memory for Claude Code, Codex, Gemini, Kimi and more.</p>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">Use this template →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ Star on GitHub</a>
+      </section>
+    </article>
+    <aside class="toc" aria-label="On this page"><b>On this page</b><a href="#the-short-version">The short version</a><a href="#tool-by-tool">Tool by tool</a><a href="#when-nestwork-is-the-wrong-choice">When nestwork is the wrong choice</a><a href="#how-to-choose">How to choose</a><a href="#faq">FAQ</a><a href="#related">Related</a></aside>
+  </div>
+  <section class="more" aria-label="All articles">
+    <div class="wrap">
+      <h2>All articles →</h2>
+      <div class="cards"><a href="../ai-agent-memory/"><b>AI Agent Memory — Four Types and Their Trade-offs</b><span>AI agent memory is context an agent keeps beyond one session. Compare context windows, built-in memory, vector services and files for coding agents.</span></a><a href="../claude-code-memory-across-machines/"><b>Claude Code Memory Across Machines, Synced with Git</b><span>Claude Code&#x27;s CLAUDE.md and auto memory stay on one machine. Where they&#x27;re stored, why they don&#x27;t sync, and how to share them across machines with git.</span></a><a href="../share-memory-claude-code-codex/"><b>Share Memory Between Claude Code and Codex</b><span>Claude Code reads ~/.claude/CLAUDE.md, Codex reads ~/.codex/AGENTS.md. Point both at one git repo to share memory, each writing only its own directory.</span></a><a href="../codex-cli-persistent-memory/"><b>Codex CLI Memory, AGENTS.md and Persistent Recall</b><span>How Codex CLI remembers today (AGENTS.md and opt-in local memories), and how to give Codex persistent memory across sessions and machines with git.</span></a><a href="../agent-memory-benchmarks/"><b>Agent Memory Benchmarks — LoCoMo, LongMemEval, BEAM</b><span>What LoCoMo, LongMemEval and BEAM measure, how LLM judges score them, why vendor numbers don&#x27;t compare, and which metrics matter for coding agents.</span></a><a href="../agents-md-vs-claude-md-vs-memory/"><b>AGENTS.md vs CLAUDE.md vs Memory — What Goes Where</b><span>AGENTS.md is a tool-neutral instruction file, CLAUDE.md is Claude Code&#x27;s, and memory is what agents write. Which tool reads which, and how to combine them.</span></a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span>nestwork — AI agent memory, git-native.</span>
+    <span><a href="../../">Home</a><a href="../">Articles</a><a href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-lang-switch]').forEach(function (a) {
+  a.addEventListener('click', function () { try { localStorage.setItem('nestwork_lang', a.getAttribute('data-lang-switch')); } catch (e) {} });
+});
+</script>
+</body>
+</html>

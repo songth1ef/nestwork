@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>agent 记忆工具对比：Mem0、Letta、Zep 等 — nestwork</title>
+<meta name="description" content="从架构、部署方式、数据归属和适用场景，对比 Mem0、Letta、Zep、Supermemory、claude-mem、工具内置记忆和 nestwork。">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="songth1ef">
+<meta name="theme-color" content="#8fdcf7">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/zh/articles/agent-memory-tools-compared/">
+<link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/agent-memory-tools-compared/">
+<link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/agent-memory-tools-compared/">
+<link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/agent-memory-tools-compared/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232ec4d6'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="nestwork">
+<meta property="og:title" content="agent 记忆工具对比：Mem0、Letta、Zep 等">
+<meta property="og:description" content="从架构、部署方式、数据归属和适用场景，对比 Mem0、Letta、Zep、Supermemory、claude-mem、工具内置记忆和 nestwork。">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/zh/articles/agent-memory-tools-compared/">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og-zh.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="agent 记忆工具对比：Mem0、Letta、Zep 等">
+<meta name="twitter:description" content="从架构、部署方式、数据归属和适用场景，对比 Mem0、Letta、Zep、Supermemory、claude-mem、工具内置记忆和 nestwork。">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og-zh.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://songth1ef.github.io/nestwork/zh/articles/agent-memory-tools-compared/#article","headline":"agent 记忆工具对比：Mem0、Letta、Zep 等","description":"从架构、部署方式、数据归属和适用场景，对比 Mem0、Letta、Zep、Supermemory、claude-mem、工具内置记忆和 nestwork。","inLanguage":"zh-CN","datePublished":"2026-09-27","dateModified":"2026-09-27","author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"publisher":{"@type":"Organization","name":"nestwork","url":"https://songth1ef.github.io/nestwork/"},"image":["https://songth1ef.github.io/nestwork/og-zh.png"],"mainEntityOfPage":"https://songth1ef.github.io/nestwork/zh/articles/agent-memory-tools-compared/","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://songth1ef.github.io/nestwork/zh/"},{"@type":"ListItem","position":2,"name":"文章","item":"https://songth1ef.github.io/nestwork/zh/articles/"},{"@type":"ListItem","position":3,"name":"agent 记忆工具对比：Mem0、Letta、Zep 等","item":"https://songth1ef.github.io/nestwork/zh/articles/agent-memory-tools-compared/"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"最好的 Mem0 替代是什么？","acceptedAnswer":{"@type":"Answer","text":"取决于你为什么要换。想要另一个托管记忆 API，比较 Zep（时序图谱）和 Supermemory（事实抽取，可自托管）。想给个人编码 agent 做记忆又不想跑服务，nestwork 这样的文件方案或 Letta 的 git 记忆更轻。"}},{"@type":"Question","name":"Letta 和 Mem0 该用哪个？","acceptedAnswer":{"@type":"Answer","text":"已经有自己的 agent 或应用、只想加记忆，用 Mem0。想让平台来跑 agent 并替你管理记忆，用 Letta。两者解决的是相邻问题，而不是正面竞争。"}},{"@type":"Question","name":"nestwork 能和 Mem0 或 claude-mem 一起用吗？","acceptedAnswer":{"@type":"Answer","text":"能。nestwork 只管编码 agent 读写的那些文件。它内置了 claude-mem 摘要导出；一个应用用 Mem0，而开发这个应用的人用 nestwork 管自己的 agent，也完全不冲突。"}},{"@type":"Question","name":"各工具的数据分别存在哪？","acceptedAnswer":{"@type":"Answer","text":"托管服务默认存在厂商云里，除非自托管；claude-mem 和内置记忆存在每台本地机器上；Letta 存在 agent 的 git 仓库里；nestwork 存在你自己拥有的 git 仓库里。"}}]}]}</script>
+<style>
+@font-face { font-family: "VT323"; src: url("../../../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../../../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+:root {
+  --bg: #fbf8ef; --fg: #111; --muted: #5c5c5c; --teal: #2ec4d6; --teal-dark: #0a8fa0; --magenta: #ff2d8f;
+  --lime: #d6f25a; --yellow: #ffe53d; --sky: #29c6ec; --red: #ec2a33;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::selection { background: var(--yellow); }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 2px solid #111; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.badge { background: var(--teal); color: #000; font-weight: 800; letter-spacing: -0.03em; padding: 2px 10px 3px; border: 2px solid #000; outline: 2px solid var(--teal); text-decoration: none; font-size: 18px; }
+.nav { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 13px; }
+.nav a { text-decoration: none; color: #333; }
+.nav a:hover { background: var(--yellow); color: #000; }
+.nav .gh { background: #111; color: #fff; padding: 4px 10px; font-weight: 700; }
+.art-hero { background: linear-gradient(180deg, #8fdcf7 0%, #d4f3ff 60%, var(--bg) 100%); border-bottom: 2px solid #111; padding: 48px 0 44px; position: relative; overflow: hidden; }
+.art-hero::after { content: ""; position: absolute; right: -60px; top: -40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 11px 11px; -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%); mask-image: radial-gradient(circle, #000 50%, transparent 70%); pointer-events: none; }
+.crumbs { font-family: var(--pixel); font-size: 20px; letter-spacing: 0.04em; color: #0a5f6b; margin: 0 0 14px; position: relative; z-index: 1; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { background: var(--yellow); }
+.art-hero h1 { font-size: clamp(34px, 5.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 0; max-width: 880px; position: relative; z-index: 1; }
+:lang(zh) .art-hero h1 { line-height: 1.2; letter-spacing: -0.01em; }
+.art-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: #333; position: relative; z-index: 1; }
+.art-meta span { background: #fff; border: 2px solid #111; padding: 2px 8px; }
+.art-meta .kind { background: var(--magenta); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; padding-top: 48px; padding-bottom: 72px; }
+.layout.wide { grid-template-columns: 1fr; }
+.layout > * { min-width: 0; }
+.prose p code, .prose li code, .prose td code { overflow-wrap: anywhere; }
+.wide .prose { max-width: none; }
+.wide .toc { display: none; }
+.wide .prose > p:first-child { max-width: 72ch; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+.prose { max-width: 72ch; }
+.prose > p:first-child { font-size: 1.12em; }
+.prose h2 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; line-height: 1.2; margin: 2.1em 0 0.6em; padding-top: 0.2em; border-top: 2px solid #111; scroll-margin-top: 80px; }
+.prose h2::before { content: "// "; font-family: var(--pixel); color: var(--magenta); font-weight: 400; }
+.prose h3 { font-size: 21px; letter-spacing: -0.015em; margin: 1.6em 0 0.4em; scroll-margin-top: 80px; }
+.prose p, .prose li { color: #222; }
+.prose a { text-decoration-color: var(--magenta); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose a:hover { background: var(--yellow); }
+.prose code { font-family: var(--mono); font-size: 0.86em; background: #fff; border: 1.5px solid #111; padding: 0 5px; }
+.prose pre.code { background: #151515; color: #eee; border-left: 5px solid var(--teal); padding: 16px 18px; overflow-x: auto; font-size: 14.5px; line-height: 1.65; box-shadow: 6px 6px 0 #111; }
+.prose pre.code code { background: none; border: 0; padding: 0; font-size: 1em; color: inherit; }
+.prose blockquote { margin: 1.4em 0; padding: 14px 20px; background: #fff; border: 2px solid #111; border-left: 8px solid var(--magenta); box-shadow: 5px 5px 0 #111; }
+.prose blockquote p { margin: 0; font-weight: 600; }
+.prose figure { margin: 1.6em 0; }
+.prose img { width: 100%; height: auto; border: 2px solid #111; box-shadow: 6px 6px 0 #111; display: block; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin: 0.3em 0; }
+.prose li::marker { color: var(--magenta); font-weight: 700; }
+.table-wrap { overflow-x: auto; border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; margin: 1.4em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #0002; vertical-align: top; }
+thead th { background: #111; color: #fff; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.toc { position: sticky; top: 84px; align-self: start; background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 var(--teal); padding: 16px 18px; font-size: 14.5px; line-height: 1.45; }
+.toc b { display: block; font-family: var(--pixel); font-weight: 400; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 8px; }
+.toc a { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px dashed #0003; color: #222; }
+.toc a:hover { background: var(--yellow); }
+.cta { margin-top: 56px; background: var(--lime); border: 2px solid #111; box-shadow: 8px 8px 0 #111; padding: 28px 28px 30px; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; right: -40px; top: -30px; width: 200px; height: 120px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 12px, transparent 12px 24px); transform: rotate(-4deg); }
+.cta h2 { border: 0; margin: 0 0 8px; padding: 0; font-size: 30px; position: relative; z-index: 1; }
+.cta h2::before { content: none; }
+.cta p { margin: 0 0 18px; max-width: 520px; font-weight: 600; position: relative; z-index: 1; }
+.btn { display: inline-flex; gap: 8px; padding: 12px 20px; font-weight: 800; text-decoration: none; border: 2px solid #111; margin: 0 10px 10px 0; position: relative; z-index: 1; }
+.btn:hover { box-shadow: 5px 5px 0 #111; transform: translate(-2px, -2px); }
+.btn-ink { background: #111; color: #fff; }
+.btn-ghost { background: #fff; color: #111; }
+.more { border-top: 2px solid #111; background: #fff; padding: 48px 0 60px; }
+.more h2 { font-family: var(--pixel); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; margin: 0 0 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+.cards a { display: block; text-decoration: none; background: var(--bg); border: 2px solid #111; box-shadow: 5px 5px 0 #111; padding: 16px 18px; }
+.cards a:hover { background: var(--yellow); }
+.cards b { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; }
+.cards span { display: block; margin-top: 6px; font-size: 14px; color: #444; line-height: 1.5; }
+.site-footer { background: #111; color: #aaa; padding: 30px 0 40px; font-family: var(--mono); font-size: 12.5px; }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.site-footer a { color: #ddd; text-decoration: none; margin-left: 16px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="badge" href="../../../zh/">nestwork</a>
+    <nav class="nav" aria-label="文章">
+      <a href="../">文章</a>
+      <a href="https://songth1ef.github.io/nestwork/articles/agent-memory-tools-compared/" hreflang="en" data-lang-switch="en">EN</a>
+      <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="art-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="../../../zh/">首页</a> / <a href="../">文章</a> /</p>
+      <h1>agent 记忆工具对比：Mem0、Letta、Zep 等</h1>
+      <div class="art-meta"><span class="kind">指南</span><span>5 分钟阅读</span><span>更新于 2026-09-27</span></div>
+    </div>
+  </div>
+  <div class="wrap layout">
+    <article class="prose">
+<p>agent 记忆工具大致分三类：一是<strong>记忆服务</strong>，由你自己的应用调用（Mem0、Zep、Supermemory）；二是<strong>agent 运行时</strong>，替跑在里面的 agent 管理记忆（Letta）；三是<strong>编码 agent 的附加层</strong>，让 Claude Code、Codex 这类工具跨会话记住东西（claude-mem、工具内置记忆、nestwork）。如果你在做一个要记住成千上万终端用户的产品，看第一类；如果你想让自己的几个编码 agent 跨机器、跨工具共享规则和项目状态，看第三类。Letta 介于两者之间，而且从 2026 年起也把记忆放进了 git。</p>
+<h2 id="一张表看完">一张表看完</h2>
+<div class="table-wrap"><table><thead><tr><th>工具</th><th>架构</th><th>部署方式</th><th>记忆存在哪</th><th>最适合</th></tr></thead><tbody><tr><td><a href="https://github.com/mem0ai/mem0" rel="noopener">Mem0</a></td><td>LLM 抽取记忆；向量库，可选图记忆</td><td>库、自托管服务或托管云</td><td>你的数据库或 Mem0 云</td><td>给 AI 应用加"每用户一份"的记忆</td></tr><tr><td><a href="https://github.com/letta-ai/letta" rel="noopener">Letta</a></td><td>有状态 agent 运行时；记忆块，新版为 git 支撑的记忆文件系统</td><td>本地 Letta Code、自托管服务或 Letta Cloud</td><td>agent 自己的 git 仓库，云端 agent 由 Letta 托管</td><td>住在 Letta 里、自己管理记忆的 agent</td></tr><tr><td><a href="https://www.getzep.com/" rel="noopener">Zep</a></td><td>时序知识图谱（开源引擎是 <a href="https://github.com/getzep/graphiti" rel="noopener">Graphiti</a>）</td><td>Zep Cloud、自带密钥、部署在自有云</td><td>Zep 云或你的 VPC；Graphiti 用你的图数据库</td><td>把对话和业务数据合在一起的企业级上下文</td></tr><tr><td><a href="https://github.com/supermemoryai/supermemory" rel="noopener">Supermemory</a></td><td>事实抽取，处理时间变化、矛盾与遗忘；混合检索</td><td>托管 API 或自托管单文件</td><td>Supermemory 云或你的机器</td><td>面向应用和助手的记忆 API 与插件</td></tr><tr><td><a href="https://github.com/thedotmack/claude-mem" rel="noopener">claude-mem</a></td><td>用 hook 捕获工具调用，存入 SQLite + Chroma 向量索引</td><td>本地 worker 进程</td><td>每台机器上的本地数据库</td><td>单机上自动记录编码 agent 的会话</td></tr><tr><td>内置记忆（Claude Code、Codex）</td><td>agent 自己写 markdown 笔记</td><td>自带</td><td><code>~/.claude/projects/…/memory/</code>、<code>~/.codex/memories/</code></td><td>一个工具、一台机器、零配置</td></tr><tr><td><a href="https://github.com/songth1ef/nestwork" rel="noopener">nestwork</a></td><td>协议：私有 git 仓库里的 markdown，经各工具的指令文件加载</td><td>模板仓库 + 各工具安装脚本</td><td>你自己的 git 仓库</td><td>多个编码 agent 跨机器、跨工具共享规则和状态</td></tr></tbody></table></div>
+<p>每一行都是 2026 年 9 月的快照，细节以各项目官方文档为准。</p>
+<h2 id="逐个来看">逐个来看</h2>
+<h3 id="mem0">Mem0</h3>
+<p>Mem0 自称"AI agent 的记忆层"，Apache-2.0 协议，提供三种形态：Python/JavaScript 库、用 Docker 自托管的服务、托管平台。你把对话发过去，LLM 从中抽取记忆，Mem0 存进向量数据库（可选图记忆），按需取回相关条目。它能接入 LangGraph、CrewAI 等框架。</p>
+<p>Mem0 的<a href="https://arxiv.org/abs/2504.19413" rel="noopener">论文</a>报告：在 LoCoMo 上每次查询约 1,764 token，全量上下文基线是 26,031，p95 延迟低 91%。需要在产品里做"每用户记忆"时，它是很强的选择。搜"<strong>mem0 替代</strong>"的人通常想要两者之一：一个 API 相近的别家服务（Zep、Supermemory），或者在更小、更个人的场景里干脆不用服务。</p>
+<h3 id="letta">Letta</h3>
+<p>Letta 前身是 MemGPT，自称"有状态 agent 的平台"，Apache-2.0 协议。在经典 API 里，agent 带着带标签的<strong>记忆块</strong>（如 <code>human</code>、<code>persona</code>），并用内置工具自己读写。开发重心已经转到 <a href="https://github.com/letta-ai/letta-code" rel="noopener">Letta Code</a>，其新记忆系统 <a href="https://docs.letta.com/concepts/memfs" rel="noopener">MemFS</a> 把每个 agent 的记忆放在一个 git 仓库里：<code>system/</code> 下的文件每轮都进提示词，其余按需读取。云端 agent 的仓库由 Letta 托管；Letta Code 会把它 <a href="https://www.letta.com/blog/context-repositories/" rel="noopener">clone 到本地</a>，子 agent 通过 git worktree 并发写入。</p>
+<p><strong>Letta 和 Mem0 怎么选</strong>，主要看 agent 跑在哪。Mem0 是一个记忆组件，装到你自己的 agent 循环上；Letta 本身就是 agent 循环，记忆管理是 agent 思考方式的一部分。如果你愿意在 Letta 里工作，它 git 化的记忆已经相当成熟，和 nestwork 的思路有重叠；区别在于 nestwork 面向的是别家厂商的工具，而不是 Letta 自己的 agent。</p>
+<h3 id="zep">Zep</h3>
+<p>Zep 现在的定位是"企业数据的统一上下文层"。核心是时序知识图谱：每条事实都有"有效期"，记录它何时成立、何时（如果有的话）被取代。托管服务提供 Zep Cloud、自带密钥加密、以及部署到你自己的 VPC。开源引擎 Graphiti（Apache-2.0）可跑在 Neo4j、FalkorDB 或 Amazon Neptune 上，适合想自己搭外围系统的人。事实会随时间变化、而你又需要跨业务数据查询其历史时，选它。</p>
+<h3 id="supermemory">Supermemory</h3>
+<p>Supermemory 是 MIT 协议，自称"记忆与上下文引擎"。它从对话里抽取事实，处理时间变化和矛盾，支持自动遗忘，并在文档和记忆上做混合检索。可以用托管 API，也可以本地跑"一个二进制、零配置"的版本；提供 MCP 服务器，以及 Claude Code、Cursor、Windsurf、VS Code 插件。它的 README 声称在 LongMemEval、LoCoMo、ConvoMem 上排名第一；和所有厂商成绩一样，这些是<a href="../agent-memory-benchmarks/">厂商自己配置下的自报数字</a>。</p>
+<h3 id="claude-mem">claude-mem</h3>
+<p>claude-mem 用五个生命周期 hook 捕获 agent 的操作，生成摘要，供之后的会话检索。存储是 SQLite 加 Chroma 向量索引，由本地 worker 提供服务。README 列出支持 Claude Code、OpenClaw、OpenCode 等。数据库在本地，所以记忆留在跑 worker 的那台机器上。nestwork 可以和它并用：claude-mem worker 在 <code>localhost:37777</code> 可达时，nestwork 的 Claude Code SessionEnd hook 会把当天的观察导出到 <code>agents/&lt;host&gt;/&lt;agent-id&gt;/claude-mem-digest.md</code>，再随 git 同步到其他机器。</p>
+<h3 id="工具内置记忆">工具内置记忆</h3>
+<p>Claude Code 的 auto memory 和 Codex 的 memories 都无需配置、自动写入，也都只在本机：Claude Code 文档说 auto memory 文件"不跨机器或云环境共享"，Codex 把记忆存在 <code>~/.codex/memories/</code>。Codex 自己的建议是：必须遵守的规则放 <code>AGENTS.md</code>，记忆只当"辅助回忆层"。一个人、一台机器、一个工具时，这往往就够了。</p>
+<h3 id="nestwork">nestwork</h3>
+<p>nestwork 是协议，不是服务。你用模板建一个私有仓库，给每个工具跑一次安装脚本，工具的指令文件里就多了一段启动协议：pull 仓库，读一小块常驻层，其他按需取。每个 agent 只写 <code>agents/&lt;host&gt;/&lt;agent-id&gt;/</code>；共享记忆只能经过有人审阅的蒸馏改动；冲突由固定的优先级链裁决。在作者的 nest 上（10 台机器、30 多个 agent 实例），常驻启动约 640 token。</p>
+<p>Claude Code 和 Codex 是作者日常主力；Gemini CLI、Kimi Code、Hermes、OpenClaw 的安装脚本也有，但实战检验较少。</p>
+<h2 id="nestwork-不适合的场景">nestwork 不适合的场景</h2>
+<p>说清楚它不做什么：</p>
+<ul><li><strong>面向终端用户的聊天应用。</strong> 没有按用户的 API，没有多租户存储，没有 SDK。请用 Mem0、Zep 或 Supermemory。</li><li><strong>在海量对话里做语义检索。</strong> 检索靠 agent 搜标题和关键词，可选用主题索引做路由，没有向量索引。</li><li><strong>自动记录一切。</strong> nestwork 只存 agent 或你认为值得留的东西。想记录每一次会话，用 claude-mem 或内置记忆，再从中蒸馏。</li><li><strong>需要权限控制的团队。</strong> 权限完全依赖 git 托管平台，没有额外的 ACL 层。</li><li><strong>不用 git 的人。</strong> git 就是传输层。README 说得很直接：不会 git，nestwork 就不适合你。</li><li><strong>密钥。</strong> API key 不该放进去，加不加密都一样。</li></ul>
+<h2 id="怎么选">怎么选</h2>
+<ol><li>做有大量终端用户的产品？从记忆服务开始：Mem0、Zep 或 Supermemory。</li><li>想要整个运行时都"懂记忆"的 agent？看 Letta。</li><li>一个编码工具、一台机器？内置记忆，需要的话加 claude-mem。</li><li>多个编码工具或多台机器，并希望规则和项目状态是你自己拥有、可审阅的文本？用 nestwork 这类文件协议。</li></ol>
+<p>它们并不互斥。常见的组合是：内置记忆负责工具本地的零碎笔记，定期蒸馏进一个所有工具都读的 git nest。</p>
+<h2 id="常见问题">常见问题</h2>
+<h3 id="最好的-mem0-替代是什么">最好的 Mem0 替代是什么？</h3>
+<p>取决于你为什么要换。想要另一个托管记忆 API，比较 Zep（时序图谱）和 Supermemory（事实抽取，可自托管）。想给个人编码 agent 做记忆又不想跑服务，nestwork 这样的文件方案或 Letta 的 git 记忆更轻。</p>
+<h3 id="letta-和-mem0-该用哪个">Letta 和 Mem0 该用哪个？</h3>
+<p>已经有自己的 agent 或应用、只想加记忆，用 Mem0。想让平台来跑 agent 并替你管理记忆，用 Letta。两者解决的是相邻问题，而不是正面竞争。</p>
+<h3 id="nestwork-能和-mem0-或-claude-mem-一起用吗">nestwork 能和 Mem0 或 claude-mem 一起用吗？</h3>
+<p>能。nestwork 只管编码 agent 读写的那些文件。它内置了 claude-mem 摘要导出；一个应用用 Mem0，而开发这个应用的人用 nestwork 管自己的 agent，也完全不冲突。</p>
+<h3 id="各工具的数据分别存在哪">各工具的数据分别存在哪？</h3>
+<p>托管服务默认存在厂商云里，除非自托管；claude-mem 和内置记忆存在每台本地机器上；Letta 存在 agent 的 git 仓库里；nestwork 存在你自己拥有的 git 仓库里。</p>
+<h2 id="相关阅读">相关阅读</h2>
+<ul><li><a href="../ai-agent-memory/">AI agent 记忆：四种类型与取舍</a></li><li><a href="../agent-memory-benchmarks/">agent 记忆基准测试：LoCoMo、LongMemEval 与 BEAM</a></li><li><a href="../rescue-tool-native-memory/">抢救工具自带的记忆</a></li><li><a href="../multi-agent-memory-without-conflicts/">多 agent 记忆如何不冲突</a></li><li><a href="../nestwork-getting-started-faq/">nestwork 入门常见问题</a></li></ul>
+      <section class="cta" aria-label="给你的 agent 一份记忆">
+        <h2>给你的 agent 一份记忆</h2>
+        <p>nestwork 把一个私有 git 仓库变成 Claude Code、Codex、Gemini、Kimi 等 agent 共享的长期记忆。</p>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">用模板创建我的记忆仓库 →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ 去 GitHub 点个 Star</a>
+      </section>
+    </article>
+    <aside class="toc" aria-label="本文目录"><b>本文目录</b><a href="#一张表看完">一张表看完</a><a href="#逐个来看">逐个来看</a><a href="#nestwork-不适合的场景">nestwork 不适合的场景</a><a href="#怎么选">怎么选</a><a href="#常见问题">常见问题</a><a href="#相关阅读">相关阅读</a></aside>
+  </div>
+  <section class="more" aria-label="全部文章">
+    <div class="wrap">
+      <h2>全部文章 →</h2>
+      <div class="cards"><a href="../ai-agent-memory/"><b>AI agent 记忆：四种类型与取舍</b><span>AI agent 记忆是智能体在单次会话之外还能依赖的上下文。对比上下文窗口、工具内置记忆、向量检索服务和文件式记忆，以及编码 agent 的特殊需求。</span></a><a href="../claude-code-memory-across-machines/"><b>Claude Code 记忆跨设备同步：用 git 实现</b><span>Claude Code 的 CLAUDE.md 和 auto memory 都只在本机。本文讲清它们存在哪、为什么换电脑就没了，以及怎样用 git 跨设备同步。</span></a><a href="../share-memory-claude-code-codex/"><b>Claude Code 和 Codex 共享记忆的做法</b><span>Claude Code 读 CLAUDE.md，Codex 读 AGENTS.md。让两者指向同一个私有 git 仓库，就能共享记忆，且各写各的目录。</span></a><a href="../codex-cli-persistent-memory/"><b>Codex 记忆与 AGENTS.md：Codex 长期记忆</b><span>Codex CLI 现有的记忆方式（AGENTS.md 与默认关闭的本地 memories），以及如何用 git 给 Codex 加跨会话、跨机器的长期记忆。</span></a><a href="../agent-memory-benchmarks/"><b>记忆基准测试：LoCoMo、LongMemEval、BEAM</b><span>LoCoMo、LongMemEval、BEAM 各测什么、LLM 裁判怎么打分、厂商分数为何不能横比，以及编码 agent 该看哪些指标。</span></a><a href="../agents-md-vs-claude-md-vs-memory/"><b>AGENTS.md 和 CLAUDE.md 区别，记忆该放哪</b><span>AGENTS.md 是跨工具的指令文件，CLAUDE.md 是 Claude Code 专用的，记忆是 agent 自己写的笔记。各工具读哪个、怎么组合。</span></a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span>nestwork — AI agent memory, git-native.</span>
+    <span><a href="../../../zh/">首页</a><a href="../">文章</a><a href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-lang-switch]').forEach(function (a) {
+  a.addEventListener('click', function () { try { localStorage.setItem('nestwork_lang', a.getAttribute('data-lang-switch')); } catch (e) {} });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>换电脑 AI 记忆丢失？迁移工具原生记忆 — nestwork</title>
+<meta name="description" content="Claude Code 的 auto memory 和 Codex 的 memories 都只存在本机。换电脑、换工具或丢账号之前，如何备份并迁移 AI 记忆。">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="songth1ef">
+<meta name="theme-color" content="#8fdcf7">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/zh/articles/rescue-tool-native-memory/">
+<link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/rescue-tool-native-memory/">
+<link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/rescue-tool-native-memory/">
+<link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/rescue-tool-native-memory/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232ec4d6'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="nestwork">
+<meta property="og:title" content="换电脑 AI 记忆丢失？迁移工具原生记忆">
+<meta property="og:description" content="Claude Code 的 auto memory 和 Codex 的 memories 都只存在本机。换电脑、换工具或丢账号之前，如何备份并迁移 AI 记忆。">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/zh/articles/rescue-tool-native-memory/">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og-zh.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="换电脑 AI 记忆丢失？迁移工具原生记忆">
+<meta name="twitter:description" content="Claude Code 的 auto memory 和 Codex 的 memories 都只存在本机。换电脑、换工具或丢账号之前，如何备份并迁移 AI 记忆。">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og-zh.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://songth1ef.github.io/nestwork/zh/articles/rescue-tool-native-memory/#article","headline":"换电脑 AI 记忆丢失？迁移工具原生记忆","description":"Claude Code 的 auto memory 和 Codex 的 memories 都只存在本机。换电脑、换工具或丢账号之前，如何备份并迁移 AI 记忆。","inLanguage":"zh-CN","datePublished":"2026-09-27","dateModified":"2026-09-27","author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"publisher":{"@type":"Organization","name":"nestwork","url":"https://songth1ef.github.io/nestwork/"},"image":["https://songth1ef.github.io/nestwork/og-zh.png"],"mainEntityOfPage":"https://songth1ef.github.io/nestwork/zh/articles/rescue-tool-native-memory/","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://songth1ef.github.io/nestwork/zh/"},{"@type":"ListItem","position":2,"name":"文章","item":"https://songth1ef.github.io/nestwork/zh/articles/"},{"@type":"ListItem","position":3,"name":"换电脑 AI 记忆丢失？迁移工具原生记忆","item":"https://songth1ef.github.io/nestwork/zh/articles/rescue-tool-native-memory/"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"直接拷文件夹能备份 Claude Code 的 auto memory 吗？","acceptedAnswer":{"@type":"Answer","text":"能，重装之前做一下很值得。只是要记下每个项目文件夹对应的仓库路径，因为文件夹名是从这个路径算出来的，新机器上仓库放在别处，名字就不同。"}},{"@type":"Question","name":"nestwork 会自动同步我的原生记忆吗？","acceptedAnswer":{"@type":"Answer","text":"不会。日常流向是单向且有意为之的：你决定时，把原生记忆蒸馏进记忆仓库。不会有任何东西自动写回工具的存储。"}},{"@type":"Question","name":"为什么 carryover 不进启动上下文？","acceptedAnswer":{"@type":"Answer","text":"因为它大多只在恢复时有用。每次会话都加载，就会把启动预算浪费在“某工具怎么装的”这类记录上，挤掉真正每次都要生效的规则。"}},{"@type":"Question","name":"Codex 的 memories 怎么迁？","acceptedAnswer":{"@type":"Answer","text":"直接读 ~/.codex/memories/ 下的文件，把有价值的蒸馏进 carryover/codex.md 或你的常驻文件即可。OpenAI 自己也建议把必须遵守的规则写进 AGENTS.md，而不是依赖 memories。"}}]}]}</script>
+<style>
+@font-face { font-family: "VT323"; src: url("../../../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../../../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+:root {
+  --bg: #fbf8ef; --fg: #111; --muted: #5c5c5c; --teal: #2ec4d6; --teal-dark: #0a8fa0; --magenta: #ff2d8f;
+  --lime: #d6f25a; --yellow: #ffe53d; --sky: #29c6ec; --red: #ec2a33;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::selection { background: var(--yellow); }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 2px solid #111; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.badge { background: var(--teal); color: #000; font-weight: 800; letter-spacing: -0.03em; padding: 2px 10px 3px; border: 2px solid #000; outline: 2px solid var(--teal); text-decoration: none; font-size: 18px; }
+.nav { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 13px; }
+.nav a { text-decoration: none; color: #333; }
+.nav a:hover { background: var(--yellow); color: #000; }
+.nav .gh { background: #111; color: #fff; padding: 4px 10px; font-weight: 700; }
+.art-hero { background: linear-gradient(180deg, #8fdcf7 0%, #d4f3ff 60%, var(--bg) 100%); border-bottom: 2px solid #111; padding: 48px 0 44px; position: relative; overflow: hidden; }
+.art-hero::after { content: ""; position: absolute; right: -60px; top: -40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 11px 11px; -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%); mask-image: radial-gradient(circle, #000 50%, transparent 70%); pointer-events: none; }
+.crumbs { font-family: var(--pixel); font-size: 20px; letter-spacing: 0.04em; color: #0a5f6b; margin: 0 0 14px; position: relative; z-index: 1; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { background: var(--yellow); }
+.art-hero h1 { font-size: clamp(34px, 5.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 0; max-width: 880px; position: relative; z-index: 1; }
+:lang(zh) .art-hero h1 { line-height: 1.2; letter-spacing: -0.01em; }
+.art-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: #333; position: relative; z-index: 1; }
+.art-meta span { background: #fff; border: 2px solid #111; padding: 2px 8px; }
+.art-meta .kind { background: var(--magenta); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; padding-top: 48px; padding-bottom: 72px; }
+.layout.wide { grid-template-columns: 1fr; }
+.layout > * { min-width: 0; }
+.prose p code, .prose li code, .prose td code { overflow-wrap: anywhere; }
+.wide .prose { max-width: none; }
+.wide .toc { display: none; }
+.wide .prose > p:first-child { max-width: 72ch; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+.prose { max-width: 72ch; }
+.prose > p:first-child { font-size: 1.12em; }
+.prose h2 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; line-height: 1.2; margin: 2.1em 0 0.6em; padding-top: 0.2em; border-top: 2px solid #111; scroll-margin-top: 80px; }
+.prose h2::before { content: "// "; font-family: var(--pixel); color: var(--magenta); font-weight: 400; }
+.prose h3 { font-size: 21px; letter-spacing: -0.015em; margin: 1.6em 0 0.4em; scroll-margin-top: 80px; }
+.prose p, .prose li { color: #222; }
+.prose a { text-decoration-color: var(--magenta); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose a:hover { background: var(--yellow); }
+.prose code { font-family: var(--mono); font-size: 0.86em; background: #fff; border: 1.5px solid #111; padding: 0 5px; }
+.prose pre.code { background: #151515; color: #eee; border-left: 5px solid var(--teal); padding: 16px 18px; overflow-x: auto; font-size: 14.5px; line-height: 1.65; box-shadow: 6px 6px 0 #111; }
+.prose pre.code code { background: none; border: 0; padding: 0; font-size: 1em; color: inherit; }
+.prose blockquote { margin: 1.4em 0; padding: 14px 20px; background: #fff; border: 2px solid #111; border-left: 8px solid var(--magenta); box-shadow: 5px 5px 0 #111; }
+.prose blockquote p { margin: 0; font-weight: 600; }
+.prose figure { margin: 1.6em 0; }
+.prose img { width: 100%; height: auto; border: 2px solid #111; box-shadow: 6px 6px 0 #111; display: block; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin: 0.3em 0; }
+.prose li::marker { color: var(--magenta); font-weight: 700; }
+.table-wrap { overflow-x: auto; border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; margin: 1.4em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #0002; vertical-align: top; }
+thead th { background: #111; color: #fff; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.toc { position: sticky; top: 84px; align-self: start; background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 var(--teal); padding: 16px 18px; font-size: 14.5px; line-height: 1.45; }
+.toc b { display: block; font-family: var(--pixel); font-weight: 400; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 8px; }
+.toc a { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px dashed #0003; color: #222; }
+.toc a:hover { background: var(--yellow); }
+.cta { margin-top: 56px; background: var(--lime); border: 2px solid #111; box-shadow: 8px 8px 0 #111; padding: 28px 28px 30px; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; right: -40px; top: -30px; width: 200px; height: 120px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 12px, transparent 12px 24px); transform: rotate(-4deg); }
+.cta h2 { border: 0; margin: 0 0 8px; padding: 0; font-size: 30px; position: relative; z-index: 1; }
+.cta h2::before { content: none; }
+.cta p { margin: 0 0 18px; max-width: 520px; font-weight: 600; position: relative; z-index: 1; }
+.btn { display: inline-flex; gap: 8px; padding: 12px 20px; font-weight: 800; text-decoration: none; border: 2px solid #111; margin: 0 10px 10px 0; position: relative; z-index: 1; }
+.btn:hover { box-shadow: 5px 5px 0 #111; transform: translate(-2px, -2px); }
+.btn-ink { background: #111; color: #fff; }
+.btn-ghost { background: #fff; color: #111; }
+.more { border-top: 2px solid #111; background: #fff; padding: 48px 0 60px; }
+.more h2 { font-family: var(--pixel); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; margin: 0 0 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+.cards a { display: block; text-decoration: none; background: var(--bg); border: 2px solid #111; box-shadow: 5px 5px 0 #111; padding: 16px 18px; }
+.cards a:hover { background: var(--yellow); }
+.cards b { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; }
+.cards span { display: block; margin-top: 6px; font-size: 14px; color: #444; line-height: 1.5; }
+.site-footer { background: #111; color: #aaa; padding: 30px 0 40px; font-family: var(--mono); font-size: 12.5px; }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.site-footer a { color: #ddd; text-decoration: none; margin-left: 16px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="badge" href="../../../zh/">nestwork</a>
+    <nav class="nav" aria-label="文章">
+      <a href="../">文章</a>
+      <a href="https://songth1ef.github.io/nestwork/articles/rescue-tool-native-memory/" hreflang="en" data-lang-switch="en">EN</a>
+      <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="art-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="../../../zh/">首页</a> / <a href="../">文章</a> /</p>
+      <h1>换电脑 AI 记忆丢失？迁移工具原生记忆</h1>
+      <div class="art-meta"><span class="kind">指南</span><span>4 分钟阅读</span><span>更新于 2026-09-27</span></div>
+    </div>
+  </div>
+  <div class="wrap layout">
+    <article class="prose">
+<p>Claude Code、Codex、Kimi Code 自己记下的记忆都存在本地磁盘上，换新电脑、重装系统或者不再用这个工具时，它们就跟着没了。要保住这些记忆，就得在那之前把仍然成立的内容取出来，放到你自己拥有、有版本记录的地方（比如私有 git 仓库），并且记下每条记录属于哪个项目，方便以后恢复。nestwork 把这件事叫 <em>carryover</em>：把原生记忆蒸馏进你 agent 目录下的一个冷文件，而不是整个目录镜像过去。</p>
+<h2 id="原生记忆存在哪">原生记忆存在哪</h2>
+<div class="table-wrap"><table><thead><tr><th>工具</th><th>原生记忆位置</th><th>怎么挪</th><th>跨设备同步？</th></tr></thead><tbody><tr><td>Claude Code</td><td><code>~/.claude/projects/&lt;project&gt;/memory/</code></td><td><code>autoMemoryDirectory</code> 设置</td><td>不同步：“Auto memory is machine-local”（<a href="https://code.claude.com/docs/en/memory" rel="noopener">文档</a>）</td></tr><tr><td>Codex CLI</td><td><code>~/.codex/memories/</code>（需手动开启）</td><td>只能用 <code>CODEX_HOME</code> 把 Codex 数据整体挪走</td><td>文档未提同步，存在 Codex home 下（<a href="https://learn.chatgpt.com/docs/customization/memories?surface=cli" rel="noopener">文档</a>）</td></tr><tr><td>Kimi Code</td><td>运行数据在 <code>~/.kimi-code/</code></td><td>只能用 <code>KIMI_CODE_HOME</code> 整体挪走</td><td>文档未提同步，数据存在本地（<a href="https://www.kimi.com/code/docs/en/kimi-code-cli/configuration/data-locations.html" rel="noopener">文档</a>）</td></tr></tbody></table></div>
+<p>说得最直白的是 Claude Code 文档：auto memory 文件“不会在机器或云环境之间共享”。三家都没有提供把这部分记忆搬到另一台设备的内置办法。</p>
+<h2 id="三种丢法">三种丢法</h2>
+<p>nestwork 关于 carryover 的<a href="https://github.com/songth1ef/nestwork/blob/main/decisions/2026-07-28-tool-memory-carryover.md" rel="noopener">设计决策</a>列了三种情况：</p>
+<ol><li><strong>换新机器。</strong> agent 学会的构建命令、约定、踩过的坑，新磁盘上一概没有。</li><li><strong>工具没了。</strong> 工具会停更、会被替代，或者你自己换了。记忆只存在工具里，工具结束，记忆也就结束。</li><li><strong>账号没了。</strong> 记忆绑定在账号而不是磁盘上时，封号、地区限制、订阅到期都可能把它一并带走。</li></ol>
+<p>根源都是归属权：你的上下文放在哪、能活多久，由厂商决定。</p>
+<h2 id="为什么直接拷目录不够">为什么直接拷目录不够</h2>
+<p>把 <code>~/.claude</code> 或 <code>~/.codex</code> 拷进 U 盘总比什么都不做强，但有两个问题。</p>
+<p>一是恢复不到正确的位置。Claude Code 用工作目录路径命名项目文件夹，把非字母数字字符替换成 <code>-</code>（<a href="https://code.claude.com/docs/en/sessions" rel="noopener">会话文档</a>）。同一个仓库在新机器上换了路径或盘符，文件夹名就变了，拷过去的记忆挂不到任何项目上。</p>
+<p>二是原样镜像会把所有东西都带过去：重复的条目、过期的进度记录、别处已经记过的事实。同一件事从此存在两处，慢慢就对不上了。</p>
+<h2 id="nestwork-的做法-蒸馏-不镜像">nestwork 的做法：蒸馏，不镜像</h2>
+<p><a href="https://github.com/songth1ef/nestwork/blob/main/AGENTS.md" rel="noopener">AGENTS.md §13</a> 把原生记忆当作现有蒸馏流程的又一个输入：读取、筛选、人工审阅、合并、提交。筛选只问一个问题：<strong>这条什么时候会失效？</strong></p>
+<div class="table-wrap"><table><thead><tr><th>什么时候失效</th><th>放到哪里</th></tr></thead><tbody><tr><td>记忆仓库里已经有了</td><td>跳过</td></tr><tr><td>它自己写明的删除条件已经触发</td><td>不迁，并建议删掉源头</td></tr><tr><td>变化很快的进度快照</td><td>不迁，一提交就过期</td></tr><tr><td>只在换机器时失效，且必须不查就生效</td><td><code>agents/&lt;host&gt;/&lt;agent-id&gt;/resident.md</code>，控制在字节预算内</td></tr><tr><td>只在换机器时失效，且只在恢复时用得上</td><td><code>agents/&lt;host&gt;/&lt;agent-id&gt;/carryover/&lt;tool&gt;.md</code></td></tr><tr><td>永不失效（可迁移的方法、跨工具的坑）</td><td><code>workflow/&lt;topic&gt;.md</code>，先脱敏</td></tr><tr><td>项目一变就失效</td><td>那个仓库自己的文档；只提建议，不跨仓库写</td></tr></tbody></table></div>
+<p>最容易判断错的是“常驻还是按需”。问自己：这条是否必须在没人去找它的时候也生效？通用的边界规则可能算；本地某个工具怎么装的，不算。常驻文件要争夺很小的启动预算（默认每个 agent 的常驻文件 2,048 字节），拿不准就选按需。</p>
+<h2 id="冷层-以及目录名问题">冷层，以及目录名问题</h2>
+<p><code>carryover/</code> 是冷层，会话启动时永远不加载；<code>memory.md</code> 可以用一行指向它，但不能把内容内联进来。只有在新机器上恢复、或者专门查某件事时才读它。</p>
+<p>因为项目文件夹名来自路径，每条 carryover 记录都要同时写下原目录名和它对应的仓库：</p>
+<pre class="code"><code data-lang="markdown">## &lt;一句话标题&gt;
+
+- **source**: `~/.claude/projects/&lt;project-dir&gt;/memory/&lt;file&gt;.md`
+- **original project dir**: `&lt;project-dir&gt;` (repository: `&lt;repo path&gt;`)
+- **carried on**: YYYY-MM-DD
+- **criterion**: cold — needed only on restore
+
+&lt;正文，保留原来的 Why / How-to-apply 结构&gt;</code></pre>
+<p>恢复时，按新机器上仓库的路径重新算出文件夹名，再把内容写回去。这是唯一一个流回工具原生存储的步骤，而且是手动的。</p>
+<h2 id="迁移步骤">迁移步骤</h2>
+<ol><li>先在这台机器上为该工具安装 nestwork（例如 <code>bash ~/nestwork/scripts/install/claude.sh</code>），让你的 agent 目录存在。</li><li>列出工具里有什么：Claude Code 看 <code>~/.claude/projects/*/memory/</code>，Codex 看 <code>~/.codex/memories/</code>。</li><li>让 agent 按 §13 蒸馏：用上表给每条归类，起草 <code>carryover/&lt;tool&gt;.md</code> 和可能的常驻条目。</li><li>亲自审一遍草稿，去掉敏感内容；API key 和密钥永远不进记忆仓库。</li><li>让它提交。Claude Code 的逐次写入 hook 会立刻推送；Codex 则由 agent 执行启动协议里的提交步骤。</li><li>确认记忆仓库里已经有了，再决定要不要删源头。原生记忆不在版本控制下，删了就找不回来。</li></ol>
+<p>如果你更想要实时副本而不是定期蒸馏，Claude Code 可以把 <code>autoMemoryDirectory</code> 指到你的 agent 目录。§13 允许这样做，但只作为本地选择而非默认：只有部分工具支持，每次写入都会变成一次提交，审阅环节也没了。</p>
+<h2 id="常见问题">常见问题</h2>
+<h3 id="直接拷文件夹能备份-claude-code-的-auto-memory-吗">直接拷文件夹能备份 Claude Code 的 auto memory 吗？</h3>
+<p>能，重装之前做一下很值得。只是要记下每个项目文件夹对应的仓库路径，因为文件夹名是从这个路径算出来的，新机器上仓库放在别处，名字就不同。</p>
+<h3 id="nestwork-会自动同步我的原生记忆吗">nestwork 会自动同步我的原生记忆吗？</h3>
+<p>不会。日常流向是单向且有意为之的：你决定时，把原生记忆蒸馏进记忆仓库。不会有任何东西自动写回工具的存储。</p>
+<h3 id="为什么-carryover-不进启动上下文">为什么 carryover 不进启动上下文？</h3>
+<p>因为它大多只在恢复时有用。每次会话都加载，就会把启动预算浪费在“某工具怎么装的”这类记录上，挤掉真正每次都要生效的规则。</p>
+<h3 id="codex-的-memories-怎么迁">Codex 的 memories 怎么迁？</h3>
+<p>直接读 <code>~/.codex/memories/</code> 下的文件，把有价值的蒸馏进 <code>carryover/codex.md</code> 或你的常驻文件即可。OpenAI 自己也建议把必须遵守的规则写进 <code>AGENTS.md</code>，而不是依赖 memories。</p>
+<h2 id="相关阅读">相关阅读</h2>
+<ul><li><a href="../claude-code-memory-across-machines/">Claude Code 记忆跨设备同步</a></li><li><a href="../codex-cli-persistent-memory/">给 Codex CLI 加长期记忆</a></li><li><a href="../memory-distillation/">记忆蒸馏</a></li><li><a href="../encrypt-agent-memory-git-crypt/">用 git-crypt 加密 agent 记忆</a></li><li><a href="../long-term-memory-in-practice/">长期记忆的实践</a></li></ul>
+      <section class="cta" aria-label="给你的 agent 一份记忆">
+        <h2>给你的 agent 一份记忆</h2>
+        <p>nestwork 把一个私有 git 仓库变成 Claude Code、Codex、Gemini、Kimi 等 agent 共享的长期记忆。</p>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">用模板创建我的记忆仓库 →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ 去 GitHub 点个 Star</a>
+      </section>
+    </article>
+    <aside class="toc" aria-label="本文目录"><b>本文目录</b><a href="#原生记忆存在哪">原生记忆存在哪</a><a href="#三种丢法">三种丢法</a><a href="#为什么直接拷目录不够">为什么直接拷目录不够</a><a href="#nestwork-的做法-蒸馏-不镜像">nestwork 的做法：蒸馏，不镜像</a><a href="#冷层-以及目录名问题">冷层，以及目录名问题</a><a href="#迁移步骤">迁移步骤</a><a href="#常见问题">常见问题</a><a href="#相关阅读">相关阅读</a></aside>
+  </div>
+  <section class="more" aria-label="全部文章">
+    <div class="wrap">
+      <h2>全部文章 →</h2>
+      <div class="cards"><a href="../ai-agent-memory/"><b>AI agent 记忆：四种类型与取舍</b><span>AI agent 记忆是智能体在单次会话之外还能依赖的上下文。对比上下文窗口、工具内置记忆、向量检索服务和文件式记忆，以及编码 agent 的特殊需求。</span></a><a href="../claude-code-memory-across-machines/"><b>Claude Code 记忆跨设备同步：用 git 实现</b><span>Claude Code 的 CLAUDE.md 和 auto memory 都只在本机。本文讲清它们存在哪、为什么换电脑就没了，以及怎样用 git 跨设备同步。</span></a><a href="../share-memory-claude-code-codex/"><b>Claude Code 和 Codex 共享记忆的做法</b><span>Claude Code 读 CLAUDE.md，Codex 读 AGENTS.md。让两者指向同一个私有 git 仓库，就能共享记忆，且各写各的目录。</span></a><a href="../codex-cli-persistent-memory/"><b>Codex 记忆与 AGENTS.md：Codex 长期记忆</b><span>Codex CLI 现有的记忆方式（AGENTS.md 与默认关闭的本地 memories），以及如何用 git 给 Codex 加跨会话、跨机器的长期记忆。</span></a><a href="../agent-memory-tools-compared/"><b>agent 记忆工具对比：Mem0、Letta、Zep 等</b><span>从架构、部署方式、数据归属和适用场景，对比 Mem0、Letta、Zep、Supermemory、claude-mem、工具内置记忆和 nestwork。</span></a><a href="../agent-memory-benchmarks/"><b>记忆基准测试：LoCoMo、LongMemEval、BEAM</b><span>LoCoMo、LongMemEval、BEAM 各测什么、LLM 裁判怎么打分、厂商分数为何不能横比，以及编码 agent 该看哪些指标。</span></a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span>nestwork — AI agent memory, git-native.</span>
+    <span><a href="../../../zh/">首页</a><a href="../">文章</a><a href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-lang-switch]').forEach(function (a) {
+  a.addEventListener('click', function () { try { localStorage.setItem('nestwork_lang', a.getAttribute('data-lang-switch')); } catch (e) {} });
+});
+</script>
+</body>
+</html>

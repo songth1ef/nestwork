@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Share Memory Between Claude Code and Codex — nestwork</title>
+<meta name="description" content="Claude Code reads ~/.claude/CLAUDE.md, Codex reads ~/.codex/AGENTS.md. Point both at one git repo to share memory, each writing only its own directory.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="songth1ef">
+<meta name="theme-color" content="#8fdcf7">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/articles/share-memory-claude-code-codex/">
+<link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/share-memory-claude-code-codex/">
+<link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/share-memory-claude-code-codex/">
+<link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/share-memory-claude-code-codex/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232ec4d6'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="nestwork">
+<meta property="og:title" content="Share Memory Between Claude Code and Codex">
+<meta property="og:description" content="Claude Code reads ~/.claude/CLAUDE.md, Codex reads ~/.codex/AGENTS.md. Point both at one git repo to share memory, each writing only its own directory.">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/articles/share-memory-claude-code-codex/">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Share Memory Between Claude Code and Codex">
+<meta name="twitter:description" content="Claude Code reads ~/.claude/CLAUDE.md, Codex reads ~/.codex/AGENTS.md. Point both at one git repo to share memory, each writing only its own directory.">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://songth1ef.github.io/nestwork/articles/share-memory-claude-code-codex/#article","headline":"Share Memory Between Claude Code and Codex","description":"Claude Code reads ~/.claude/CLAUDE.md, Codex reads ~/.codex/AGENTS.md. Point both at one git repo to share memory, each writing only its own directory.","inLanguage":"en","datePublished":"2026-09-27","dateModified":"2026-09-27","author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"publisher":{"@type":"Organization","name":"nestwork","url":"https://songth1ef.github.io/nestwork/"},"image":["https://songth1ef.github.io/nestwork/og.png"],"mainEntityOfPage":"https://songth1ef.github.io/nestwork/articles/share-memory-claude-code-codex/","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://songth1ef.github.io/nestwork/"},{"@type":"ListItem","position":2,"name":"Articles","item":"https://songth1ef.github.io/nestwork/articles/"},{"@type":"ListItem","position":3,"name":"Share Memory Between Claude Code and Codex","item":"https://songth1ef.github.io/nestwork/articles/share-memory-claude-code-codex/"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Can Claude Code and Codex share one project AGENTS.md instead?","acceptedAnswer":{"@type":"Answer","text":"For project rules, yes: Codex reads AGENTS.md, and Claude Code can read it directly or import it from CLAUDE.md. A project file does not cover personal preferences, cross-project decisions, or notes from other machines, which is what the shared memory repo is for."}},{"@type":"Question","name":"Do the two agents ever write the same file?","acceptedAnswer":{"@type":"Answer","text":"Not in ordinary memory writes. Claude writes agents/<host>/claude-xxxx/, Codex writes agents/<host>/codex/. shared/ is changed only during distillation, and queen/ only by you."}},{"@type":"Question","name":"Why does Codex commit manually while Claude Code is automatic?","acceptedAnswer":{"@type":"Answer","text":"Because the nestwork Codex installer registers only a SessionEnd hook for optional history snapshots, and SessionEnd hooks in Codex are limited to 3 seconds. Memory commits for Codex come from the bootstrap instruction the agent follows at the end of its work."}},{"@type":"Question","name":"Does Codex's built-in memory conflict with this?","acceptedAnswer":{"@type":"Answer","text":"No. Codex memories are off by default and live in ~/.codex/memories/. OpenAI's own docs recommend keeping required guidance in AGENTS.md and treating memories as a recall layer, which fits the same split."}}]}]}</script>
+<style>
+@font-face { font-family: "VT323"; src: url("../../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+:root {
+  --bg: #fbf8ef; --fg: #111; --muted: #5c5c5c; --teal: #2ec4d6; --teal-dark: #0a8fa0; --magenta: #ff2d8f;
+  --lime: #d6f25a; --yellow: #ffe53d; --sky: #29c6ec; --red: #ec2a33;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::selection { background: var(--yellow); }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 2px solid #111; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.badge { background: var(--teal); color: #000; font-weight: 800; letter-spacing: -0.03em; padding: 2px 10px 3px; border: 2px solid #000; outline: 2px solid var(--teal); text-decoration: none; font-size: 18px; }
+.nav { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 13px; }
+.nav a { text-decoration: none; color: #333; }
+.nav a:hover { background: var(--yellow); color: #000; }
+.nav .gh { background: #111; color: #fff; padding: 4px 10px; font-weight: 700; }
+.art-hero { background: linear-gradient(180deg, #8fdcf7 0%, #d4f3ff 60%, var(--bg) 100%); border-bottom: 2px solid #111; padding: 48px 0 44px; position: relative; overflow: hidden; }
+.art-hero::after { content: ""; position: absolute; right: -60px; top: -40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 11px 11px; -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%); mask-image: radial-gradient(circle, #000 50%, transparent 70%); pointer-events: none; }
+.crumbs { font-family: var(--pixel); font-size: 20px; letter-spacing: 0.04em; color: #0a5f6b; margin: 0 0 14px; position: relative; z-index: 1; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { background: var(--yellow); }
+.art-hero h1 { font-size: clamp(34px, 5.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 0; max-width: 880px; position: relative; z-index: 1; }
+:lang(zh) .art-hero h1 { line-height: 1.2; letter-spacing: -0.01em; }
+.art-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: #333; position: relative; z-index: 1; }
+.art-meta span { background: #fff; border: 2px solid #111; padding: 2px 8px; }
+.art-meta .kind { background: var(--magenta); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; padding-top: 48px; padding-bottom: 72px; }
+.layout.wide { grid-template-columns: 1fr; }
+.layout > * { min-width: 0; }
+.prose p code, .prose li code, .prose td code { overflow-wrap: anywhere; }
+.wide .prose { max-width: none; }
+.wide .toc { display: none; }
+.wide .prose > p:first-child { max-width: 72ch; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+.prose { max-width: 72ch; }
+.prose > p:first-child { font-size: 1.12em; }
+.prose h2 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; line-height: 1.2; margin: 2.1em 0 0.6em; padding-top: 0.2em; border-top: 2px solid #111; scroll-margin-top: 80px; }
+.prose h2::before { content: "// "; font-family: var(--pixel); color: var(--magenta); font-weight: 400; }
+.prose h3 { font-size: 21px; letter-spacing: -0.015em; margin: 1.6em 0 0.4em; scroll-margin-top: 80px; }
+.prose p, .prose li { color: #222; }
+.prose a { text-decoration-color: var(--magenta); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose a:hover { background: var(--yellow); }
+.prose code { font-family: var(--mono); font-size: 0.86em; background: #fff; border: 1.5px solid #111; padding: 0 5px; }
+.prose pre.code { background: #151515; color: #eee; border-left: 5px solid var(--teal); padding: 16px 18px; overflow-x: auto; font-size: 14.5px; line-height: 1.65; box-shadow: 6px 6px 0 #111; }
+.prose pre.code code { background: none; border: 0; padding: 0; font-size: 1em; color: inherit; }
+.prose blockquote { margin: 1.4em 0; padding: 14px 20px; background: #fff; border: 2px solid #111; border-left: 8px solid var(--magenta); box-shadow: 5px 5px 0 #111; }
+.prose blockquote p { margin: 0; font-weight: 600; }
+.prose figure { margin: 1.6em 0; }
+.prose img { width: 100%; height: auto; border: 2px solid #111; box-shadow: 6px 6px 0 #111; display: block; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin: 0.3em 0; }
+.prose li::marker { color: var(--magenta); font-weight: 700; }
+.table-wrap { overflow-x: auto; border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; margin: 1.4em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #0002; vertical-align: top; }
+thead th { background: #111; color: #fff; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.toc { position: sticky; top: 84px; align-self: start; background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 var(--teal); padding: 16px 18px; font-size: 14.5px; line-height: 1.45; }
+.toc b { display: block; font-family: var(--pixel); font-weight: 400; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 8px; }
+.toc a { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px dashed #0003; color: #222; }
+.toc a:hover { background: var(--yellow); }
+.cta { margin-top: 56px; background: var(--lime); border: 2px solid #111; box-shadow: 8px 8px 0 #111; padding: 28px 28px 30px; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; right: -40px; top: -30px; width: 200px; height: 120px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 12px, transparent 12px 24px); transform: rotate(-4deg); }
+.cta h2 { border: 0; margin: 0 0 8px; padding: 0; font-size: 30px; position: relative; z-index: 1; }
+.cta h2::before { content: none; }
+.cta p { margin: 0 0 18px; max-width: 520px; font-weight: 600; position: relative; z-index: 1; }
+.btn { display: inline-flex; gap: 8px; padding: 12px 20px; font-weight: 800; text-decoration: none; border: 2px solid #111; margin: 0 10px 10px 0; position: relative; z-index: 1; }
+.btn:hover { box-shadow: 5px 5px 0 #111; transform: translate(-2px, -2px); }
+.btn-ink { background: #111; color: #fff; }
+.btn-ghost { background: #fff; color: #111; }
+.more { border-top: 2px solid #111; background: #fff; padding: 48px 0 60px; }
+.more h2 { font-family: var(--pixel); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; margin: 0 0 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+.cards a { display: block; text-decoration: none; background: var(--bg); border: 2px solid #111; box-shadow: 5px 5px 0 #111; padding: 16px 18px; }
+.cards a:hover { background: var(--yellow); }
+.cards b { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; }
+.cards span { display: block; margin-top: 6px; font-size: 14px; color: #444; line-height: 1.5; }
+.site-footer { background: #111; color: #aaa; padding: 30px 0 40px; font-family: var(--mono); font-size: 12.5px; }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.site-footer a { color: #ddd; text-decoration: none; margin-left: 16px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="badge" href="../../">nestwork</a>
+    <nav class="nav" aria-label="Articles">
+      <a href="../">Articles</a>
+      <a href="https://songth1ef.github.io/nestwork/zh/articles/share-memory-claude-code-codex/" hreflang="zh-CN" data-lang-switch="zh">中文</a>
+      <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="art-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="../../">Home</a> / <a href="../">Articles</a> /</p>
+      <h1>Share Memory Between Claude Code and Codex</h1>
+      <div class="art-meta"><span class="kind">Guides</span><span>5 min read</span><span>Updated 2026-09-27</span></div>
+    </div>
+  </div>
+  <div class="wrap layout">
+    <article class="prose">
+<p>Claude Code and Codex each have their own startup file and their own native memory, and neither reads the other's. To share memory between Claude Code and Codex, give both tools the same instruction: pull one private git repository at session start, read the same rules and shared memory, and write new memory only into a directory that belongs to that tool. With nestwork you do this by running two installers against one clone; Claude Code then syncs every memory write through hooks, and Codex commits its own directory at the end of the session.</p>
+<h2 id="what-each-tool-reads-at-startup">What each tool reads at startup</h2>
+<p>The two tools look in different places, which is why they don't see each other's context by default.</p>
+<div class="table-wrap"><table><thead><tr><th></th><th>Claude Code</th><th>Codex CLI</th></tr></thead><tbody><tr><td>Global instruction file</td><td><code>~/.claude/CLAUDE.md</code></td><td><code>~/.codex/AGENTS.md</code> (or <code>AGENTS.override.md</code> if present)</td></tr><tr><td>Project instruction files</td><td><code>CLAUDE.md</code>, <code>.claude/CLAUDE.md</code>, <code>CLAUDE.local.md</code>; can also read <code>AGENTS.md</code></td><td><code>AGENTS.md</code> from the project root down to the current directory</td></tr><tr><td>Native memory</td><td>Auto memory in <code>~/.claude/projects/&lt;project&gt;/memory/</code></td><td>Memories in <code>~/.codex/memories/</code>, off by default</td></tr><tr><td>Where hooks live</td><td><code>~/.claude/settings.json</code></td><td><code>~/.codex/hooks.json</code> or <code>config.toml</code></td></tr></tbody></table></div>
+<p>Sources: Anthropic's <a href="https://code.claude.com/docs/en/memory" rel="noopener">memory docs</a>, OpenAI's <a href="https://learn.chatgpt.com/docs/agent-configuration/agents-md" rel="noopener">AGENTS.md guide</a> and <a href="https://learn.chatgpt.com/docs/customization/memories?surface=cli" rel="noopener">memories page</a>.</p>
+<p>A repository-level <code>AGENTS.md</code> can already give both tools the same <em>project</em> rules. Recent Claude Code versions read <code>AGENTS.md</code> when a project has no <code>CLAUDE.md</code>, and a <code>CLAUDE.md</code> can import it with <code>@AGENTS.md</code>. What a project file cannot carry is everything that is not about that one project: your personal preferences, decisions that span repositories, and what the other tool learned yesterday on another machine. Native memory does not help here either: Claude Code's auto memory and Codex's memories are separate stores on the local disk.</p>
+<h2 id="one-repo-two-entry-files">One repo, two entry files</h2>
+<p>The approach is to put the cross-project context in a separate private git repository and make both global entry files point at it. nestwork's installers write the same startup block into each tool's global file:</p>
+<ul><li><code>scripts/install/claude.sh</code> writes it into <code>~/.claude/CLAUDE.md</code>.</li><li><code>scripts/install/codex.sh</code> writes it into <code>~/.codex/AGENTS.md</code>, and also into <code>~/.codex/instructions.md</code> for older Codex setups.</li></ul>
+<p>The block sits between <code>&lt;!-- nestwork:begin --&gt;</code> and <code>&lt;!-- nestwork:end --&gt;</code> markers, so your own content in those files survives re-installs. It tells the agent to pull the repository, read the resident files (core rules, the shared resident summary, and its own resident summary), and search history only when a task needs it.</p>
+<h2 id="separate-identities-separate-directories">Separate identities, separate directories</h2>
+<p>Installing both tools on one machine gives you two agents, not one. The identity resolver (<a href="https://github.com/songth1ef/nestwork/blob/main/scripts/install/_identity.py" rel="noopener"><code>scripts/install/_identity.py</code></a>) stores one host name in <code>~/.nestwork_host</code> and one agent id per tool:</p>
+<ul><li><code>~/.nestwork_id_claude</code>, for example <code>claude-a7k2</code> (Claude gets a random suffix so several installs stay distinct)</li><li><code>~/.nestwork_id_codex</code>, which is simply <code>codex</code></li></ul>
+<p>So on a machine called <code>desktop</code> the nest gets two write areas:</p>
+<pre class="code"><code data-lang="text">agents/desktop/claude-a7k2/memory.md
+agents/desktop/codex/memory.md</code></pre>
+<p>Each agent writes only to its own directory. Both read <code>queen/agent-rules.md</code>, <code>shared/</code>, <code>projects/</code> and <code>workflow/</code>, and either can search the other's <code>memory.md</code> when a task calls for it. That single-writer rule is what makes sharing safe: two tools never append to the same file, so there is nothing to merge in ordinary use.</p>
+<h2 id="set-it-up-on-one-machine">Set it up on one machine</h2>
+<p>The commands (on Windows, use the matching <code>.ps1</code> scripts):</p>
+<pre class="code"><code data-lang="bash">git clone git@github.com:&lt;you&gt;/nestwork.git ~/nestwork
+bash ~/nestwork/scripts/install/claude.sh
+bash ~/nestwork/scripts/install/codex.sh</code></pre>
+<ol><li>Create a private repository from the <a href="https://github.com/songth1ef/nestwork/generate" rel="noopener">nestwork template</a> and clone it with the first command.</li><li>Run both installers against that one clone.</li><li>Start a Claude Code session, ask it to record a small, non-sensitive decision, and let the hooks push it.</li><li>Start Codex in any directory and ask what was decided. It pulls the repository per its bootstrap and finds the note in Claude's directory or in shared memory.</li></ol>
+<p>Repeat on other machines; each one adds its own <code>agents/&lt;host&gt;/</code> folder.</p>
+<h2 id="the-one-real-difference-when-memory-gets-committed">The one real difference: when memory gets committed</h2>
+<p>The tools are not wired the same way, and it matters for how quickly the other side sees a change.</p>
+<p><strong>Claude Code</strong> gets five hooks (<a href="https://github.com/songth1ef/nestwork/blob/main/scripts/install/_hooks.py" rel="noopener"><code>_hooks.py</code></a>): SessionStart pulls; PreToolUse on Write/Edit pulls before a memory write and blocks it on conflict; PostToolUse commits and pushes right after; Stop is a per-turn safety net; SessionEnd handles optional exports. A Claude memory write is on the remote seconds later.</p>
+<p><strong>Codex</strong> gets one hook (<a href="https://github.com/songth1ef/nestwork/blob/main/scripts/install/_codex_hooks.py" rel="noopener"><code>_codex_hooks.py</code></a>). The installer adds a SessionEnd entry to <code>~/.codex/hooks.json</code> and points <code>config.toml</code> at that file. The hook only launches the optional local-history snapshot, detached, because Codex allows SessionEnd hooks at most 3 seconds (<a href="https://learn.chatgpt.com/docs/hooks" rel="noopener">Codex hooks docs</a>). It does not commit memory. Codex memory edits follow the manual step in the injected bootstrap, which the agent runs when it finishes:</p>
+<pre class="code"><code data-lang="bash">git -C ~/nestwork add agents/&lt;host&gt;/codex/
+git -C ~/nestwork diff --cached --quiet -- agents/&lt;host&gt;/codex/ || \
+  git -C ~/nestwork commit -m &quot;memory: update &lt;host&gt;/codex&quot; -- agents/&lt;host&gt;/codex/
+git -C ~/nestwork push</code></pre>
+<p>Codex itself now supports PreToolUse and PostToolUse hooks on file edits, but nestwork's Codex installer does not register per-write sync today. In practice: a note Codex writes reaches Claude after Codex's session-end commit, and a note Claude writes reaches Codex at Codex's next session start. If you want it sooner, ask Codex to run the commit step right away.</p>
+<h2 id="keep-the-shared-layer-small-and-deliberate">Keep the shared layer small and deliberate</h2>
+<p>Two tools writing freely would still create two diverging stories. nestwork keeps a hard priority order, <code>queen/agent-rules.md &gt; queen/strategy.md &gt; shared/memory.md &gt; agents/*/*/memory.md &gt; projects/*.md &gt; workflow/*.md</code>, and on conflict the agent follows the higher source instead of blending them. <code>shared/</code> changes only through an explicit distillation (<code>scripts/maintenance/distill.py</code>), which merges what individual agents learned, with a review step, and writes files for you to check; it commits only when you pass <code>--commit</code>.</p>
+<p>Claude Code and Codex are the author's two daily drivers, so this pairing is the most exercised path in the project. Installers for Gemini CLI, Kimi Code, OpenClaw and Hermes follow the same pattern but are less battle-tested.</p>
+<h2 id="faq">FAQ</h2>
+<h3 id="can-claude-code-and-codex-share-one-project-agents-md-instead">Can Claude Code and Codex share one project AGENTS.md instead?</h3>
+<p>For project rules, yes: Codex reads <code>AGENTS.md</code>, and Claude Code can read it directly or import it from <code>CLAUDE.md</code>. A project file does not cover personal preferences, cross-project decisions, or notes from other machines, which is what the shared memory repo is for.</p>
+<h3 id="do-the-two-agents-ever-write-the-same-file">Do the two agents ever write the same file?</h3>
+<p>Not in ordinary memory writes. Claude writes <code>agents/&lt;host&gt;/claude-xxxx/</code>, Codex writes <code>agents/&lt;host&gt;/codex/</code>. <code>shared/</code> is changed only during distillation, and <code>queen/</code> only by you.</p>
+<h3 id="why-does-codex-commit-manually-while-claude-code-is-automatic">Why does Codex commit manually while Claude Code is automatic?</h3>
+<p>Because the nestwork Codex installer registers only a SessionEnd hook for optional history snapshots, and SessionEnd hooks in Codex are limited to 3 seconds. Memory commits for Codex come from the bootstrap instruction the agent follows at the end of its work.</p>
+<h3 id="does-codex-s-built-in-memory-conflict-with-this">Does Codex's built-in memory conflict with this?</h3>
+<p>No. Codex memories are off by default and live in <code>~/.codex/memories/</code>. OpenAI's own docs recommend keeping required guidance in <code>AGENTS.md</code> and treating memories as a recall layer, which fits the same split.</p>
+<h2 id="related">Related</h2>
+<ul><li><a href="../claude-code-memory-across-machines/">Claude Code memory across machines</a></li><li><a href="../codex-cli-persistent-memory/">Codex CLI persistent memory</a></li><li><a href="../agents-md-vs-claude-md-vs-memory/">AGENTS.md vs CLAUDE.md vs memory</a></li><li><a href="../multi-agent-memory-without-conflicts/">Multi-agent memory without conflicts</a></li><li><a href="../memory-distillation/">Memory distillation</a></li></ul>
+      <section class="cta" aria-label="Give your agents a memory">
+        <h2>Give your agents a memory</h2>
+        <p>nestwork turns one private git repo into shared, persistent memory for Claude Code, Codex, Gemini, Kimi and more.</p>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">Use this template →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ Star on GitHub</a>
+      </section>
+    </article>
+    <aside class="toc" aria-label="On this page"><b>On this page</b><a href="#what-each-tool-reads-at-startup">What each tool reads at startup</a><a href="#one-repo-two-entry-files">One repo, two entry files</a><a href="#separate-identities-separate-directories">Separate identities, separate directories</a><a href="#set-it-up-on-one-machine">Set it up on one machine</a><a href="#the-one-real-difference-when-memory-gets-committed">The one real difference: when memory gets committed</a><a href="#keep-the-shared-layer-small-and-deliberate">Keep the shared layer small and deliberate</a><a href="#faq">FAQ</a><a href="#related">Related</a></aside>
+  </div>
+  <section class="more" aria-label="All articles">
+    <div class="wrap">
+      <h2>All articles →</h2>
+      <div class="cards"><a href="../ai-agent-memory/"><b>AI Agent Memory — Four Types and Their Trade-offs</b><span>AI agent memory is context an agent keeps beyond one session. Compare context windows, built-in memory, vector services and files for coding agents.</span></a><a href="../claude-code-memory-across-machines/"><b>Claude Code Memory Across Machines, Synced with Git</b><span>Claude Code&#x27;s CLAUDE.md and auto memory stay on one machine. Where they&#x27;re stored, why they don&#x27;t sync, and how to share them across machines with git.</span></a><a href="../codex-cli-persistent-memory/"><b>Codex CLI Memory, AGENTS.md and Persistent Recall</b><span>How Codex CLI remembers today (AGENTS.md and opt-in local memories), and how to give Codex persistent memory across sessions and machines with git.</span></a><a href="../agent-memory-tools-compared/"><b>Agent Memory Tools Compared — Mem0, Letta, Zep and More</b><span>Mem0, Letta, Zep, Supermemory, claude-mem, built-in tool memory and nestwork compared on architecture, deployment, data ownership and best fit.</span></a><a href="../agent-memory-benchmarks/"><b>Agent Memory Benchmarks — LoCoMo, LongMemEval, BEAM</b><span>What LoCoMo, LongMemEval and BEAM measure, how LLM judges score them, why vendor numbers don&#x27;t compare, and which metrics matter for coding agents.</span></a><a href="../agents-md-vs-claude-md-vs-memory/"><b>AGENTS.md vs CLAUDE.md vs Memory — What Goes Where</b><span>AGENTS.md is a tool-neutral instruction file, CLAUDE.md is Claude Code&#x27;s, and memory is what agents write. Which tool reads which, and how to combine them.</span></a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span>nestwork — AI agent memory, git-native.</span>
+    <span><a href="../../">Home</a><a href="../">Articles</a><a href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-lang-switch]').forEach(function (a) {
+  a.addEventListener('click', function () { try { localStorage.setItem('nestwork_lang', a.getAttribute('data-lang-switch')); } catch (e) {} });
+});
+</script>
+</body>
+</html>

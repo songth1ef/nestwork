@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Back Up and Migrate Your AI Agent&#x27;s Native Memory</title>
+<meta name="description" content="Claude Code auto memory and Codex memories live on one disk. How to back up and migrate AI agent memory before a new laptop, tool switch or lost account.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="songth1ef">
+<meta name="theme-color" content="#8fdcf7">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/articles/rescue-tool-native-memory/">
+<link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/rescue-tool-native-memory/">
+<link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/rescue-tool-native-memory/">
+<link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/rescue-tool-native-memory/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232ec4d6'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="nestwork">
+<meta property="og:title" content="Back Up and Migrate Your AI Agent&#x27;s Native Memory">
+<meta property="og:description" content="Claude Code auto memory and Codex memories live on one disk. How to back up and migrate AI agent memory before a new laptop, tool switch or lost account.">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/articles/rescue-tool-native-memory/">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Back Up and Migrate Your AI Agent&#x27;s Native Memory">
+<meta name="twitter:description" content="Claude Code auto memory and Codex memories live on one disk. How to back up and migrate AI agent memory before a new laptop, tool switch or lost account.">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://songth1ef.github.io/nestwork/articles/rescue-tool-native-memory/#article","headline":"Back Up and Migrate Your AI Agent's Native Memory","description":"Claude Code auto memory and Codex memories live on one disk. How to back up and migrate AI agent memory before a new laptop, tool switch or lost account.","inLanguage":"en","datePublished":"2026-09-27","dateModified":"2026-09-27","author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"publisher":{"@type":"Organization","name":"nestwork","url":"https://songth1ef.github.io/nestwork/"},"image":["https://songth1ef.github.io/nestwork/og.png"],"mainEntityOfPage":"https://songth1ef.github.io/nestwork/articles/rescue-tool-native-memory/","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://songth1ef.github.io/nestwork/"},{"@type":"ListItem","position":2,"name":"Articles","item":"https://songth1ef.github.io/nestwork/articles/"},{"@type":"ListItem","position":3,"name":"Back Up and Migrate Your AI Agent's Native Memory","item":"https://songth1ef.github.io/nestwork/articles/rescue-tool-native-memory/"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Can I back up Claude Code auto memory by copying the folder?","acceptedAnswer":{"@type":"Answer","text":"Yes, and it's worth doing before wiping a disk. Just note the repository path each project folder came from, because the folder name is derived from that path and will differ if the repo lives somewhere else on the new machine."}},{"@type":"Question","name":"Does nestwork sync my native memory automatically?","acceptedAnswer":{"@type":"Answer","text":"No. Routine flow is one-way and deliberate: native memory is distilled into the nest when you choose to. Nothing is copied back into a tool's store automatically."}},{"@type":"Question","name":"Why keep carryover out of the startup context?","acceptedAnswer":{"@type":"Answer","text":"Because it is mostly needed on restore. Loading it every session would spend the startup budget on notes like tool install details, crowding out rules that must apply every time."}},{"@type":"Question","name":"How do I carry over Codex memories?","acceptedAnswer":{"@type":"Answer","text":"You can still read the files under ~/.codex/memories/ and distill what matters into carryover/codex.md or your resident file. OpenAI itself recommends keeping must-follow rules in AGENTS.md rather than relying on memories."}}]}]}</script>
+<style>
+@font-face { font-family: "VT323"; src: url("../../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+:root {
+  --bg: #fbf8ef; --fg: #111; --muted: #5c5c5c; --teal: #2ec4d6; --teal-dark: #0a8fa0; --magenta: #ff2d8f;
+  --lime: #d6f25a; --yellow: #ffe53d; --sky: #29c6ec; --red: #ec2a33;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::selection { background: var(--yellow); }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 2px solid #111; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.badge { background: var(--teal); color: #000; font-weight: 800; letter-spacing: -0.03em; padding: 2px 10px 3px; border: 2px solid #000; outline: 2px solid var(--teal); text-decoration: none; font-size: 18px; }
+.nav { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 13px; }
+.nav a { text-decoration: none; color: #333; }
+.nav a:hover { background: var(--yellow); color: #000; }
+.nav .gh { background: #111; color: #fff; padding: 4px 10px; font-weight: 700; }
+.art-hero { background: linear-gradient(180deg, #8fdcf7 0%, #d4f3ff 60%, var(--bg) 100%); border-bottom: 2px solid #111; padding: 48px 0 44px; position: relative; overflow: hidden; }
+.art-hero::after { content: ""; position: absolute; right: -60px; top: -40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 11px 11px; -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%); mask-image: radial-gradient(circle, #000 50%, transparent 70%); pointer-events: none; }
+.crumbs { font-family: var(--pixel); font-size: 20px; letter-spacing: 0.04em; color: #0a5f6b; margin: 0 0 14px; position: relative; z-index: 1; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { background: var(--yellow); }
+.art-hero h1 { font-size: clamp(34px, 5.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 0; max-width: 880px; position: relative; z-index: 1; }
+:lang(zh) .art-hero h1 { line-height: 1.2; letter-spacing: -0.01em; }
+.art-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: #333; position: relative; z-index: 1; }
+.art-meta span { background: #fff; border: 2px solid #111; padding: 2px 8px; }
+.art-meta .kind { background: var(--magenta); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; padding-top: 48px; padding-bottom: 72px; }
+.layout.wide { grid-template-columns: 1fr; }
+.layout > * { min-width: 0; }
+.prose p code, .prose li code, .prose td code { overflow-wrap: anywhere; }
+.wide .prose { max-width: none; }
+.wide .toc { display: none; }
+.wide .prose > p:first-child { max-width: 72ch; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+.prose { max-width: 72ch; }
+.prose > p:first-child { font-size: 1.12em; }
+.prose h2 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; line-height: 1.2; margin: 2.1em 0 0.6em; padding-top: 0.2em; border-top: 2px solid #111; scroll-margin-top: 80px; }
+.prose h2::before { content: "// "; font-family: var(--pixel); color: var(--magenta); font-weight: 400; }
+.prose h3 { font-size: 21px; letter-spacing: -0.015em; margin: 1.6em 0 0.4em; scroll-margin-top: 80px; }
+.prose p, .prose li { color: #222; }
+.prose a { text-decoration-color: var(--magenta); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose a:hover { background: var(--yellow); }
+.prose code { font-family: var(--mono); font-size: 0.86em; background: #fff; border: 1.5px solid #111; padding: 0 5px; }
+.prose pre.code { background: #151515; color: #eee; border-left: 5px solid var(--teal); padding: 16px 18px; overflow-x: auto; font-size: 14.5px; line-height: 1.65; box-shadow: 6px 6px 0 #111; }
+.prose pre.code code { background: none; border: 0; padding: 0; font-size: 1em; color: inherit; }
+.prose blockquote { margin: 1.4em 0; padding: 14px 20px; background: #fff; border: 2px solid #111; border-left: 8px solid var(--magenta); box-shadow: 5px 5px 0 #111; }
+.prose blockquote p { margin: 0; font-weight: 600; }
+.prose figure { margin: 1.6em 0; }
+.prose img { width: 100%; height: auto; border: 2px solid #111; box-shadow: 6px 6px 0 #111; display: block; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin: 0.3em 0; }
+.prose li::marker { color: var(--magenta); font-weight: 700; }
+.table-wrap { overflow-x: auto; border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; margin: 1.4em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #0002; vertical-align: top; }
+thead th { background: #111; color: #fff; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.toc { position: sticky; top: 84px; align-self: start; background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 var(--teal); padding: 16px 18px; font-size: 14.5px; line-height: 1.45; }
+.toc b { display: block; font-family: var(--pixel); font-weight: 400; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 8px; }
+.toc a { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px dashed #0003; color: #222; }
+.toc a:hover { background: var(--yellow); }
+.cta { margin-top: 56px; background: var(--lime); border: 2px solid #111; box-shadow: 8px 8px 0 #111; padding: 28px 28px 30px; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; right: -40px; top: -30px; width: 200px; height: 120px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 12px, transparent 12px 24px); transform: rotate(-4deg); }
+.cta h2 { border: 0; margin: 0 0 8px; padding: 0; font-size: 30px; position: relative; z-index: 1; }
+.cta h2::before { content: none; }
+.cta p { margin: 0 0 18px; max-width: 520px; font-weight: 600; position: relative; z-index: 1; }
+.btn { display: inline-flex; gap: 8px; padding: 12px 20px; font-weight: 800; text-decoration: none; border: 2px solid #111; margin: 0 10px 10px 0; position: relative; z-index: 1; }
+.btn:hover { box-shadow: 5px 5px 0 #111; transform: translate(-2px, -2px); }
+.btn-ink { background: #111; color: #fff; }
+.btn-ghost { background: #fff; color: #111; }
+.more { border-top: 2px solid #111; background: #fff; padding: 48px 0 60px; }
+.more h2 { font-family: var(--pixel); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; margin: 0 0 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+.cards a { display: block; text-decoration: none; background: var(--bg); border: 2px solid #111; box-shadow: 5px 5px 0 #111; padding: 16px 18px; }
+.cards a:hover { background: var(--yellow); }
+.cards b { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; }
+.cards span { display: block; margin-top: 6px; font-size: 14px; color: #444; line-height: 1.5; }
+.site-footer { background: #111; color: #aaa; padding: 30px 0 40px; font-family: var(--mono); font-size: 12.5px; }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.site-footer a { color: #ddd; text-decoration: none; margin-left: 16px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="badge" href="../../">nestwork</a>
+    <nav class="nav" aria-label="Articles">
+      <a href="../">Articles</a>
+      <a href="https://songth1ef.github.io/nestwork/zh/articles/rescue-tool-native-memory/" hreflang="zh-CN" data-lang-switch="zh">中文</a>
+      <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="art-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="../../">Home</a> / <a href="../">Articles</a> /</p>
+      <h1>Back Up and Migrate Your AI Agent&#x27;s Native Memory</h1>
+      <div class="art-meta"><span class="kind">Guides</span><span>5 min read</span><span>Updated 2026-09-27</span></div>
+    </div>
+  </div>
+  <div class="wrap layout">
+    <article class="prose">
+<p>The memory that Claude Code, Codex and Kimi Code keep for themselves is stored on your local disk, so it is lost when you get a new laptop, wipe a machine, or stop using the tool. To keep it, copy out what is still true before that happens, put it somewhere you own and version (such as a private git repo), and write down which project each note belonged to so you can restore it later. nestwork calls this <em>carryover</em>: distill native memory into a cold file in your agent's directory, instead of mirroring the whole folder.</p>
+<h2 id="where-native-memory-lives">Where native memory lives</h2>
+<div class="table-wrap"><table><thead><tr><th>Tool</th><th>Native memory</th><th>Move it with</th><th>Synced across devices?</th></tr></thead><tbody><tr><td>Claude Code</td><td><code>~/.claude/projects/&lt;project&gt;/memory/</code></td><td><code>autoMemoryDirectory</code> setting</td><td>No: "Auto memory is machine-local" (<a href="https://code.claude.com/docs/en/memory" rel="noopener">docs</a>)</td></tr><tr><td>Codex CLI</td><td><code>~/.codex/memories/</code> (opt-in)</td><td>Only <code>CODEX_HOME</code>, which moves all Codex data</td><td>Not described; stored under your Codex home (<a href="https://learn.chatgpt.com/docs/customization/memories?surface=cli" rel="noopener">docs</a>)</td></tr><tr><td>Kimi Code</td><td>Runtime data under <code>~/.kimi-code/</code></td><td>Only <code>KIMI_CODE_HOME</code>, which moves everything</td><td>Not described; stored locally (<a href="https://www.kimi.com/code/docs/en/kimi-code-cli/configuration/data-locations.html" rel="noopener">docs</a>)</td></tr></tbody></table></div>
+<p>Claude Code's documentation puts it most plainly: auto memory files "are not shared across machines or cloud environments." None of the three vendors documents a built-in way to move this memory to another device.</p>
+<h2 id="three-ways-it-gets-lost">Three ways it gets lost</h2>
+<p>nestwork's <a href="https://github.com/songth1ef/nestwork/blob/main/decisions/2026-07-28-tool-memory-carryover.md" rel="noopener">design decision on carryover</a> names three failure modes:</p>
+<ol><li><strong>New machine.</strong> Build commands, conventions, and traps the agent learned are simply not there on the new disk.</li><li><strong>Tool goes away.</strong> Tools get discontinued, replaced, or you just move on. If the memory only exists inside the tool, the tool's end is the memory's end.</li><li><strong>Account goes away.</strong> Where memory is tied to an account rather than a disk, a suspension, a regional restriction, or a lapsed subscription can take it with it.</li></ol>
+<p>The common cause is ownership: the vendor decides where your context lives and how long it lasts.</p>
+<h2 id="why-a-plain-folder-copy-is-not-enough">Why a plain folder copy is not enough</h2>
+<p>Copying <code>~/.claude</code> or <code>~/.codex</code> to a USB stick is better than nothing, but it has two problems.</p>
+<p>First, it restores to the wrong place. Claude Code names each project folder after the working directory path with non-alphanumeric characters replaced by <code>-</code> (<a href="https://code.claude.com/docs/en/sessions" rel="noopener">sessions docs</a>). Check out the same repository at a different path or on a different drive and the folder name changes, so the copied memory is attached to nothing.</p>
+<p>Second, a raw mirror carries everything: duplicates, stale progress notes, and facts you already keep elsewhere. The same fact then lives in two places that drift apart.</p>
+<h2 id="the-nestwork-approach-distill-don-t-mirror">The nestwork approach: distill, don't mirror</h2>
+<p><a href="https://github.com/songth1ef/nestwork/blob/main/AGENTS.md" rel="noopener">AGENTS.md §13</a> treats native memory as one more input to the existing distillation pipeline: read, filter, have a human review, merge, commit. The filter is one question: <strong>when does this stop being true?</strong></p>
+<div class="table-wrap"><table><thead><tr><th>When it stops being true</th><th>Where it goes</th></tr></thead><tbody><tr><td>Already recorded in the nest</td><td>Skip it</td></tr><tr><td>Its own delete-condition has fired</td><td>Don't carry; propose removing the source</td></tr><tr><td>It's a fast-moving progress snapshot</td><td>Don't carry; it's stale on arrival</td></tr><tr><td>Only when the machine changes, and it must apply without lookup</td><td><code>agents/&lt;host&gt;/&lt;agent-id&gt;/resident.md</code>, within its byte budget</td></tr><tr><td>Only when the machine changes, and it's needed only on restore</td><td><code>agents/&lt;host&gt;/&lt;agent-id&gt;/carryover/&lt;tool&gt;.md</code></td></tr><tr><td>Never (a portable method or cross-tool pitfall)</td><td><code>workflow/&lt;topic&gt;.md</code>, desensitized first</td></tr><tr><td>When the project changes</td><td>That repository's own docs; propose it, don't write across repos</td></tr></tbody></table></div>
+<p>The resident-versus-on-demand call is the one people get wrong. Ask whether the note must take effect when nobody went looking for it. A universal boundary may qualify. How a local tool was installed does not. Resident files compete for a small startup budget (2,048 bytes per agent resident file by default), so when in doubt, choose on demand.</p>
+<h2 id="the-cold-layer-and-the-directory-name-problem">The cold layer and the directory-name problem</h2>
+<p><code>carryover/</code> is a cold layer. It is never loaded at session start; <code>memory.md</code> may point to it with one line but must not inline it. You read it when restoring onto a new machine, or when you deliberately look something up.</p>
+<p>Because of the path-derived folder names, every carryover entry records both the original directory name and the repository it referred to:</p>
+<pre class="code"><code data-lang="markdown">## &lt;one-line title&gt;
+
+- **source**: `~/.claude/projects/&lt;project-dir&gt;/memory/&lt;file&gt;.md`
+- **original project dir**: `&lt;project-dir&gt;` (repository: `&lt;repo path&gt;`)
+- **carried on**: YYYY-MM-DD
+- **criterion**: cold — needed only on restore
+
+&lt;body, keeping the original Why / How-to-apply structure&gt;</code></pre>
+<p>On restore, you recompute the folder name from the repository's path on the new machine and write the content back there. That is the only step that flows back into a tool's native store, and it is manual.</p>
+<h2 id="doing-a-carryover-step-by-step">Doing a carryover, step by step</h2>
+<ol><li>Install nestwork for the tool on this machine (for example <code>bash ~/nestwork/scripts/install/claude.sh</code>), so your agent directory exists.</li><li>List what the tool holds: <code>~/.claude/projects/*/memory/</code> for Claude Code, <code>~/.codex/memories/</code> for Codex.</li><li>Ask the agent to distill it per §13: sort each entry with the table above and draft <code>carryover/&lt;tool&gt;.md</code> plus any resident candidates.</li><li>Review the draft yourself. Remove anything sensitive; API keys and secrets never go into the nest.</li><li>Let it commit. With Claude Code the per-write hooks push immediately; with Codex, the agent runs the commit step from its bootstrap.</li><li>Only after the nest has it, decide whether to delete the source. Deleting native memory is irreversible because it is not under version control.</li></ol>
+<p>If you would rather have a live copy than periodic distillation, Claude Code lets you point <code>autoMemoryDirectory</code> into your agent folder. §13 allows that as a local choice, not the default: only some tools support it, every write becomes a commit, and you lose the review step.</p>
+<h2 id="faq">FAQ</h2>
+<h3 id="can-i-back-up-claude-code-auto-memory-by-copying-the-folder">Can I back up Claude Code auto memory by copying the folder?</h3>
+<p>Yes, and it's worth doing before wiping a disk. Just note the repository path each project folder came from, because the folder name is derived from that path and will differ if the repo lives somewhere else on the new machine.</p>
+<h3 id="does-nestwork-sync-my-native-memory-automatically">Does nestwork sync my native memory automatically?</h3>
+<p>No. Routine flow is one-way and deliberate: native memory is distilled into the nest when you choose to. Nothing is copied back into a tool's store automatically.</p>
+<h3 id="why-keep-carryover-out-of-the-startup-context">Why keep carryover out of the startup context?</h3>
+<p>Because it is mostly needed on restore. Loading it every session would spend the startup budget on notes like tool install details, crowding out rules that must apply every time.</p>
+<h3 id="how-do-i-carry-over-codex-memories">How do I carry over Codex memories?</h3>
+<p>You can still read the files under <code>~/.codex/memories/</code> and distill what matters into <code>carryover/codex.md</code> or your resident file. OpenAI itself recommends keeping must-follow rules in <code>AGENTS.md</code> rather than relying on memories.</p>
+<h2 id="related">Related</h2>
+<ul><li><a href="../claude-code-memory-across-machines/">Claude Code memory across machines</a></li><li><a href="../codex-cli-persistent-memory/">Codex CLI persistent memory</a></li><li><a href="../memory-distillation/">Memory distillation</a></li><li><a href="../encrypt-agent-memory-git-crypt/">Encrypt agent memory with git-crypt</a></li><li><a href="../long-term-memory-in-practice/">Long-term memory in practice</a></li></ul>
+      <section class="cta" aria-label="Give your agents a memory">
+        <h2>Give your agents a memory</h2>
+        <p>nestwork turns one private git repo into shared, persistent memory for Claude Code, Codex, Gemini, Kimi and more.</p>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">Use this template →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ Star on GitHub</a>
+      </section>
+    </article>
+    <aside class="toc" aria-label="On this page"><b>On this page</b><a href="#where-native-memory-lives">Where native memory lives</a><a href="#three-ways-it-gets-lost">Three ways it gets lost</a><a href="#why-a-plain-folder-copy-is-not-enough">Why a plain folder copy is not enough</a><a href="#the-nestwork-approach-distill-don-t-mirror">The nestwork approach: distill, don&#x27;t mirror</a><a href="#the-cold-layer-and-the-directory-name-problem">The cold layer and the directory-name problem</a><a href="#doing-a-carryover-step-by-step">Doing a carryover, step by step</a><a href="#faq">FAQ</a><a href="#related">Related</a></aside>
+  </div>
+  <section class="more" aria-label="All articles">
+    <div class="wrap">
+      <h2>All articles →</h2>
+      <div class="cards"><a href="../ai-agent-memory/"><b>AI Agent Memory — Four Types and Their Trade-offs</b><span>AI agent memory is context an agent keeps beyond one session. Compare context windows, built-in memory, vector services and files for coding agents.</span></a><a href="../claude-code-memory-across-machines/"><b>Claude Code Memory Across Machines, Synced with Git</b><span>Claude Code&#x27;s CLAUDE.md and auto memory stay on one machine. Where they&#x27;re stored, why they don&#x27;t sync, and how to share them across machines with git.</span></a><a href="../share-memory-claude-code-codex/"><b>Share Memory Between Claude Code and Codex</b><span>Claude Code reads ~/.claude/CLAUDE.md, Codex reads ~/.codex/AGENTS.md. Point both at one git repo to share memory, each writing only its own directory.</span></a><a href="../codex-cli-persistent-memory/"><b>Codex CLI Memory, AGENTS.md and Persistent Recall</b><span>How Codex CLI remembers today (AGENTS.md and opt-in local memories), and how to give Codex persistent memory across sessions and machines with git.</span></a><a href="../agent-memory-tools-compared/"><b>Agent Memory Tools Compared — Mem0, Letta, Zep and More</b><span>Mem0, Letta, Zep, Supermemory, claude-mem, built-in tool memory and nestwork compared on architecture, deployment, data ownership and best fit.</span></a><a href="../agent-memory-benchmarks/"><b>Agent Memory Benchmarks — LoCoMo, LongMemEval, BEAM</b><span>What LoCoMo, LongMemEval and BEAM measure, how LLM judges score them, why vendor numbers don&#x27;t compare, and which metrics matter for coding agents.</span></a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span>nestwork — AI agent memory, git-native.</span>
+    <span><a href="../../">Home</a><a href="../">Articles</a><a href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-lang-switch]').forEach(function (a) {
+  a.addEventListener('click', function () { try { localStorage.setItem('nestwork_lang', a.getAttribute('data-lang-switch')); } catch (e) {} });
+});
+</script>
+</body>
+</html>

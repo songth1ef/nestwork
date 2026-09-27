@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Encrypt AI Agent Memory in Git with git-crypt — nestwork</title>
+<meta name="description" content="Encrypt AI agent memory with git-crypt: the agent reads plaintext, the git host stores ciphertext. Tested steps, topic-memory rules and limits.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="songth1ef">
+<meta name="theme-color" content="#8fdcf7">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/articles/encrypt-agent-memory-git-crypt/">
+<link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/encrypt-agent-memory-git-crypt/">
+<link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/encrypt-agent-memory-git-crypt/">
+<link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/encrypt-agent-memory-git-crypt/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232ec4d6'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="nestwork">
+<meta property="og:title" content="Encrypt AI Agent Memory in Git with git-crypt">
+<meta property="og:description" content="Encrypt AI agent memory with git-crypt: the agent reads plaintext, the git host stores ciphertext. Tested steps, topic-memory rules and limits.">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/articles/encrypt-agent-memory-git-crypt/">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Encrypt AI Agent Memory in Git with git-crypt">
+<meta name="twitter:description" content="Encrypt AI agent memory with git-crypt: the agent reads plaintext, the git host stores ciphertext. Tested steps, topic-memory rules and limits.">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://songth1ef.github.io/nestwork/articles/encrypt-agent-memory-git-crypt/#article","headline":"Encrypt AI Agent Memory in Git with git-crypt","description":"Encrypt AI agent memory with git-crypt: the agent reads plaintext, the git host stores ciphertext. Tested steps, topic-memory rules and limits.","inLanguage":"en","datePublished":"2026-09-27","dateModified":"2026-09-27","author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"publisher":{"@type":"Organization","name":"nestwork","url":"https://songth1ef.github.io/nestwork/"},"image":["https://songth1ef.github.io/nestwork/og.png"],"mainEntityOfPage":"https://songth1ef.github.io/nestwork/articles/encrypt-agent-memory-git-crypt/","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://songth1ef.github.io/nestwork/"},{"@type":"ListItem","position":2,"name":"Articles","item":"https://songth1ef.github.io/nestwork/articles/"},{"@type":"ListItem","position":3,"name":"Encrypt AI Agent Memory in Git with git-crypt","item":"https://songth1ef.github.io/nestwork/articles/encrypt-agent-memory-git-crypt/"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does git-crypt slow nestwork down?","acceptedAnswer":{"@type":"Answer","text":"The guide notes that encryption is transparent to the hooks and the clean filter is deterministic. It does not publish timing numbers, so none are claimed here."}},{"@type":"Question","name":"Can I encrypt only one agent's memory?","acceptedAnswer":{"@type":"Answer","text":"Yes. The patterns are ordinary .gitattributes rules, so you can target one scope, such as a single agent directory. The guide recommends keeping the encrypted scope as small as possible."}},{"@type":"Question","name":"Does `update.sh` still work on an encrypted nest?","acceptedAnswer":{"@type":"Answer","text":"Yes, with the current updater. It extracts upstream files without running your smudge filter and stages them through your clean filter. Commit or stash local changes first, then check that VERSION is not empty and that encrypted files remain encrypted."}},{"@type":"Question","name":"Is this built into the installers?","acceptedAnswer":{"@type":"Answer","text":"No. It is a manual, opt-in procedure. The protocol deliberately does not bake encryption in."}}]}]}</script>
+<style>
+@font-face { font-family: "VT323"; src: url("../../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+:root {
+  --bg: #fbf8ef; --fg: #111; --muted: #5c5c5c; --teal: #2ec4d6; --teal-dark: #0a8fa0; --magenta: #ff2d8f;
+  --lime: #d6f25a; --yellow: #ffe53d; --sky: #29c6ec; --red: #ec2a33;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::selection { background: var(--yellow); }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 2px solid #111; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.badge { background: var(--teal); color: #000; font-weight: 800; letter-spacing: -0.03em; padding: 2px 10px 3px; border: 2px solid #000; outline: 2px solid var(--teal); text-decoration: none; font-size: 18px; }
+.nav { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 13px; }
+.nav a { text-decoration: none; color: #333; }
+.nav a:hover { background: var(--yellow); color: #000; }
+.nav .gh { background: #111; color: #fff; padding: 4px 10px; font-weight: 700; }
+.art-hero { background: linear-gradient(180deg, #8fdcf7 0%, #d4f3ff 60%, var(--bg) 100%); border-bottom: 2px solid #111; padding: 48px 0 44px; position: relative; overflow: hidden; }
+.art-hero::after { content: ""; position: absolute; right: -60px; top: -40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 11px 11px; -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%); mask-image: radial-gradient(circle, #000 50%, transparent 70%); pointer-events: none; }
+.crumbs { font-family: var(--pixel); font-size: 20px; letter-spacing: 0.04em; color: #0a5f6b; margin: 0 0 14px; position: relative; z-index: 1; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { background: var(--yellow); }
+.art-hero h1 { font-size: clamp(34px, 5.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 0; max-width: 880px; position: relative; z-index: 1; }
+:lang(zh) .art-hero h1 { line-height: 1.2; letter-spacing: -0.01em; }
+.art-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: #333; position: relative; z-index: 1; }
+.art-meta span { background: #fff; border: 2px solid #111; padding: 2px 8px; }
+.art-meta .kind { background: var(--magenta); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; padding-top: 48px; padding-bottom: 72px; }
+.layout.wide { grid-template-columns: 1fr; }
+.layout > * { min-width: 0; }
+.prose p code, .prose li code, .prose td code { overflow-wrap: anywhere; }
+.wide .prose { max-width: none; }
+.wide .toc { display: none; }
+.wide .prose > p:first-child { max-width: 72ch; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+.prose { max-width: 72ch; }
+.prose > p:first-child { font-size: 1.12em; }
+.prose h2 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; line-height: 1.2; margin: 2.1em 0 0.6em; padding-top: 0.2em; border-top: 2px solid #111; scroll-margin-top: 80px; }
+.prose h2::before { content: "// "; font-family: var(--pixel); color: var(--magenta); font-weight: 400; }
+.prose h3 { font-size: 21px; letter-spacing: -0.015em; margin: 1.6em 0 0.4em; scroll-margin-top: 80px; }
+.prose p, .prose li { color: #222; }
+.prose a { text-decoration-color: var(--magenta); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose a:hover { background: var(--yellow); }
+.prose code { font-family: var(--mono); font-size: 0.86em; background: #fff; border: 1.5px solid #111; padding: 0 5px; }
+.prose pre.code { background: #151515; color: #eee; border-left: 5px solid var(--teal); padding: 16px 18px; overflow-x: auto; font-size: 14.5px; line-height: 1.65; box-shadow: 6px 6px 0 #111; }
+.prose pre.code code { background: none; border: 0; padding: 0; font-size: 1em; color: inherit; }
+.prose blockquote { margin: 1.4em 0; padding: 14px 20px; background: #fff; border: 2px solid #111; border-left: 8px solid var(--magenta); box-shadow: 5px 5px 0 #111; }
+.prose blockquote p { margin: 0; font-weight: 600; }
+.prose figure { margin: 1.6em 0; }
+.prose img { width: 100%; height: auto; border: 2px solid #111; box-shadow: 6px 6px 0 #111; display: block; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin: 0.3em 0; }
+.prose li::marker { color: var(--magenta); font-weight: 700; }
+.table-wrap { overflow-x: auto; border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; margin: 1.4em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #0002; vertical-align: top; }
+thead th { background: #111; color: #fff; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.toc { position: sticky; top: 84px; align-self: start; background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 var(--teal); padding: 16px 18px; font-size: 14.5px; line-height: 1.45; }
+.toc b { display: block; font-family: var(--pixel); font-weight: 400; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 8px; }
+.toc a { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px dashed #0003; color: #222; }
+.toc a:hover { background: var(--yellow); }
+.cta { margin-top: 56px; background: var(--lime); border: 2px solid #111; box-shadow: 8px 8px 0 #111; padding: 28px 28px 30px; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; right: -40px; top: -30px; width: 200px; height: 120px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 12px, transparent 12px 24px); transform: rotate(-4deg); }
+.cta h2 { border: 0; margin: 0 0 8px; padding: 0; font-size: 30px; position: relative; z-index: 1; }
+.cta h2::before { content: none; }
+.cta p { margin: 0 0 18px; max-width: 520px; font-weight: 600; position: relative; z-index: 1; }
+.btn { display: inline-flex; gap: 8px; padding: 12px 20px; font-weight: 800; text-decoration: none; border: 2px solid #111; margin: 0 10px 10px 0; position: relative; z-index: 1; }
+.btn:hover { box-shadow: 5px 5px 0 #111; transform: translate(-2px, -2px); }
+.btn-ink { background: #111; color: #fff; }
+.btn-ghost { background: #fff; color: #111; }
+.more { border-top: 2px solid #111; background: #fff; padding: 48px 0 60px; }
+.more h2 { font-family: var(--pixel); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; margin: 0 0 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+.cards a { display: block; text-decoration: none; background: var(--bg); border: 2px solid #111; box-shadow: 5px 5px 0 #111; padding: 16px 18px; }
+.cards a:hover { background: var(--yellow); }
+.cards b { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; }
+.cards span { display: block; margin-top: 6px; font-size: 14px; color: #444; line-height: 1.5; }
+.site-footer { background: #111; color: #aaa; padding: 30px 0 40px; font-family: var(--mono); font-size: 12.5px; }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.site-footer a { color: #ddd; text-decoration: none; margin-left: 16px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="badge" href="../../">nestwork</a>
+    <nav class="nav" aria-label="Articles">
+      <a href="../">Articles</a>
+      <a href="https://songth1ef.github.io/nestwork/zh/articles/encrypt-agent-memory-git-crypt/" hreflang="zh-CN" data-lang-switch="zh">中文</a>
+      <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="art-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="../../">Home</a> / <a href="../">Articles</a> /</p>
+      <h1>Encrypt AI Agent Memory in Git with git-crypt</h1>
+      <div class="art-meta"><span class="kind">Guides</span><span>6 min read</span><span>Updated 2026-09-27</span></div>
+    </div>
+  </div>
+  <div class="wrap layout">
+    <article class="prose">
+<p><strong>How do you keep an AI agent's memory private when it lives in a git repo on GitHub?</strong> Use git-crypt on just the memory files. The agent keeps reading and writing plaintext on your machines, git encrypts the files as they are committed, and what the git host stores is ciphertext. nestwork documents this as an optional, off-by-default mode, with steps tested on git-crypt 0.8.0.</p>
+<p>Encryption has limits worth knowing before you start: commit messages and file names stay readable, one lost key means lost memory, plaintext already pushed stays in history until you rewrite it, and the model provider still sees the plaintext. This article covers all of that.</p>
+<h2 id="do-you-need-it-at-all">Do you need it at all?</h2>
+<p>nestwork stores memory as Markdown in a private repo. For most people that is enough. The <a href="https://github.com/songth1ef/nestwork/blob/main/docs/encrypted-memory.md" rel="noopener">encrypted memory guide</a> is blunt about when encryption is the wrong tool:</p>
+<div class="table-wrap"><table><thead><tr><th>Your worry</th><th>Right answer</th></tr></thead><tbody><tr><td>Memory holds private content that must sync across machines <em>and</em> stay unreadable to the git host</td><td>git-crypt, on a small set of files</td></tr><tr><td>Private content that does not need to sync</td><td>Don't commit it at all; keep it in a local, unsynced directory</td></tr><tr><td>Losing the repo or the account</td><td>Backups and mirrors; encryption does nothing for availability</td></tr><tr><td>No real privacy concern</td><td>Stay off; a key is a new single point of failure</td></tr></tbody></table></div>
+<p>The author of nestwork describes using it this way: the repo is private and self-owned, and "for the deeper secrets, I layered on git-crypt on top", so what lands on GitHub is ciphertext (<a href="../16-agents-one-brain/">16 agents, one brain</a>).</p>
+<h2 id="step-by-step-enable-git-crypt-on-a-nest">Step by step: enable git-crypt on a nest</h2>
+<p>Run these from the repo root. The first step is a backup, because the later steps can go wrong in quiet ways.</p>
+<pre class="code"><code data-lang="bash"># 0. Full backup (your rollback path)
+git bundle create ~/repo-pre-crypt.bundle --all
+cp -a . ~/repo-dir-backup
+
+# 1. Install git-crypt
+brew install git-crypt          # Debian/Ubuntu: apt-get install -y git-crypt
+
+# 2. Init with the DEFAULT key (no -k &lt;name&gt;)
+git-crypt init
+
+# 3. Export the key OUTSIDE the repo; never commit it
+git-crypt export-key ~/myrepo-gitcrypt.key
+
+# 4. Declare what gets encrypted (single-file memory)
+printf &#x27;shared/memory.md filter=git-crypt diff=git-crypt\nagents/**/memory.md filter=git-crypt diff=git-crypt\n&#x27; &gt; .gitattributes
+
+# 5. Re-add so the filter runs, then commit
+git add .gitattributes shared/memory.md $(find agents -name memory.md)
+git commit -m &quot;security: encrypt memory files with git-crypt&quot;
+
+# 6. Verify the stored blob is ciphertext
+git cat-file -p HEAD:shared/memory.md | head -c 12 | od -c   # expect \0 G I T C R Y P T \0</code></pre>
+<p><code>.gitattributes</code> itself stays plaintext, since git has to read it. The git-crypt project also warns to put these rules in place <em>before</em> adding sensitive files (<a href="https://github.com/AGWA/git-crypt" rel="noopener">git-crypt README</a>).</p>
+<p>On every other machine, after cloning, run once:</p>
+<pre class="code"><code data-lang="bash">git-crypt unlock /path/to/myrepo-gitcrypt.key</code></pre>
+<p>From then on it is transparent: nestwork's hooks pull, commit and push as usual, and the clean filter is deterministic, so unchanged files do not produce spurious diffs.</p>
+<h2 id="topic-memory-encrypt-the-whole-scope-not-just-the-index">Topic memory: encrypt the whole scope, not just the index</h2>
+<p>The patterns above assume one <code>memory.md</code> per scope. Under protocol 3.1, a scope can switch to topic memory, where <code>memory.md</code> is only a generated index and the facts live in files like <code>shared/&lt;topic&gt;.md</code>. Those files would stay plaintext. Cover the directories instead:</p>
+<pre class="code"><code data-lang="gitattributes">shared/** filter=git-crypt diff=git-crypt
+agents/** filter=git-crypt diff=git-crypt</code></pre>
+<p><code>**</code> matches every depth, so topic subfolders and each agent's mailbox <code>outbox/</code> are covered too. This was checked with git-crypt 0.8.0: every file under both directories was stored as <code>GITCRYPT</code> ciphertext, and files outside them stayed plaintext. Re-run the step 6 check on one topic file.</p>
+<p>Two practical consequences:</p>
+<ul><li><code>scripts/maintenance/memory-index.py</code> and <code>distill.py</code> read the working tree, so run them only on an unlocked clone. On a locked clone they see ciphertext.</li><li>With <code>agents/**</code> encrypted, each agent's <code>resident.md</code>, which loads at session start, is encrypted as well. Every machine that runs an agent has to be unlocked, or the agent starts with unreadable context.</li></ul>
+<h2 id="three-pitfalls-the-docs-call-out">Three pitfalls the docs call out</h2>
+<ol><li><strong>Named keys silently do nothing.</strong> <code>git-crypt init -k &lt;name&gt;</code> configures a filter called <code>git-crypt-&lt;name&gt;</code>, which does not match <code>filter=git-crypt</code>. Everything looks fine and the blobs stay plaintext. For a single key, use bare <code>git-crypt init</code>.</li><li><strong><code>git show</code> lies.</strong> On an unlocked clone, <code>git show</code> and <code>git diff</code> pass through the filter and display plaintext. Verify only with <code>git cat-file -p</code>, which shows the raw blob.</li><li><strong>History rewrites break upstream tracking.</strong> After a history rewrite (next section) the branch loses its upstream, nestwork's pre-write <code>git pull --rebase</code> fails, and every memory write is blocked. Fix it with <code>git branch --set-upstream-to=origin/main main</code> on the machine that did the rewrite.</li></ol>
+<h2 id="already-pushed-plaintext-you-have-to-rewrite-history">Already pushed plaintext? You have to rewrite history</h2>
+<p><code>git-crypt init</code> protects future commits only. Anything committed before is still readable in history on the host. Removing it means rewriting history, for example with <a href="https://github.com/newren/git-filter-repo" rel="noopener">git-filter-repo</a>:</p>
+<pre class="code"><code data-lang="bash">git-filter-repo --force --invert-paths --path shared/memory.md --path-glob &#x27;agents/*/*/memory.md&#x27;
+git remote add origin &lt;url&gt;                      # filter-repo drops the remote
+git push --force origin main
+git branch --set-upstream-to=origin/main main</code></pre>
+<p>Adjust the paths to match what you encrypt; with topic memory, memory lives in more files than <code>memory.md</code>. Since the removed paths are rewritten out of the current commit too, check your working tree and restore the files from the step 0 directory backup if needed. Then redo the setup from step 2.</p>
+<p>The cost is real: every other clone now has diverged history and needs <code>git fetch &amp;&amp; git reset --hard origin/main &amp;&amp; git-crypt unlock &lt;key&gt;</code>.</p>
+<h2 id="what-encryption-does-not-hide">What encryption does not hide</h2>
+<ul><li><strong>Commit messages.</strong> git-crypt does not encrypt file names, commit messages or other metadata, and does not hide file sizes or when files change (<a href="https://github.com/AGWA/git-crypt" rel="noopener">git-crypt README</a>). nestwork's own commits are formulaic, such as <code>memory: update &lt;host&gt;/&lt;agent-id&gt;</code> or <code>comms: task to &lt;host&gt;/&lt;agent-id&gt; (&lt;id&gt;)</code>, so they reveal machine names, agent ids and activity timing, but not content. Anything you type into a manual commit message is public to the host.</li><li><strong>File names.</strong> A topic file called <code>health.md</code> announces its subject, and topic descriptions copied into an unencrypted index are readable too. For high-sensitivity cases the guide suggests meaningless file names and a uniform commit message.</li><li><strong>The model provider.</strong> The agent decrypts to read, so plaintext enters the API request. Encryption protects against the git host and anyone who obtains a clone, not against whoever runs the agent.</li><li><strong>A stolen laptop.</strong> If the key and the unlocked clone sit on the same device with no passphrase, the thief has both.</li></ul>
+<h2 id="key-backups-and-why-keys-never-go-into-memory">Key backups, and why keys never go into memory</h2>
+<p>Treat the exported key as the durable asset. The guide's rules: one key per encrypted repo, copied to every machine; the key never enters the repo or any mirror of it; at least two offline backups, such as a password-manager attachment plus offline media; never send it over chat or email. Lose every copy and the ciphertext is unreadable for good, including every backup of the repo.</p>
+<p>git-crypt also cannot revoke access: its README notes that anyone who once had the key can still read older history even after rotation.</p>
+<p>Encrypted or not, API keys, tokens and passwords do not belong in agent memory. nestwork's README says so directly: a private repo can still leak through a host vulnerability, a compromised account or a wrong collaborator permission, and the agent loads memory into model requests as plaintext anyway. Keep secrets in environment variables or a secret store, and let memory say only <em>where</em> a credential comes from.</p>
+<h2 id="faq">FAQ</h2>
+<h3 id="does-git-crypt-slow-nestwork-down">Does git-crypt slow nestwork down?</h3>
+<p>The guide notes that encryption is transparent to the hooks and the clean filter is deterministic. It does not publish timing numbers, so none are claimed here.</p>
+<h3 id="can-i-encrypt-only-one-agent-s-memory">Can I encrypt only one agent's memory?</h3>
+<p>Yes. The patterns are ordinary <code>.gitattributes</code> rules, so you can target one scope, such as a single agent directory. The guide recommends keeping the encrypted scope as small as possible.</p>
+<h3 id="does-update-sh-still-work-on-an-encrypted-nest">Does <code>update.sh</code> still work on an encrypted nest?</h3>
+<p>Yes, with the current updater. It extracts upstream files without running your smudge filter and stages them through your clean filter. Commit or stash local changes first, then check that <code>VERSION</code> is not empty and that encrypted files remain encrypted.</p>
+<h3 id="is-this-built-into-the-installers">Is this built into the installers?</h3>
+<p>No. It is a manual, opt-in procedure. The protocol deliberately does not bake encryption in.</p>
+<h2 id="related">Related</h2>
+<ul><li><a href="../git-native-agent-memory/">Git-native memory for AI agents</a></li><li><a href="../agent-mailbox-git/">Agent-to-agent communication with a git mailbox</a></li><li><a href="../nestwork-getting-started-faq/">nestwork setup FAQ</a></li><li><a href="../long-term-memory-in-practice/">What AI agent long-term memory is like in practice</a></li><li><a href="../agent-amnesia-cross-device/">Your AI agent forgets everything when you switch devices</a></li></ul>
+      <section class="cta" aria-label="Give your agents a memory">
+        <h2>Give your agents a memory</h2>
+        <p>nestwork turns one private git repo into shared, persistent memory for Claude Code, Codex, Gemini, Kimi and more.</p>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">Use this template →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ Star on GitHub</a>
+      </section>
+    </article>
+    <aside class="toc" aria-label="On this page"><b>On this page</b><a href="#do-you-need-it-at-all">Do you need it at all?</a><a href="#step-by-step-enable-git-crypt-on-a-nest">Step by step: enable git-crypt on a nest</a><a href="#topic-memory-encrypt-the-whole-scope-not-just-the-index">Topic memory: encrypt the whole scope, not just the index</a><a href="#three-pitfalls-the-docs-call-out">Three pitfalls the docs call out</a><a href="#already-pushed-plaintext-you-have-to-rewrite-history">Already pushed plaintext? You have to rewrite history</a><a href="#what-encryption-does-not-hide">What encryption does not hide</a><a href="#key-backups-and-why-keys-never-go-into-memory">Key backups, and why keys never go into memory</a><a href="#faq">FAQ</a><a href="#related">Related</a></aside>
+  </div>
+  <section class="more" aria-label="All articles">
+    <div class="wrap">
+      <h2>All articles →</h2>
+      <div class="cards"><a href="../ai-agent-memory/"><b>AI Agent Memory — Four Types and Their Trade-offs</b><span>AI agent memory is context an agent keeps beyond one session. Compare context windows, built-in memory, vector services and files for coding agents.</span></a><a href="../claude-code-memory-across-machines/"><b>Claude Code Memory Across Machines, Synced with Git</b><span>Claude Code&#x27;s CLAUDE.md and auto memory stay on one machine. Where they&#x27;re stored, why they don&#x27;t sync, and how to share them across machines with git.</span></a><a href="../share-memory-claude-code-codex/"><b>Share Memory Between Claude Code and Codex</b><span>Claude Code reads ~/.claude/CLAUDE.md, Codex reads ~/.codex/AGENTS.md. Point both at one git repo to share memory, each writing only its own directory.</span></a><a href="../codex-cli-persistent-memory/"><b>Codex CLI Memory, AGENTS.md and Persistent Recall</b><span>How Codex CLI remembers today (AGENTS.md and opt-in local memories), and how to give Codex persistent memory across sessions and machines with git.</span></a><a href="../agent-memory-tools-compared/"><b>Agent Memory Tools Compared — Mem0, Letta, Zep and More</b><span>Mem0, Letta, Zep, Supermemory, claude-mem, built-in tool memory and nestwork compared on architecture, deployment, data ownership and best fit.</span></a><a href="../agent-memory-benchmarks/"><b>Agent Memory Benchmarks — LoCoMo, LongMemEval, BEAM</b><span>What LoCoMo, LongMemEval and BEAM measure, how LLM judges score them, why vendor numbers don&#x27;t compare, and which metrics matter for coding agents.</span></a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span>nestwork — AI agent memory, git-native.</span>
+    <span><a href="../../">Home</a><a href="../">Articles</a><a href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-lang-switch]').forEach(function (a) {
+  a.addEventListener('click', function () { try { localStorage.setItem('nestwork_lang', a.getAttribute('data-lang-switch')); } catch (e) {} });
+});
+</script>
+</body>
+</html>

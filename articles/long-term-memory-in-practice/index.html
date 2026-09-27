@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Agent Long-Term Memory in Practice: What Changes</title>
+<meta name="description" content="What persistent context across sessions is like day to day: how memory accumulates, what happens on a new machine or tool, and the upkeep it needs.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="songth1ef">
+<meta name="theme-color" content="#8fdcf7">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/articles/long-term-memory-in-practice/">
+<link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/long-term-memory-in-practice/">
+<link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/long-term-memory-in-practice/">
+<link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/long-term-memory-in-practice/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232ec4d6'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="nestwork">
+<meta property="og:title" content="AI Agent Long-Term Memory in Practice: What Changes">
+<meta property="og:description" content="What persistent context across sessions is like day to day: how memory accumulates, what happens on a new machine or tool, and the upkeep it needs.">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/articles/long-term-memory-in-practice/">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AI Agent Long-Term Memory in Practice: What Changes">
+<meta name="twitter:description" content="What persistent context across sessions is like day to day: how memory accumulates, what happens on a new machine or tool, and the upkeep it needs.">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://songth1ef.github.io/nestwork/articles/long-term-memory-in-practice/#article","headline":"AI Agent Long-Term Memory in Practice: What Changes","description":"What persistent context across sessions is like day to day: how memory accumulates, what happens on a new machine or tool, and the upkeep it needs.","inLanguage":"en","datePublished":"2026-09-27","dateModified":"2026-09-27","author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"publisher":{"@type":"Organization","name":"nestwork","url":"https://songth1ef.github.io/nestwork/"},"image":["https://songth1ef.github.io/nestwork/og.png"],"mainEntityOfPage":"https://songth1ef.github.io/nestwork/articles/long-term-memory-in-practice/","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://songth1ef.github.io/nestwork/"},{"@type":"ListItem","position":2,"name":"Articles","item":"https://songth1ef.github.io/nestwork/articles/"},{"@type":"ListItem","position":3,"name":"AI Agent Long-Term Memory in Practice: What Changes","item":"https://songth1ef.github.io/nestwork/articles/long-term-memory-in-practice/"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Will the agent remember everything I said?","acceptedAnswer":{"@type":"Answer","text":"No, and it should not. nestwork keeps what you or the agent decide to record, not raw transcripts. An optional feature can copy local prompt history, but the README recommends leaving it off."}},{"@type":"Question","name":"Does a bigger memory make every session slower?","acceptedAnswer":{"@type":"Answer","text":"Startup cost stays flat, because only the resident files load. Cost grows only with what a given task chooses to open."}},{"@type":"Question","name":"How do I undo a bad memory entry?","acceptedAnswer":{"@type":"Answer","text":"Edit or remove it like any file, or revert the commit. Every write is a separate git commit, so you can see when a fact appeared and which agent wrote it."}},{"@type":"Question","name":"Can I see what my agents know?","acceptedAnswer":{"@type":"Answer","text":"Yes. It is plain Markdown in your own repo; open it in any editor or browse it on your git host."}}]}]}</script>
+<style>
+@font-face { font-family: "VT323"; src: url("../../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+:root {
+  --bg: #fbf8ef; --fg: #111; --muted: #5c5c5c; --teal: #2ec4d6; --teal-dark: #0a8fa0; --magenta: #ff2d8f;
+  --lime: #d6f25a; --yellow: #ffe53d; --sky: #29c6ec; --red: #ec2a33;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::selection { background: var(--yellow); }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 2px solid #111; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.badge { background: var(--teal); color: #000; font-weight: 800; letter-spacing: -0.03em; padding: 2px 10px 3px; border: 2px solid #000; outline: 2px solid var(--teal); text-decoration: none; font-size: 18px; }
+.nav { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 13px; }
+.nav a { text-decoration: none; color: #333; }
+.nav a:hover { background: var(--yellow); color: #000; }
+.nav .gh { background: #111; color: #fff; padding: 4px 10px; font-weight: 700; }
+.art-hero { background: linear-gradient(180deg, #8fdcf7 0%, #d4f3ff 60%, var(--bg) 100%); border-bottom: 2px solid #111; padding: 48px 0 44px; position: relative; overflow: hidden; }
+.art-hero::after { content: ""; position: absolute; right: -60px; top: -40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 11px 11px; -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%); mask-image: radial-gradient(circle, #000 50%, transparent 70%); pointer-events: none; }
+.crumbs { font-family: var(--pixel); font-size: 20px; letter-spacing: 0.04em; color: #0a5f6b; margin: 0 0 14px; position: relative; z-index: 1; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { background: var(--yellow); }
+.art-hero h1 { font-size: clamp(34px, 5.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 0; max-width: 880px; position: relative; z-index: 1; }
+:lang(zh) .art-hero h1 { line-height: 1.2; letter-spacing: -0.01em; }
+.art-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: #333; position: relative; z-index: 1; }
+.art-meta span { background: #fff; border: 2px solid #111; padding: 2px 8px; }
+.art-meta .kind { background: var(--magenta); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; padding-top: 48px; padding-bottom: 72px; }
+.layout.wide { grid-template-columns: 1fr; }
+.layout > * { min-width: 0; }
+.prose p code, .prose li code, .prose td code { overflow-wrap: anywhere; }
+.wide .prose { max-width: none; }
+.wide .toc { display: none; }
+.wide .prose > p:first-child { max-width: 72ch; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+.prose { max-width: 72ch; }
+.prose > p:first-child { font-size: 1.12em; }
+.prose h2 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; line-height: 1.2; margin: 2.1em 0 0.6em; padding-top: 0.2em; border-top: 2px solid #111; scroll-margin-top: 80px; }
+.prose h2::before { content: "// "; font-family: var(--pixel); color: var(--magenta); font-weight: 400; }
+.prose h3 { font-size: 21px; letter-spacing: -0.015em; margin: 1.6em 0 0.4em; scroll-margin-top: 80px; }
+.prose p, .prose li { color: #222; }
+.prose a { text-decoration-color: var(--magenta); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose a:hover { background: var(--yellow); }
+.prose code { font-family: var(--mono); font-size: 0.86em; background: #fff; border: 1.5px solid #111; padding: 0 5px; }
+.prose pre.code { background: #151515; color: #eee; border-left: 5px solid var(--teal); padding: 16px 18px; overflow-x: auto; font-size: 14.5px; line-height: 1.65; box-shadow: 6px 6px 0 #111; }
+.prose pre.code code { background: none; border: 0; padding: 0; font-size: 1em; color: inherit; }
+.prose blockquote { margin: 1.4em 0; padding: 14px 20px; background: #fff; border: 2px solid #111; border-left: 8px solid var(--magenta); box-shadow: 5px 5px 0 #111; }
+.prose blockquote p { margin: 0; font-weight: 600; }
+.prose figure { margin: 1.6em 0; }
+.prose img { width: 100%; height: auto; border: 2px solid #111; box-shadow: 6px 6px 0 #111; display: block; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin: 0.3em 0; }
+.prose li::marker { color: var(--magenta); font-weight: 700; }
+.table-wrap { overflow-x: auto; border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; margin: 1.4em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #0002; vertical-align: top; }
+thead th { background: #111; color: #fff; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.toc { position: sticky; top: 84px; align-self: start; background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 var(--teal); padding: 16px 18px; font-size: 14.5px; line-height: 1.45; }
+.toc b { display: block; font-family: var(--pixel); font-weight: 400; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 8px; }
+.toc a { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px dashed #0003; color: #222; }
+.toc a:hover { background: var(--yellow); }
+.cta { margin-top: 56px; background: var(--lime); border: 2px solid #111; box-shadow: 8px 8px 0 #111; padding: 28px 28px 30px; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; right: -40px; top: -30px; width: 200px; height: 120px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 12px, transparent 12px 24px); transform: rotate(-4deg); }
+.cta h2 { border: 0; margin: 0 0 8px; padding: 0; font-size: 30px; position: relative; z-index: 1; }
+.cta h2::before { content: none; }
+.cta p { margin: 0 0 18px; max-width: 520px; font-weight: 600; position: relative; z-index: 1; }
+.btn { display: inline-flex; gap: 8px; padding: 12px 20px; font-weight: 800; text-decoration: none; border: 2px solid #111; margin: 0 10px 10px 0; position: relative; z-index: 1; }
+.btn:hover { box-shadow: 5px 5px 0 #111; transform: translate(-2px, -2px); }
+.btn-ink { background: #111; color: #fff; }
+.btn-ghost { background: #fff; color: #111; }
+.more { border-top: 2px solid #111; background: #fff; padding: 48px 0 60px; }
+.more h2 { font-family: var(--pixel); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; margin: 0 0 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+.cards a { display: block; text-decoration: none; background: var(--bg); border: 2px solid #111; box-shadow: 5px 5px 0 #111; padding: 16px 18px; }
+.cards a:hover { background: var(--yellow); }
+.cards b { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; }
+.cards span { display: block; margin-top: 6px; font-size: 14px; color: #444; line-height: 1.5; }
+.site-footer { background: #111; color: #aaa; padding: 30px 0 40px; font-family: var(--mono); font-size: 12.5px; }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.site-footer a { color: #ddd; text-decoration: none; margin-left: 16px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="badge" href="../../">nestwork</a>
+    <nav class="nav" aria-label="Articles">
+      <a href="../">Articles</a>
+      <a href="https://songth1ef.github.io/nestwork/zh/articles/long-term-memory-in-practice/" hreflang="zh-CN" data-lang-switch="zh">中文</a>
+      <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="art-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="../../">Home</a> / <a href="../">Articles</a> /</p>
+      <h1>AI Agent Long-Term Memory in Practice: What Changes</h1>
+      <div class="art-meta"><span class="kind">Guides</span><span>6 min read</span><span>Updated 2026-09-27</span></div>
+    </div>
+  </div>
+  <div class="wrap layout">
+    <article class="prose">
+<p><strong>What is it actually like to give an AI coding agent long-term memory?</strong> Mostly, you stop noticing it. You open a session, the agent already knows your rules and where it can look up past decisions, and you skip the "who are you, where were we" preamble. With nestwork, memory is Markdown in a private git repo: writes are committed and pushed as they happen, other machines and tools pick them up on their next pull, and startup stays small because history is read only when a task needs it.</p>
+<p>This article answers the questions people ask after the first week: how memory builds up, what happens when you switch machines or tools, what to do when there is a lot of it, and what upkeep it needs.</p>
+<h2 id="does-memory-build-up-by-itself">Does memory build up by itself?</h2>
+<p>Partly. It helps to separate <em>deciding what to keep</em> from <em>keeping it</em>.</p>
+<p>Deciding is still yours. nestwork's <a href="https://github.com/songth1ef/nestwork/blob/main/README.md" rel="noopener">README</a> puts it plainly: when you reach a decision, a lesson or a change in project status, you tell the agent to record it, or accept its suggestion to. The protocol also asks agents to save only context worth preserving, not temporary task details or one-off debugging notes.</p>
+<p>Keeping is automatic. On Claude Code and Kimi Code, every Write/Edit inside the agent's own directory is wrapped by hooks:</p>
+<ol><li>Before the write: <code>git pull --rebase</code>, so the agent does not overwrite a newer remote version. A conflict blocks the write.</li><li>After the write: <code>git add</code>, a commit named <code>memory: update &lt;host&gt;/&lt;agent-id&gt;</code>, and a push, retried up to three times.</li><li>At the end of each turn: a Stop hook repeats the commit and push as a safety net; it does nothing when the tree is clean.</li></ol>
+<p>Codex, Gemini CLI and the other tools without per-write hooks follow the same protocol from their startup file and commit their directory at the end of the session. The result looks the same in git log: a steady trail of small, dated memory commits, each one reversible.</p>
+<h2 id="what-loads-when-a-session-starts">What loads when a session starts?</h2>
+<p>Very little, on purpose. Since protocol 3.0 a session loads only the resident tier: <code>queen/agent-rules.md</code> (your rules), <code>shared/resident.md</code> and the agent's own <code>resident.md</code>. Everything else, including your strategy, the history in <code>memory.md</code>, <code>projects/</code> and <code>workflow/</code>, is searched when the task calls for it.</p>
+<p>The author measured this on his own nest (10 machines, 30+ agent instances, September 2026, token counts with <code>o200k_base</code>):</p>
+<div class="table-wrap"><table><thead><tr><th>What gets loaded</th><th>Files</th><th>Tokens</th></tr></thead><tbody><tr><td>2.x-style full startup (rules, strategy, all memory, workflows)</td><td>37</td><td>~69,600</td></tr><tr><td>3.x startup, resident tier only</td><td>2</td><td>~640</td></tr><tr><td>3.x task: a git operation (resident + index + one topic)</td><td>4</td><td>~3,600</td></tr><tr><td>Every memory file in the nest</td><td>180</td><td>~369,000</td></tr></tbody></table></div>
+<p>The practical effect: memory can keep growing without making every session start heavier. Resident files have byte budgets (4096 for rules, 4096 for the shared summary, 2048 per agent) that <code>scripts/maintenance/check-resident.py</code> checks before you commit.</p>
+<h2 id="what-happens-on-a-new-machine">What happens on a new machine?</h2>
+<p>You clone the nest and run the installer for your tool. The new machine gets its own agent directory, for Claude Code an id with a random suffix such as <code>claude-a7k2</code>, so it starts with an empty private memory file. It is not starting from zero, though: the shared summary, <code>shared/memory.md</code>, every other agent's memory, your projects and your workflows are all in the same clone, available on demand.</p>
+<p>This is the exact problem nestwork was built for. In <a href="../16-agents-one-brain/">the author's first write-up</a>, an agent on machine A wrote down that a project's deploy script had a nasty gotcha, and the next day the agent on machine B stepped on the same rake. The first time it worked with git, he had an agent record a decision on Windows, pulled on the Mac, and Codex read it. Once per-write sync was in place, he writes that losing memory across machines or having two machines collide "just hasn't happened again."</p>
+<h2 id="what-happens-when-you-switch-tools">What happens when you switch tools?</h2>
+<p>Install nestwork for the new tool. The installer injects the startup protocol into that tool's config file and gives it its own identity, so Claude Code, Codex and the others each have a directory but read the same rules, projects and shared memory. The README's tool-migration scenario sums it up: memory is in your git repo, not a vendor, so the cost of switching tools is close to zero.</p>
+<p>The tools' own built-in memory is a separate matter. Claude Code's documentation says auto memory lives under <code>~/.claude/projects/&lt;project&gt;/memory/</code> and is "machine-local... not shared across machines or cloud environments" (<a href="https://code.claude.com/docs/en/memory" rel="noopener">Claude Code memory docs</a>). nestwork's protocol (AGENTS.md §13) treats that as something to <em>distill</em> into the nest, not mirror: stable, portable points go into <code>workflow/</code> or shared memory, machine-specific restore notes go into a cold <code>carryover/&lt;tool&gt;.md</code> that is never loaded at startup, and fast-moving progress snapshots are dropped.</p>
+<h2 id="what-do-you-do-when-memory-gets-big">What do you do when memory gets big?</h2>
+<p>Three mechanisms, all explicit rather than magic:</p>
+<ul><li><strong>File limits and splits.</strong> Agent <code>memory.md</code> is capped at 200 lines, <code>shared/memory.md</code> at 500, <code>projects/&lt;name&gt;.md</code> at 150. Past the limit, a file becomes an index plus topic files.</li><li><strong>Topic memory (protocol 3.1, opt-in).</strong> A scope's <code>memory.md</code> becomes a generated index. Each topic file starts with a <code>description</code> that says <em>when</em> to read it, and the agent opens only the one or two files that match the task. The migration is manual and reviewed: split by existing headings, move text verbatim, then run <code>memory-index.py</code>.</li><li><strong>Distillation.</strong> When several agents have learned overlapping things, <code>scripts/maintenance/distill.py</code> merges them into <code>shared/</code>. It never runs on its own, and by default it writes the result to your working tree without committing, so you review <code>git diff -- shared/</code> first. Shared memory is a union: an observation only one agent made is kept, and each agent's private memory is untouched.</li></ul>
+<p>Distilled content is <em>not</em> automatically promoted to startup. Only reviewed, stable facts that must apply before anyone looks them up belong in a resident summary.</p>
+<h2 id="what-upkeep-does-it-need">What upkeep does it need?</h2>
+<p>A short list, none of it daily:</p>
+<div class="table-wrap"><table><thead><tr><th>Task</th><th>Command or place</th></tr></thead><tbody><tr><td>Check startup budgets before committing context</td><td><code>python3 scripts/maintenance/check-resident.py</code></td></tr><tr><td>Rebuild and validate topic indexes</td><td><code>python3 scripts/maintenance/memory-index.py</code>, then <code>--check</code></td></tr><tr><td>Merge agents' memory into shared</td><td><code>python3 scripts/maintenance/distill.py --run-claude</code> (or <code>--run-codex</code>), review, commit</td></tr><tr><td>See what sessions really load</td><td><code>python3 scripts/maintenance/measure-context.py</code></td></tr><tr><td>Keep the mailbox scan small</td><td><code>bash scripts/comms/archive.sh 30</code></td></tr><tr><td>Pull protocol updates</td><td><code>bash scripts/maintenance/update.sh</code></td></tr></tbody></table></div>
+<p>One habit matters more than any script: treat old facts with suspicion. The protocol says residency controls loading, not truth, and agents should verify dated project state before acting on it. The recommended <code>projects/&lt;name&gt;.md</code> format ends with a "Last Verified" field for this reason.</p>
+<h2 id="faq">FAQ</h2>
+<h3 id="will-the-agent-remember-everything-i-said">Will the agent remember everything I said?</h3>
+<p>No, and it should not. nestwork keeps what you or the agent decide to record, not raw transcripts. An optional feature can copy local prompt history, but the README recommends leaving it off.</p>
+<h3 id="does-a-bigger-memory-make-every-session-slower">Does a bigger memory make every session slower?</h3>
+<p>Startup cost stays flat, because only the resident files load. Cost grows only with what a given task chooses to open.</p>
+<h3 id="how-do-i-undo-a-bad-memory-entry">How do I undo a bad memory entry?</h3>
+<p>Edit or remove it like any file, or revert the commit. Every write is a separate git commit, so you can see when a fact appeared and which agent wrote it.</p>
+<h3 id="can-i-see-what-my-agents-know">Can I see what my agents know?</h3>
+<p>Yes. It is plain Markdown in your own repo; open it in any editor or browse it on your git host.</p>
+<h2 id="related">Related</h2>
+<ul><li><a href="../ai-agent-memory/">AI agent memory, explained</a></li><li><a href="../topic-memory-on-demand-loading/">Topic memory and on-demand loading</a></li><li><a href="../memory-distillation/">Memory distillation</a></li><li><a href="../claude-code-memory-across-machines/">Claude Code memory across machines</a></li><li><a href="../rescue-tool-native-memory/">Rescue a tool's native memory</a></li></ul>
+      <section class="cta" aria-label="Give your agents a memory">
+        <h2>Give your agents a memory</h2>
+        <p>nestwork turns one private git repo into shared, persistent memory for Claude Code, Codex, Gemini, Kimi and more.</p>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">Use this template →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ Star on GitHub</a>
+      </section>
+    </article>
+    <aside class="toc" aria-label="On this page"><b>On this page</b><a href="#does-memory-build-up-by-itself">Does memory build up by itself?</a><a href="#what-loads-when-a-session-starts">What loads when a session starts?</a><a href="#what-happens-on-a-new-machine">What happens on a new machine?</a><a href="#what-happens-when-you-switch-tools">What happens when you switch tools?</a><a href="#what-do-you-do-when-memory-gets-big">What do you do when memory gets big?</a><a href="#what-upkeep-does-it-need">What upkeep does it need?</a><a href="#faq">FAQ</a><a href="#related">Related</a></aside>
+  </div>
+  <section class="more" aria-label="All articles">
+    <div class="wrap">
+      <h2>All articles →</h2>
+      <div class="cards"><a href="../ai-agent-memory/"><b>AI Agent Memory — Four Types and Their Trade-offs</b><span>AI agent memory is context an agent keeps beyond one session. Compare context windows, built-in memory, vector services and files for coding agents.</span></a><a href="../claude-code-memory-across-machines/"><b>Claude Code Memory Across Machines, Synced with Git</b><span>Claude Code&#x27;s CLAUDE.md and auto memory stay on one machine. Where they&#x27;re stored, why they don&#x27;t sync, and how to share them across machines with git.</span></a><a href="../share-memory-claude-code-codex/"><b>Share Memory Between Claude Code and Codex</b><span>Claude Code reads ~/.claude/CLAUDE.md, Codex reads ~/.codex/AGENTS.md. Point both at one git repo to share memory, each writing only its own directory.</span></a><a href="../codex-cli-persistent-memory/"><b>Codex CLI Memory, AGENTS.md and Persistent Recall</b><span>How Codex CLI remembers today (AGENTS.md and opt-in local memories), and how to give Codex persistent memory across sessions and machines with git.</span></a><a href="../agent-memory-tools-compared/"><b>Agent Memory Tools Compared — Mem0, Letta, Zep and More</b><span>Mem0, Letta, Zep, Supermemory, claude-mem, built-in tool memory and nestwork compared on architecture, deployment, data ownership and best fit.</span></a><a href="../agent-memory-benchmarks/"><b>Agent Memory Benchmarks — LoCoMo, LongMemEval, BEAM</b><span>What LoCoMo, LongMemEval and BEAM measure, how LLM judges score them, why vendor numbers don&#x27;t compare, and which metrics matter for coding agents.</span></a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span>nestwork — AI agent memory, git-native.</span>
+    <span><a href="../../">Home</a><a href="../">Articles</a><a href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-lang-switch]').forEach(function (a) {
+  a.addEventListener('click', function () { try { localStorage.setItem('nestwork_lang', a.getAttribute('data-lang-switch')); } catch (e) {} });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Agent Memory Isn&#x27;t a Database Problem, It&#x27;s a Protocol Problem</title>
+<meta name="description" content="Vector stores and memory services solve storage. The harder problem in AI agent memory is agreement: who writes what, where, and who wins.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="songth1ef">
+<meta name="theme-color" content="#8fdcf7">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/articles/memory-is-a-protocol-problem/">
+<link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/memory-is-a-protocol-problem/">
+<link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/memory-is-a-protocol-problem/">
+<link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/memory-is-a-protocol-problem/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232ec4d6'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="nestwork">
+<meta property="og:title" content="AI Agent Memory Isn&#x27;t a Database Problem, It&#x27;s a Protocol Problem">
+<meta property="og:description" content="Vector stores and memory services solve storage. The harder problem in AI agent memory is agreement: who writes what, where, and who wins.">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/articles/memory-is-a-protocol-problem/">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AI Agent Memory Isn&#x27;t a Database Problem, It&#x27;s a Protocol Problem">
+<meta name="twitter:description" content="Vector stores and memory services solve storage. The harder problem in AI agent memory is agreement: who writes what, where, and who wins.">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BlogPosting","@id":"https://songth1ef.github.io/nestwork/articles/memory-is-a-protocol-problem/#article","headline":"AI Agent Memory Isn't a Database Problem, It's a Protocol Problem","description":"Vector stores and memory services solve storage. The harder problem in AI agent memory is agreement: who writes what, where, and who wins.","inLanguage":"en","datePublished":"2026-09-27","dateModified":"2026-09-27","author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"publisher":{"@type":"Organization","name":"nestwork","url":"https://songth1ef.github.io/nestwork/"},"image":["https://songth1ef.github.io/nestwork/og.png"],"mainEntityOfPage":"https://songth1ef.github.io/nestwork/articles/memory-is-a-protocol-problem/","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://songth1ef.github.io/nestwork/"},{"@type":"ListItem","position":2,"name":"Articles","item":"https://songth1ef.github.io/nestwork/articles/"},{"@type":"ListItem","position":3,"name":"AI Agent Memory Isn't a Database Problem, It's a Protocol Problem","item":"https://songth1ef.github.io/nestwork/articles/memory-is-a-protocol-problem/"}]}]}</script>
+<style>
+@font-face { font-family: "VT323"; src: url("../../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+:root {
+  --bg: #fbf8ef; --fg: #111; --muted: #5c5c5c; --teal: #2ec4d6; --teal-dark: #0a8fa0; --magenta: #ff2d8f;
+  --lime: #d6f25a; --yellow: #ffe53d; --sky: #29c6ec; --red: #ec2a33;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::selection { background: var(--yellow); }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 2px solid #111; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.badge { background: var(--teal); color: #000; font-weight: 800; letter-spacing: -0.03em; padding: 2px 10px 3px; border: 2px solid #000; outline: 2px solid var(--teal); text-decoration: none; font-size: 18px; }
+.nav { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 13px; }
+.nav a { text-decoration: none; color: #333; }
+.nav a:hover { background: var(--yellow); color: #000; }
+.nav .gh { background: #111; color: #fff; padding: 4px 10px; font-weight: 700; }
+.art-hero { background: linear-gradient(180deg, #8fdcf7 0%, #d4f3ff 60%, var(--bg) 100%); border-bottom: 2px solid #111; padding: 48px 0 44px; position: relative; overflow: hidden; }
+.art-hero::after { content: ""; position: absolute; right: -60px; top: -40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 11px 11px; -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%); mask-image: radial-gradient(circle, #000 50%, transparent 70%); pointer-events: none; }
+.crumbs { font-family: var(--pixel); font-size: 20px; letter-spacing: 0.04em; color: #0a5f6b; margin: 0 0 14px; position: relative; z-index: 1; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { background: var(--yellow); }
+.art-hero h1 { font-size: clamp(34px, 5.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 0; max-width: 880px; position: relative; z-index: 1; }
+:lang(zh) .art-hero h1 { line-height: 1.2; letter-spacing: -0.01em; }
+.art-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: #333; position: relative; z-index: 1; }
+.art-meta span { background: #fff; border: 2px solid #111; padding: 2px 8px; }
+.art-meta .kind { background: var(--magenta); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; padding-top: 48px; padding-bottom: 72px; }
+.layout.wide { grid-template-columns: 1fr; }
+.layout > * { min-width: 0; }
+.prose p code, .prose li code, .prose td code { overflow-wrap: anywhere; }
+.wide .prose { max-width: none; }
+.wide .toc { display: none; }
+.wide .prose > p:first-child { max-width: 72ch; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+.prose { max-width: 72ch; }
+.prose > p:first-child { font-size: 1.12em; }
+.prose h2 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; line-height: 1.2; margin: 2.1em 0 0.6em; padding-top: 0.2em; border-top: 2px solid #111; scroll-margin-top: 80px; }
+.prose h2::before { content: "// "; font-family: var(--pixel); color: var(--magenta); font-weight: 400; }
+.prose h3 { font-size: 21px; letter-spacing: -0.015em; margin: 1.6em 0 0.4em; scroll-margin-top: 80px; }
+.prose p, .prose li { color: #222; }
+.prose a { text-decoration-color: var(--magenta); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose a:hover { background: var(--yellow); }
+.prose code { font-family: var(--mono); font-size: 0.86em; background: #fff; border: 1.5px solid #111; padding: 0 5px; }
+.prose pre.code { background: #151515; color: #eee; border-left: 5px solid var(--teal); padding: 16px 18px; overflow-x: auto; font-size: 14.5px; line-height: 1.65; box-shadow: 6px 6px 0 #111; }
+.prose pre.code code { background: none; border: 0; padding: 0; font-size: 1em; color: inherit; }
+.prose blockquote { margin: 1.4em 0; padding: 14px 20px; background: #fff; border: 2px solid #111; border-left: 8px solid var(--magenta); box-shadow: 5px 5px 0 #111; }
+.prose blockquote p { margin: 0; font-weight: 600; }
+.prose figure { margin: 1.6em 0; }
+.prose img { width: 100%; height: auto; border: 2px solid #111; box-shadow: 6px 6px 0 #111; display: block; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin: 0.3em 0; }
+.prose li::marker { color: var(--magenta); font-weight: 700; }
+.table-wrap { overflow-x: auto; border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; margin: 1.4em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #0002; vertical-align: top; }
+thead th { background: #111; color: #fff; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.toc { position: sticky; top: 84px; align-self: start; background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 var(--teal); padding: 16px 18px; font-size: 14.5px; line-height: 1.45; }
+.toc b { display: block; font-family: var(--pixel); font-weight: 400; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 8px; }
+.toc a { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px dashed #0003; color: #222; }
+.toc a:hover { background: var(--yellow); }
+.cta { margin-top: 56px; background: var(--lime); border: 2px solid #111; box-shadow: 8px 8px 0 #111; padding: 28px 28px 30px; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; right: -40px; top: -30px; width: 200px; height: 120px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 12px, transparent 12px 24px); transform: rotate(-4deg); }
+.cta h2 { border: 0; margin: 0 0 8px; padding: 0; font-size: 30px; position: relative; z-index: 1; }
+.cta h2::before { content: none; }
+.cta p { margin: 0 0 18px; max-width: 520px; font-weight: 600; position: relative; z-index: 1; }
+.btn { display: inline-flex; gap: 8px; padding: 12px 20px; font-weight: 800; text-decoration: none; border: 2px solid #111; margin: 0 10px 10px 0; position: relative; z-index: 1; }
+.btn:hover { box-shadow: 5px 5px 0 #111; transform: translate(-2px, -2px); }
+.btn-ink { background: #111; color: #fff; }
+.btn-ghost { background: #fff; color: #111; }
+.more { border-top: 2px solid #111; background: #fff; padding: 48px 0 60px; }
+.more h2 { font-family: var(--pixel); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; margin: 0 0 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+.cards a { display: block; text-decoration: none; background: var(--bg); border: 2px solid #111; box-shadow: 5px 5px 0 #111; padding: 16px 18px; }
+.cards a:hover { background: var(--yellow); }
+.cards b { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; }
+.cards span { display: block; margin-top: 6px; font-size: 14px; color: #444; line-height: 1.5; }
+.site-footer { background: #111; color: #aaa; padding: 30px 0 40px; font-family: var(--mono); font-size: 12.5px; }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.site-footer a { color: #ddd; text-decoration: none; margin-left: 16px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="badge" href="../../">nestwork</a>
+    <nav class="nav" aria-label="Articles">
+      <a href="../">Articles</a>
+      <a href="https://songth1ef.github.io/nestwork/zh/articles/memory-is-a-protocol-problem/" hreflang="zh-CN" data-lang-switch="zh">中文</a>
+      <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="art-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="../../">Home</a> / <a href="../">Articles</a> /</p>
+      <h1>AI Agent Memory Isn&#x27;t a Database Problem, It&#x27;s a Protocol Problem</h1>
+      <div class="art-meta"><span class="kind">Stories</span><span>6 min read</span><span>Updated 2026-09-27</span></div>
+    </div>
+  </div>
+  <div class="wrap layout">
+    <article class="prose">
+<figure><img src="../../articles/img/memory-protocol-cover-nw.jpg" alt="Not a database but a protocol: a database on the left, a protocol network on the right" width="1200" height="674" loading="eager" decoding="async"></figure>
+<p>Almost every memory solution built for AI agents answers the same question: where does memory live, and how do you fetch it back. Vector stores, knowledge graphs, hosted memory services. The routes differ, but the core is identical. They all treat memory as a storage-plus-retrieval problem.</p>
+<p>For a single agent, that assumption holds up fine. One agent, one machine, one context. Store it accurately, pull it back reliably, and the job is done.</p>
+<p>But the moment you cross a certain line, running several agents at once, across multiple machines, across multiple vendors, the nature of the problem changes.</p>
+<h2 id="what-actually-blocks-you-isn-t-where-to-store-it">What Actually Blocks You Isn't "Where to Store It"</h2>
+<p>Picture a scenario that isn't even extreme. You run Claude Code on Windows, Codex CLI on macOS, Gemini on two Linux boxes, and one more on your phone. In theory they're supposed to "share memory."</p>
+<p>Here's what you actually run into. Agent A just wrote down a conclusion, but Agent B is still working off a version from three hours ago, and both think they're right. Who's authoritative? Two machines edit the same memory file at almost the same instant. How do you sync, and how do you not overwrite each other? A throwaway debugging note: should every agent see it and get dragged off course by it, or not? What should be shared, and what should stay private?</p>
+<p>Notice that not one of these is a "where to store it, how to retrieve it" question. They're about authority, synchronization, concurrency, and boundaries. These are protocol-level problems. No vector search, however fast, and no semantic recall, however clever, solves "two agents write at the same time, whose write wins." A database manages data. It can't manage collaboration.</p>
+<p>nestwork aims straight at that gap. It isn't another memory database. It's a collaboration and governance protocol built for multiple agents.</p>
+<figure><img src="../../articles/img/memory-protocol-conflict-nw.jpg" alt="Four agents writing on the same sheet of paper at once, their handwriting crossing and colliding" width="1200" height="674" loading="lazy" decoding="async"></figure>
+<h2 id="what-it-looks-like-git-native-plain-markdown-no-server">What It Looks Like: Git-Native, Plain Markdown, No Server</h2>
+<p>The form nestwork takes is almost counterintuitively simple. Memory is just plain markdown in a git repo, and that repo is the single source of truth. No server, no hosted backend, no SaaS to sign up for. Agents sync through pull / commit / push, and the git remote is the transport layer. That means cross-machine sync is genuinely cross-machine, not sync inside some cloud tenant.</p>
+<p>Onboarding is pure git, too. Click GitHub's Use this template to inherit the entire protocol, and you're connected the moment you clone. There's an underrated benefit here: what you inherit is your own private repo. Your memory grows in your hands from day one, instead of sitting in some vendor's backend. For sensitive content you can layer git-crypt on top, so it's encrypted on the way in and the repo host only ever sees ciphertext. Inheriting rather than forking also means that when upstream updates the protocol, it never touches your private data.</p>
+<p>A hosted memory service can't give you this. Once you hand your context over, it lives in someone else's database. One of the upsides of being git-native is that ownership of the data never leaves you, start to finish.</p>
+<p>What it's compatible with is a whole class of agents. Claude Code, Codex CLI, Gemini CLI, Hermes, OpenClaw, all of these markdown-configured agents can plug into the same memory.</p>
+<p>That matters a lot right now. There's a new "best model ever" practically every month. You're on Cursor today, you want to try Claude Code tomorrow, and the day after that Codex or Gemini ships an update. Tying your memory to one tool is betting that the tool never gets left behind.</p>
+<p>And it's not just about getting left behind. Policy, regional restrictions, accounts, pricing, any one of these can make a tool you can't live without today suddenly unusable one day. When that happens, the deeper your memory is tied in, the more it hurts to move. Plain text bound to git is tool-agnostic. Whoever comes, whoever goes, the memory is still there. The day you need to switch wholesale from an overseas tool to a domestic model, your context stays exactly where it is. The only thing that changes is the agent reading it.</p>
+<h2 id="why-call-it-a-protocol-and-not-a-tool">Why Call It a Protocol and Not a Tool</h2>
+<p>Calling it a protocol isn't rhetoric. What holds up that label is a set of concrete mechanisms, each one answering a question the database doesn't.</p>
+<p>Layered priority plus conflict adjudication. Memory is layered: behavior rules &gt; strategy &gt; shared memory &gt; each agent's private memory &gt; projects &gt; methodology. When two instructions conflict, the rule is hard: take the higher-priority one, no splitting the difference and merging the two into mush. This is governance. It's the explicit answer to "who's authoritative."</p>
+<p>Write permissions isolated per machine and per agent. Each agent writes only its own directory. The moment a pull hits a conflict, the resolution is deterministic: take local for your own directory, take remote for someone else's, take remote for upstream-managed layers. Concurrent writers don't fight at the root.</p>
+<p>Every write is an atomic sync. On tools with per-write hooks (currently Claude Code and Kimi Code), each memory write is wrapped in a <code>pull --rebase</code> before and a commit and push with retry after. The race window is squeezed down to the instant of a single write, instead of staying open across an entire session. Tools without those hooks, such as Codex and Gemini, commit and push their own directory at the end of the session.</p>
+<p>Distillation. How do several agents' separate private memories settle into facts everyone shares? Through a distillation flow: first dispatch a sub-agent to review, checking for sensitive information, factual errors, contradictions, and stale entries, then hand it to a human to confirm, and only then merge it into shared memory. The merge is non-destructive: shared memory is a union, not an intersection, so an observation only one agent made is kept, and every agent's private memory is left untouched.</p>
+<p>Agent mailbox. Agents can do more than read the same shared memory. They can leave messages for each other, a git-native form of asynchronous communication. Collaboration goes from "everyone staring at the same whiteboard" up to "able to talk point to point."</p>
+<p>Protocol version governance. Protocol evolution is marked with MAJOR.MINOR, the session-start hook flags a newer upstream version without applying anything, and file-size limits can be overridden per instance. It behaves like a spec that iterates, not a static software package.</p>
+<figure><img src="../../articles/img/memory-protocol-layers-nw.jpg" alt="A pyramid of layered priorities, the top layer wearing a crown to show the rules rank highest" width="1200" height="900" loading="lazy" decoding="async"></figure>
+<h2 id="people-are-actually-running-it">People Are Actually Running It</h2>
+<p>The most convincing thing isn't the list of mechanisms. It's that the author is dogfooding it himself. Windows, macOS, several Linux boxes, Android, more than 16 agent instances, all sharing the same memory. It isn't a demo repo. It's a real workload in daily use.</p>
+<h2 id="a-different-frame">A Different Frame</h2>
+<p>When you have just one agent, what you need might genuinely be a good memory store. But the moment you start having multiple agents, across multiple machines, across multiple vendors, work together, sooner or later you'll find the bottleneck isn't "where to store it, how to retrieve it." It's "who's authoritative, how to sync, how not to overwrite each other."</p>
+<p>At that moment, what you need isn't another database. It's a protocol.</p>
+<h2 id="getting-started">Getting Started</h2>
+<pre class="code"><code data-lang="bash">bash scripts/install/claude.sh   # codex / gemini work the same way</code></pre>
+<p>GitHub: songth1ef/nestwork. If this framing speaks to you, give it a star. If you want to run it right away, click Use this template to inherit the protocol, and you're connected the moment you clone.</p>
+      <section class="cta" aria-label="Give your agents a memory">
+        <h2>Give your agents a memory</h2>
+        <p>nestwork turns one private git repo into shared, persistent memory for Claude Code, Codex, Gemini, Kimi and more.</p>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">Use this template →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ Star on GitHub</a>
+      </section>
+    </article>
+    <aside class="toc" aria-label="On this page"><b>On this page</b><a href="#what-actually-blocks-you-isn-t-where-to-store-it">What Actually Blocks You Isn&#x27;t &quot;Where to Store It&quot;</a><a href="#what-it-looks-like-git-native-plain-markdown-no-server">What It Looks Like: Git-Native, Plain Markdown, No Server</a><a href="#why-call-it-a-protocol-and-not-a-tool">Why Call It a Protocol and Not a Tool</a><a href="#people-are-actually-running-it">People Are Actually Running It</a><a href="#a-different-frame">A Different Frame</a><a href="#getting-started">Getting Started</a></aside>
+  </div>
+  <section class="more" aria-label="All articles">
+    <div class="wrap">
+      <h2>All articles →</h2>
+      <div class="cards"><a href="../ai-agent-memory/"><b>AI Agent Memory — Four Types and Their Trade-offs</b><span>AI agent memory is context an agent keeps beyond one session. Compare context windows, built-in memory, vector services and files for coding agents.</span></a><a href="../claude-code-memory-across-machines/"><b>Claude Code Memory Across Machines, Synced with Git</b><span>Claude Code&#x27;s CLAUDE.md and auto memory stay on one machine. Where they&#x27;re stored, why they don&#x27;t sync, and how to share them across machines with git.</span></a><a href="../share-memory-claude-code-codex/"><b>Share Memory Between Claude Code and Codex</b><span>Claude Code reads ~/.claude/CLAUDE.md, Codex reads ~/.codex/AGENTS.md. Point both at one git repo to share memory, each writing only its own directory.</span></a><a href="../codex-cli-persistent-memory/"><b>Codex CLI Memory, AGENTS.md and Persistent Recall</b><span>How Codex CLI remembers today (AGENTS.md and opt-in local memories), and how to give Codex persistent memory across sessions and machines with git.</span></a><a href="../agent-memory-tools-compared/"><b>Agent Memory Tools Compared — Mem0, Letta, Zep and More</b><span>Mem0, Letta, Zep, Supermemory, claude-mem, built-in tool memory and nestwork compared on architecture, deployment, data ownership and best fit.</span></a><a href="../agent-memory-benchmarks/"><b>Agent Memory Benchmarks — LoCoMo, LongMemEval, BEAM</b><span>What LoCoMo, LongMemEval and BEAM measure, how LLM judges score them, why vendor numbers don&#x27;t compare, and which metrics matter for coding agents.</span></a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span>nestwork — AI agent memory, git-native.</span>
+    <span><a href="../../">Home</a><a href="../">Articles</a><a href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-lang-switch]').forEach(function (a) {
+  a.addEventListener('click', function () { try { localStorage.setItem('nestwork_lang', a.getAttribute('data-lang-switch')); } catch (e) {} });
+});
+</script>
+</body>
+</html>

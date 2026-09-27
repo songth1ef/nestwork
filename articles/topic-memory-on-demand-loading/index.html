@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Load Agent Memory on Demand, Not All at Startup</title>
+<meta name="description" content="Keep a tiny resident tier in context and route everything else through a generated topic index, so an agent reads only the memory the task needs.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="songth1ef">
+<meta name="theme-color" content="#8fdcf7">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/articles/topic-memory-on-demand-loading/">
+<link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/topic-memory-on-demand-loading/">
+<link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/topic-memory-on-demand-loading/">
+<link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/topic-memory-on-demand-loading/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232ec4d6'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="nestwork">
+<meta property="og:title" content="Load Agent Memory on Demand, Not All at Startup">
+<meta property="og:description" content="Keep a tiny resident tier in context and route everything else through a generated topic index, so an agent reads only the memory the task needs.">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/articles/topic-memory-on-demand-loading/">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Load Agent Memory on Demand, Not All at Startup">
+<meta name="twitter:description" content="Keep a tiny resident tier in context and route everything else through a generated topic index, so an agent reads only the memory the task needs.">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://songth1ef.github.io/nestwork/articles/topic-memory-on-demand-loading/#article","headline":"Load Agent Memory on Demand, Not All at Startup","description":"Keep a tiny resident tier in context and route everything else through a generated topic index, so an agent reads only the memory the task needs.","inLanguage":"en","datePublished":"2026-09-27","dateModified":"2026-09-27","author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"publisher":{"@type":"Organization","name":"nestwork","url":"https://songth1ef.github.io/nestwork/"},"image":["https://songth1ef.github.io/nestwork/og.png"],"mainEntityOfPage":"https://songth1ef.github.io/nestwork/articles/topic-memory-on-demand-loading/","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://songth1ef.github.io/nestwork/"},{"@type":"ListItem","position":2,"name":"Articles","item":"https://songth1ef.github.io/nestwork/articles/"},{"@type":"ListItem","position":3,"name":"Load Agent Memory on Demand, Not All at Startup","item":"https://songth1ef.github.io/nestwork/articles/topic-memory-on-demand-loading/"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Isn't this just retrieval-augmented generation?","acceptedAnswer":{"@type":"Answer","text":"It is retrieval, but without embeddings. The agent reads a short, human-readable index and chooses files by description. That keeps it transparent and debuggable in git, at the cost of fuzzy semantic matching."}},{"@type":"Question","name":"Do I have to switch to topic memory?","acceptedAnswer":{"@type":"Answer","text":"No. It is opt-in per scope. Scopes without the markers keep single-file memory, nothing migrates automatically, and moving from 3.0 to 3.1 needs no bootstrap refresh."}},{"@type":"Question","name":"What if the agent picks the wrong topic?","acceptedAnswer":{"@type":"Answer","text":"Usually the description is the problem. Rewrite it as a trigger that says when to read the file, then regenerate the index. Resident files can also point directly at the few topics that matter most."}},{"@type":"Question","name":"Will a bigger context window make this unnecessary?","acceptedAnswer":{"@type":"Answer","text":"Unlikely. A larger window does not stop attention from degrading as tokens accumulate, and the author's full nest is already far larger than typical windows."}}]}]}</script>
+<style>
+@font-face { font-family: "VT323"; src: url("../../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+:root {
+  --bg: #fbf8ef; --fg: #111; --muted: #5c5c5c; --teal: #2ec4d6; --teal-dark: #0a8fa0; --magenta: #ff2d8f;
+  --lime: #d6f25a; --yellow: #ffe53d; --sky: #29c6ec; --red: #ec2a33;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::selection { background: var(--yellow); }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 2px solid #111; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.badge { background: var(--teal); color: #000; font-weight: 800; letter-spacing: -0.03em; padding: 2px 10px 3px; border: 2px solid #000; outline: 2px solid var(--teal); text-decoration: none; font-size: 18px; }
+.nav { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 13px; }
+.nav a { text-decoration: none; color: #333; }
+.nav a:hover { background: var(--yellow); color: #000; }
+.nav .gh { background: #111; color: #fff; padding: 4px 10px; font-weight: 700; }
+.art-hero { background: linear-gradient(180deg, #8fdcf7 0%, #d4f3ff 60%, var(--bg) 100%); border-bottom: 2px solid #111; padding: 48px 0 44px; position: relative; overflow: hidden; }
+.art-hero::after { content: ""; position: absolute; right: -60px; top: -40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 11px 11px; -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%); mask-image: radial-gradient(circle, #000 50%, transparent 70%); pointer-events: none; }
+.crumbs { font-family: var(--pixel); font-size: 20px; letter-spacing: 0.04em; color: #0a5f6b; margin: 0 0 14px; position: relative; z-index: 1; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { background: var(--yellow); }
+.art-hero h1 { font-size: clamp(34px, 5.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 0; max-width: 880px; position: relative; z-index: 1; }
+:lang(zh) .art-hero h1 { line-height: 1.2; letter-spacing: -0.01em; }
+.art-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: #333; position: relative; z-index: 1; }
+.art-meta span { background: #fff; border: 2px solid #111; padding: 2px 8px; }
+.art-meta .kind { background: var(--magenta); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; padding-top: 48px; padding-bottom: 72px; }
+.layout.wide { grid-template-columns: 1fr; }
+.layout > * { min-width: 0; }
+.prose p code, .prose li code, .prose td code { overflow-wrap: anywhere; }
+.wide .prose { max-width: none; }
+.wide .toc { display: none; }
+.wide .prose > p:first-child { max-width: 72ch; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+.prose { max-width: 72ch; }
+.prose > p:first-child { font-size: 1.12em; }
+.prose h2 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; line-height: 1.2; margin: 2.1em 0 0.6em; padding-top: 0.2em; border-top: 2px solid #111; scroll-margin-top: 80px; }
+.prose h2::before { content: "// "; font-family: var(--pixel); color: var(--magenta); font-weight: 400; }
+.prose h3 { font-size: 21px; letter-spacing: -0.015em; margin: 1.6em 0 0.4em; scroll-margin-top: 80px; }
+.prose p, .prose li { color: #222; }
+.prose a { text-decoration-color: var(--magenta); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose a:hover { background: var(--yellow); }
+.prose code { font-family: var(--mono); font-size: 0.86em; background: #fff; border: 1.5px solid #111; padding: 0 5px; }
+.prose pre.code { background: #151515; color: #eee; border-left: 5px solid var(--teal); padding: 16px 18px; overflow-x: auto; font-size: 14.5px; line-height: 1.65; box-shadow: 6px 6px 0 #111; }
+.prose pre.code code { background: none; border: 0; padding: 0; font-size: 1em; color: inherit; }
+.prose blockquote { margin: 1.4em 0; padding: 14px 20px; background: #fff; border: 2px solid #111; border-left: 8px solid var(--magenta); box-shadow: 5px 5px 0 #111; }
+.prose blockquote p { margin: 0; font-weight: 600; }
+.prose figure { margin: 1.6em 0; }
+.prose img { width: 100%; height: auto; border: 2px solid #111; box-shadow: 6px 6px 0 #111; display: block; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin: 0.3em 0; }
+.prose li::marker { color: var(--magenta); font-weight: 700; }
+.table-wrap { overflow-x: auto; border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; margin: 1.4em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #0002; vertical-align: top; }
+thead th { background: #111; color: #fff; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.toc { position: sticky; top: 84px; align-self: start; background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 var(--teal); padding: 16px 18px; font-size: 14.5px; line-height: 1.45; }
+.toc b { display: block; font-family: var(--pixel); font-weight: 400; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 8px; }
+.toc a { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px dashed #0003; color: #222; }
+.toc a:hover { background: var(--yellow); }
+.cta { margin-top: 56px; background: var(--lime); border: 2px solid #111; box-shadow: 8px 8px 0 #111; padding: 28px 28px 30px; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; right: -40px; top: -30px; width: 200px; height: 120px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 12px, transparent 12px 24px); transform: rotate(-4deg); }
+.cta h2 { border: 0; margin: 0 0 8px; padding: 0; font-size: 30px; position: relative; z-index: 1; }
+.cta h2::before { content: none; }
+.cta p { margin: 0 0 18px; max-width: 520px; font-weight: 600; position: relative; z-index: 1; }
+.btn { display: inline-flex; gap: 8px; padding: 12px 20px; font-weight: 800; text-decoration: none; border: 2px solid #111; margin: 0 10px 10px 0; position: relative; z-index: 1; }
+.btn:hover { box-shadow: 5px 5px 0 #111; transform: translate(-2px, -2px); }
+.btn-ink { background: #111; color: #fff; }
+.btn-ghost { background: #fff; color: #111; }
+.more { border-top: 2px solid #111; background: #fff; padding: 48px 0 60px; }
+.more h2 { font-family: var(--pixel); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; margin: 0 0 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+.cards a { display: block; text-decoration: none; background: var(--bg); border: 2px solid #111; box-shadow: 5px 5px 0 #111; padding: 16px 18px; }
+.cards a:hover { background: var(--yellow); }
+.cards b { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; }
+.cards span { display: block; margin-top: 6px; font-size: 14px; color: #444; line-height: 1.5; }
+.site-footer { background: #111; color: #aaa; padding: 30px 0 40px; font-family: var(--mono); font-size: 12.5px; }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.site-footer a { color: #ddd; text-decoration: none; margin-left: 16px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="badge" href="../../">nestwork</a>
+    <nav class="nav" aria-label="Articles">
+      <a href="../">Articles</a>
+      <a href="https://songth1ef.github.io/nestwork/zh/articles/topic-memory-on-demand-loading/" hreflang="zh-CN" data-lang-switch="zh">中文</a>
+      <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="art-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="../../">Home</a> / <a href="../">Articles</a> /</p>
+      <h1>Load Agent Memory on Demand, Not All at Startup</h1>
+      <div class="art-meta"><span class="kind">Guides</span><span>5 min read</span><span>Updated 2026-09-27</span></div>
+    </div>
+  </div>
+  <div class="wrap layout">
+    <article class="prose">
+<p>How should an AI agent use long-term memory without flooding its context window? Load only a small resident tier at startup, and route everything else through an index the agent reads first, opening just the one or two files whose description matches the task. On the nestwork author's own nest this cut session startup from about 69,600 tokens to about 640, while a typical task still reads only around 3,600.</p>
+<p>This article explains the two tiers, the topic index that makes the second tier navigable, what the index checker catches, and why more context is not better context.</p>
+<h2 id="why-load-everything-stops-working">Why "load everything" stops working</h2>
+<p>The first version of most memory setups injects the memory file into every session. That works while the file is small. It stops working for two reasons.</p>
+<p>First, memory grows faster than windows. The author's nest, measured in September 2026 with the <code>o200k_base</code> tokenizer:</p>
+<div class="table-wrap"><table><thead><tr><th>Scenario</th><th>Files</th><th>Size</th><th>Tokens</th></tr></thead><tbody><tr><td>2.x-style full startup (rules, strategy, all shared and agent memory, workflows)</td><td>37</td><td>224 KB</td><td>~69,600</td></tr><tr><td>3.x startup, resident tier only</td><td>2</td><td>2.6 KB</td><td>~640</td></tr><tr><td>3.x task: a git operation (resident + index + one topic)</td><td>4</td><td>11.8 KB</td><td>~3,600</td></tr><tr><td>Every memory file in the nest</td><td>180</td><td>1.2 MB</td><td>~369,000</td></tr></tbody></table></div>
+<p>The whole nest no longer fits in most context windows, so selection is not optional.</p>
+<p>Second, even when it fits, more context is not free. Liu et al. found that models' performance "significantly degrades when models must access relevant information in the middle of long contexts" (<a href="https://arxiv.org/abs/2307.03172" rel="noopener">Lost in the Middle</a>). Anthropic's engineering team calls the same effect context rot and recommends "the smallest possible set of high-signal tokens" (<a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" rel="noopener">effective context engineering</a>). nestwork's protocol puts it as a design rule: tune file sizes for retrieval quality, not raw window size, because attention still degrades with token count.</p>
+<h2 id="tier-1-resident-context">Tier 1: resident context</h2>
+<p>Since protocol 3.0, an agent loads only three files at session start (<a href="https://github.com/songth1ef/nestwork/blob/main/AGENTS.md" rel="noopener">AGENTS.md §1</a>):</p>
+<ol><li><code>queen/agent-rules.md</code>, your core behaviour rules</li><li><code>shared/resident.md</code>, small current cross-agent facts and retrieval pointers, if present</li><li><code>agents/&lt;host&gt;/&lt;agent-id&gt;/resident.md</code>, small instance-specific facts and pointers, if present</li></ol>
+<p>Each has a byte budget: 4,096 bytes for the rules, 4,096 for the shared resident file and 2,048 for each agent resident file, at most 10,240 bytes per startup. <code>python3 scripts/maintenance/check-resident.py</code> checks them before you commit and never truncates anything; an oversized file has to be reviewed and moved, not silently cut.</p>
+<p>Where a SessionStart hook is installed, it prints the resident paths as a READ-ON-START manifest and the rest as READ-ON-DEMAND. It prints paths, not contents, so one oversized file cannot crowd out the rest of the list.</p>
+<p>What belongs in resident: facts that must apply before anyone looks them up, essential boundaries and a few pointers. Project backlogs, incident stories and old status do not. The protocol's test is whether an entry has to take effect "when nobody went looking for it". When in doubt, choose on demand.</p>
+<h2 id="tier-2-on-demand-routed-by-a-topic-index">Tier 2: on demand, routed by a topic index</h2>
+<p>Everything else is on demand: strategy, memory history, projects, workflows, carryover and the mailbox. The agent starts from the current task, searches headings or keywords, and reads only the matching sections.</p>
+<p>That works for a few files. For hundreds, protocol 3.1 adds optional topic memory. A memory scope, either <code>shared/</code> or one agent directory, opts in by placing two markers in its <code>memory.md</code>:</p>
+<pre class="code"><code data-lang="markdown"># Shared memory
+
+&lt;!-- nestwork:topic-index:begin --&gt;
+&lt;!-- generated by scripts/maintenance/memory-index.py; edit topic front matter, not this block --&gt;
+
+- [`engineering.md`](engineering.md) — Build, test and release conventions; read before changing CI (2026-09-20, 6.1 KB)
+- [`hosts.md`](hosts.md) — Machine-specific quirks, ports and paths; read before touching a host&#x27;s setup (2026-09-27, 3.4 KB)
+
+&lt;!-- nestwork:topic-index:end --&gt;</code></pre>
+<p>From then on <code>memory.md</code> is a routing table, and the facts live in topic files. Each topic file starts with front matter:</p>
+<pre class="code"><code data-lang="markdown">---
+description: Machine-specific quirks, ports and paths; read before touching a host&#x27;s setup
+updated: 2026-09-27
+---</code></pre>
+<p>The <code>description</code> is the only thing an agent sees before deciding to open a file, so it is written as a trigger (when to read) rather than a title. The retrieval path becomes: resident summary, then the <code>memory.md</code> index, then the one or two topic files whose description matches.</p>
+<h2 id="it-works-like-skills">It works like skills</h2>
+<p>If you use Claude Code skills, the pattern is familiar. Claude Code's docs say skill descriptions are loaded into context, "but full skill content only loads when invoked" (<a href="https://code.claude.com/docs/en/skills" rel="noopener">Claude Code skills</a>). Claude Code's own auto memory does something similar: it loads the first 200 lines or 25 KB of <code>MEMORY.md</code> and reads topic files on demand (<a href="https://code.claude.com/docs/en/memory" rel="noopener">Claude Code memory</a>).</p>
+<p>nestwork applies the same idea to a memory store shared by many tools and machines, with one difference: the index is generated, not hand-written, so it cannot drift from the files it describes.</p>
+<h2 id="what-memory-index-py-check-catches">What <code>memory-index.py --check</code> catches</h2>
+<p>The index is produced by <a href="https://github.com/songth1ef/nestwork/blob/main/scripts/maintenance/memory-index.py" rel="noopener"><code>scripts/maintenance/memory-index.py</code></a>. Run it after changing topic files; run it with <code>--check</code> before committing or in CI:</p>
+<pre class="code"><code data-lang="bash">python3 scripts/maintenance/memory-index.py          # regenerate indexes
+python3 scripts/maintenance/memory-index.py --check  # fail instead of writing</code></pre>
+<p><code>--check</code> fails when:</p>
+<ul><li>the index is stale, meaning it no longer matches the topic files' front matter</li><li>a topic file has no <code>description</code>, which would make it invisible to retrieval</li><li>a topic file is over 32 KB (it warns above 16 KB)</li><li>a topic is nested deeper than <code>&lt;topic&gt;/&lt;subtopic&gt;.md</code></li></ul>
+<p>It also warns when a description is longer than 300 characters or the generated index block passes 8 KB, both signs that topics should be consolidated. Text outside the markers is preserved, and reserved paths such as <code>resident.md</code>, <code>outbox/</code>, <code>local/</code>, <code>carryover/</code> and anything starting with <code>_</code> or <code>.</code> are never treated as topics.</p>
+<h2 id="keeping-topics-useful">Keeping topics useful</h2>
+<p>A generated index only helps if topics are cut well. The protocol's rules (<a href="https://github.com/songth1ef/nestwork/blob/main/AGENTS.md" rel="noopener">AGENTS.md §6</a>):</p>
+<ul><li><strong>Reuse before creating.</strong> Read the index first and extend the topic that already covers the fact.</li><li><strong>Split by when it is needed, not by who wrote it.</strong> A topic is what an agent loads for one kind of task.</li><li><strong>Agents shape only their own scope.</strong> New, renamed or merged topics in <code>shared/</code> happen only during a reviewed distillation, so 30 agents don't grow three near-identical user-profile files.</li></ul>
+<p>Migrating an existing monolith is manual and reviewed: split <code>memory.md</code> by its headings, moving text verbatim; add a trigger-style description to each file; replace <code>memory.md</code> with a header and the markers; run the indexer and <code>--check</code>; point <code>resident.md</code> at the index. The steps are in <a href="https://github.com/songth1ef/nestwork/blob/main/docs/context-loading.md" rel="noopener">context loading</a>.</p>
+<p>To see the numbers for your own nest:</p>
+<pre class="code"><code data-lang="bash">python3 scripts/maintenance/measure-context.py --task shared/&lt;topic&gt;.md</code></pre>
+<p>Bytes are exact; tokens use tiktoken if installed, otherwise a calibrated estimate.</p>
+<h2 id="faq">FAQ</h2>
+<h3 id="isn-t-this-just-retrieval-augmented-generation">Isn't this just retrieval-augmented generation?</h3>
+<p>It is retrieval, but without embeddings. The agent reads a short, human-readable index and chooses files by description. That keeps it transparent and debuggable in git, at the cost of fuzzy semantic matching.</p>
+<h3 id="do-i-have-to-switch-to-topic-memory">Do I have to switch to topic memory?</h3>
+<p>No. It is opt-in per scope. Scopes without the markers keep single-file memory, nothing migrates automatically, and moving from 3.0 to 3.1 needs no bootstrap refresh.</p>
+<h3 id="what-if-the-agent-picks-the-wrong-topic">What if the agent picks the wrong topic?</h3>
+<p>Usually the description is the problem. Rewrite it as a trigger that says when to read the file, then regenerate the index. Resident files can also point directly at the few topics that matter most.</p>
+<h3 id="will-a-bigger-context-window-make-this-unnecessary">Will a bigger context window make this unnecessary?</h3>
+<p>Unlikely. A larger window does not stop attention from degrading as tokens accumulate, and the author's full nest is already far larger than typical windows.</p>
+<h2 id="related">Related</h2>
+<ul><li><a href="../git-native-agent-memory/">Git-native agent memory: why git is enough</a></li><li><a href="../memory-distillation/">Memory distillation: merging many agents' memory</a></li><li><a href="../agents-md-vs-claude-md-vs-memory/">AGENTS.md vs CLAUDE.md vs memory</a></li><li><a href="../agent-memory-benchmarks/">Agent memory benchmarks</a></li><li><a href="../long-term-memory-in-practice/">Long-term memory in practice</a></li></ul>
+      <section class="cta" aria-label="Give your agents a memory">
+        <h2>Give your agents a memory</h2>
+        <p>nestwork turns one private git repo into shared, persistent memory for Claude Code, Codex, Gemini, Kimi and more.</p>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">Use this template →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ Star on GitHub</a>
+      </section>
+    </article>
+    <aside class="toc" aria-label="On this page"><b>On this page</b><a href="#why-load-everything-stops-working">Why &quot;load everything&quot; stops working</a><a href="#tier-1-resident-context">Tier 1: resident context</a><a href="#tier-2-on-demand-routed-by-a-topic-index">Tier 2: on demand, routed by a topic index</a><a href="#it-works-like-skills">It works like skills</a><a href="#what-memory-index-py-check-catches">What memory-index.py --check catches</a><a href="#keeping-topics-useful">Keeping topics useful</a><a href="#faq">FAQ</a><a href="#related">Related</a></aside>
+  </div>
+  <section class="more" aria-label="All articles">
+    <div class="wrap">
+      <h2>All articles →</h2>
+      <div class="cards"><a href="../ai-agent-memory/"><b>AI Agent Memory — Four Types and Their Trade-offs</b><span>AI agent memory is context an agent keeps beyond one session. Compare context windows, built-in memory, vector services and files for coding agents.</span></a><a href="../claude-code-memory-across-machines/"><b>Claude Code Memory Across Machines, Synced with Git</b><span>Claude Code&#x27;s CLAUDE.md and auto memory stay on one machine. Where they&#x27;re stored, why they don&#x27;t sync, and how to share them across machines with git.</span></a><a href="../share-memory-claude-code-codex/"><b>Share Memory Between Claude Code and Codex</b><span>Claude Code reads ~/.claude/CLAUDE.md, Codex reads ~/.codex/AGENTS.md. Point both at one git repo to share memory, each writing only its own directory.</span></a><a href="../codex-cli-persistent-memory/"><b>Codex CLI Memory, AGENTS.md and Persistent Recall</b><span>How Codex CLI remembers today (AGENTS.md and opt-in local memories), and how to give Codex persistent memory across sessions and machines with git.</span></a><a href="../agent-memory-tools-compared/"><b>Agent Memory Tools Compared — Mem0, Letta, Zep and More</b><span>Mem0, Letta, Zep, Supermemory, claude-mem, built-in tool memory and nestwork compared on architecture, deployment, data ownership and best fit.</span></a><a href="../agent-memory-benchmarks/"><b>Agent Memory Benchmarks — LoCoMo, LongMemEval, BEAM</b><span>What LoCoMo, LongMemEval and BEAM measure, how LLM judges score them, why vendor numbers don&#x27;t compare, and which metrics matter for coding agents.</span></a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span>nestwork — AI agent memory, git-native.</span>
+    <span><a href="../../">Home</a><a href="../">Articles</a><a href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-lang-switch]').forEach(function (a) {
+  a.addEventListener('click', function () { try { localStorage.setItem('nestwork_lang', a.getAttribute('data-lang-switch')); } catch (e) {} });
+});
+</script>
+</body>
+</html>

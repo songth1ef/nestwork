@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Codex 记忆与 AGENTS.md：Codex 长期记忆 — nestwork</title>
+<meta name="description" content="Codex CLI 现有的记忆方式（AGENTS.md 与默认关闭的本地 memories），以及如何用 git 给 Codex 加跨会话、跨机器的长期记忆。">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="songth1ef">
+<meta name="theme-color" content="#8fdcf7">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/zh/articles/codex-cli-persistent-memory/">
+<link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/codex-cli-persistent-memory/">
+<link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/codex-cli-persistent-memory/">
+<link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/codex-cli-persistent-memory/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232ec4d6'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="nestwork">
+<meta property="og:title" content="Codex 记忆与 AGENTS.md：Codex 长期记忆">
+<meta property="og:description" content="Codex CLI 现有的记忆方式（AGENTS.md 与默认关闭的本地 memories），以及如何用 git 给 Codex 加跨会话、跨机器的长期记忆。">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/zh/articles/codex-cli-persistent-memory/">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og-zh.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Codex 记忆与 AGENTS.md：Codex 长期记忆">
+<meta name="twitter:description" content="Codex CLI 现有的记忆方式（AGENTS.md 与默认关闭的本地 memories），以及如何用 git 给 Codex 加跨会话、跨机器的长期记忆。">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og-zh.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://songth1ef.github.io/nestwork/zh/articles/codex-cli-persistent-memory/#article","headline":"Codex 记忆与 AGENTS.md：Codex 长期记忆","description":"Codex CLI 现有的记忆方式（AGENTS.md 与默认关闭的本地 memories），以及如何用 git 给 Codex 加跨会话、跨机器的长期记忆。","inLanguage":"zh-CN","datePublished":"2026-09-27","dateModified":"2026-09-27","author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"publisher":{"@type":"Organization","name":"nestwork","url":"https://songth1ef.github.io/nestwork/"},"image":["https://songth1ef.github.io/nestwork/og-zh.png"],"mainEntityOfPage":"https://songth1ef.github.io/nestwork/zh/articles/codex-cli-persistent-memory/","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://songth1ef.github.io/nestwork/zh/"},{"@type":"ListItem","position":2,"name":"文章","item":"https://songth1ef.github.io/nestwork/zh/articles/"},{"@type":"ListItem","position":3,"name":"Codex 记忆与 AGENTS.md：Codex 长期记忆","item":"https://songth1ef.github.io/nestwork/zh/articles/codex-cli-persistent-memory/"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Codex CLI 自带长期记忆吗？","acceptedAnswer":{"@type":"Answer","text":"有两样：每次会话都加载的 AGENTS.md，以及需要手动开启的 memories——把过去的对话摘要写进 ~/.codex/memories/。memories 默认关闭，存在那台机器的 Codex home 下。"}},{"@type":"Question","name":"全局的 Codex AGENTS.md 在哪？","acceptedAnswer":{"@type":"Answer","text":"在 Codex home 里，默认是 ~/.codex/AGENTS.md；设置了 CODEX_HOME 就是 $CODEX_HOME/AGENTS.md。同目录下有 AGENTS.override.md 时优先读它。"}},{"@type":"Question","name":"记忆多了会不会把 AGENTS.md 撑过 32 KiB？","acceptedAnswer":{"@type":"Answer","text":"这种配置下不会。全局文件里的 nestwork 段只是一小段路径和规则，记忆文件本身由 Codex 用普通的文件工具读取，而且只读任务需要的那几个。"}},{"@type":"Question","name":"Codex 和 Claude Code 能用同一个记忆仓库吗？","acceptedAnswer":{"@type":"Answer","text":"能。同一台机器上每个工具有自己的 agent id 和目录，见 Claude Code 和 Codex 共享记忆。"}}]}]}</script>
+<style>
+@font-face { font-family: "VT323"; src: url("../../../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../../../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+:root {
+  --bg: #fbf8ef; --fg: #111; --muted: #5c5c5c; --teal: #2ec4d6; --teal-dark: #0a8fa0; --magenta: #ff2d8f;
+  --lime: #d6f25a; --yellow: #ffe53d; --sky: #29c6ec; --red: #ec2a33;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::selection { background: var(--yellow); }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 2px solid #111; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.badge { background: var(--teal); color: #000; font-weight: 800; letter-spacing: -0.03em; padding: 2px 10px 3px; border: 2px solid #000; outline: 2px solid var(--teal); text-decoration: none; font-size: 18px; }
+.nav { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 13px; }
+.nav a { text-decoration: none; color: #333; }
+.nav a:hover { background: var(--yellow); color: #000; }
+.nav .gh { background: #111; color: #fff; padding: 4px 10px; font-weight: 700; }
+.art-hero { background: linear-gradient(180deg, #8fdcf7 0%, #d4f3ff 60%, var(--bg) 100%); border-bottom: 2px solid #111; padding: 48px 0 44px; position: relative; overflow: hidden; }
+.art-hero::after { content: ""; position: absolute; right: -60px; top: -40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 11px 11px; -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%); mask-image: radial-gradient(circle, #000 50%, transparent 70%); pointer-events: none; }
+.crumbs { font-family: var(--pixel); font-size: 20px; letter-spacing: 0.04em; color: #0a5f6b; margin: 0 0 14px; position: relative; z-index: 1; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { background: var(--yellow); }
+.art-hero h1 { font-size: clamp(34px, 5.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 0; max-width: 880px; position: relative; z-index: 1; }
+:lang(zh) .art-hero h1 { line-height: 1.2; letter-spacing: -0.01em; }
+.art-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: #333; position: relative; z-index: 1; }
+.art-meta span { background: #fff; border: 2px solid #111; padding: 2px 8px; }
+.art-meta .kind { background: var(--magenta); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; padding-top: 48px; padding-bottom: 72px; }
+.layout.wide { grid-template-columns: 1fr; }
+.layout > * { min-width: 0; }
+.prose p code, .prose li code, .prose td code { overflow-wrap: anywhere; }
+.wide .prose { max-width: none; }
+.wide .toc { display: none; }
+.wide .prose > p:first-child { max-width: 72ch; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+.prose { max-width: 72ch; }
+.prose > p:first-child { font-size: 1.12em; }
+.prose h2 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; line-height: 1.2; margin: 2.1em 0 0.6em; padding-top: 0.2em; border-top: 2px solid #111; scroll-margin-top: 80px; }
+.prose h2::before { content: "// "; font-family: var(--pixel); color: var(--magenta); font-weight: 400; }
+.prose h3 { font-size: 21px; letter-spacing: -0.015em; margin: 1.6em 0 0.4em; scroll-margin-top: 80px; }
+.prose p, .prose li { color: #222; }
+.prose a { text-decoration-color: var(--magenta); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose a:hover { background: var(--yellow); }
+.prose code { font-family: var(--mono); font-size: 0.86em; background: #fff; border: 1.5px solid #111; padding: 0 5px; }
+.prose pre.code { background: #151515; color: #eee; border-left: 5px solid var(--teal); padding: 16px 18px; overflow-x: auto; font-size: 14.5px; line-height: 1.65; box-shadow: 6px 6px 0 #111; }
+.prose pre.code code { background: none; border: 0; padding: 0; font-size: 1em; color: inherit; }
+.prose blockquote { margin: 1.4em 0; padding: 14px 20px; background: #fff; border: 2px solid #111; border-left: 8px solid var(--magenta); box-shadow: 5px 5px 0 #111; }
+.prose blockquote p { margin: 0; font-weight: 600; }
+.prose figure { margin: 1.6em 0; }
+.prose img { width: 100%; height: auto; border: 2px solid #111; box-shadow: 6px 6px 0 #111; display: block; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin: 0.3em 0; }
+.prose li::marker { color: var(--magenta); font-weight: 700; }
+.table-wrap { overflow-x: auto; border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; margin: 1.4em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #0002; vertical-align: top; }
+thead th { background: #111; color: #fff; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.toc { position: sticky; top: 84px; align-self: start; background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 var(--teal); padding: 16px 18px; font-size: 14.5px; line-height: 1.45; }
+.toc b { display: block; font-family: var(--pixel); font-weight: 400; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 8px; }
+.toc a { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px dashed #0003; color: #222; }
+.toc a:hover { background: var(--yellow); }
+.cta { margin-top: 56px; background: var(--lime); border: 2px solid #111; box-shadow: 8px 8px 0 #111; padding: 28px 28px 30px; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; right: -40px; top: -30px; width: 200px; height: 120px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 12px, transparent 12px 24px); transform: rotate(-4deg); }
+.cta h2 { border: 0; margin: 0 0 8px; padding: 0; font-size: 30px; position: relative; z-index: 1; }
+.cta h2::before { content: none; }
+.cta p { margin: 0 0 18px; max-width: 520px; font-weight: 600; position: relative; z-index: 1; }
+.btn { display: inline-flex; gap: 8px; padding: 12px 20px; font-weight: 800; text-decoration: none; border: 2px solid #111; margin: 0 10px 10px 0; position: relative; z-index: 1; }
+.btn:hover { box-shadow: 5px 5px 0 #111; transform: translate(-2px, -2px); }
+.btn-ink { background: #111; color: #fff; }
+.btn-ghost { background: #fff; color: #111; }
+.more { border-top: 2px solid #111; background: #fff; padding: 48px 0 60px; }
+.more h2 { font-family: var(--pixel); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; margin: 0 0 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+.cards a { display: block; text-decoration: none; background: var(--bg); border: 2px solid #111; box-shadow: 5px 5px 0 #111; padding: 16px 18px; }
+.cards a:hover { background: var(--yellow); }
+.cards b { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; }
+.cards span { display: block; margin-top: 6px; font-size: 14px; color: #444; line-height: 1.5; }
+.site-footer { background: #111; color: #aaa; padding: 30px 0 40px; font-family: var(--mono); font-size: 12.5px; }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.site-footer a { color: #ddd; text-decoration: none; margin-left: 16px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="badge" href="../../../zh/">nestwork</a>
+    <nav class="nav" aria-label="文章">
+      <a href="../">文章</a>
+      <a href="https://songth1ef.github.io/nestwork/articles/codex-cli-persistent-memory/" hreflang="en" data-lang-switch="en">EN</a>
+      <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="art-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="../../../zh/">首页</a> / <a href="../">文章</a> /</p>
+      <h1>Codex 记忆与 AGENTS.md：Codex 长期记忆</h1>
+      <div class="art-meta"><span class="kind">指南</span><span>4 分钟阅读</span><span>更新于 2026-09-27</span></div>
+    </div>
+  </div>
+  <div class="wrap layout">
+    <article class="prose">
+<p>Codex CLI 在会话之间带着上下文走，靠两样东西：每次启动都读的 <code>AGENTS.md</code> 指令文件，以及可选的 memories 功能——把过去对话的摘要写进 <code>~/.codex/memories/</code>。memories 默认关闭、只存在本地，OpenAI 自己的文档也要求把必须遵守的规则写进 <code>AGENTS.md</code>。想让 Codex 的长期记忆跨会话、跨机器，就把这些上下文放进一个私有 git 仓库，再让全局 <code>~/.codex/AGENTS.md</code> 告诉 Codex：启动时 pull、读取，学到东西后提交。</p>
+<h2 id="codex-自带哪些记忆">Codex 自带哪些记忆</h2>
+<p>OpenAI 文档里有两套内置机制。</p>
+<p><strong>AGENTS.md 指令链。</strong> 按 <a href="https://learn.chatgpt.com/docs/agent-configuration/agents-md" rel="noopener">AGENTS.md 指南</a>，Codex 在启动时构建一次指令链（每次运行一次，TUI 里通常是每次启动会话一次）：</p>
+<ol><li>全局层：在 Codex home（默认 <code>~/.codex</code>，设置了 <code>CODEX_HOME</code> 就用它）里，存在 <code>AGENTS.override.md</code> 就读它，否则读 <code>AGENTS.md</code>。</li><li>项目层：从项目根目录（通常是 git 根）一路往下走到当前目录，每层依次找 <code>AGENTS.override.md</code>、<code>AGENTS.md</code>，以及你配置的备用文件名。</li><li>文件从根往下拼接，离当前目录越近的越靠后、优先级越高。总大小达到 <code>project_doc_max_bytes</code>（默认 32 KiB）后就不再加入新文件。</li></ol>
+<p><strong>memories。</strong> <a href="https://learn.chatgpt.com/docs/customization/memories?surface=cli" rel="noopener">memories 页面</a>写明本地 Codex memories 默认关闭，要在 <code>config.toml</code> 里加 <code>[features] memories = true</code>（或在桌面应用里打开开关）。开启后，Codex 会在后台把早先对话里有用的上下文整理成记忆文件，存在 <code>~/.codex/memories/</code>：它会跳过进行中或太短的会话，对生成内容做密钥脱敏，额度余量偏低时还可能跳过一轮。<code>/memories</code> 命令可以按对话控制：这次对话用不用已有记忆、能不能被拿去生成以后的记忆。</p>
+<p>OpenAI 对分工说得很直白：必须遵守的指引放在 <code>AGENTS.md</code> 或提交进仓库的文档里，memories 只当作辅助回忆层，不能是唯一来源。</p>
+<h2 id="这意味着什么">这意味着什么</h2>
+<p>两套机制都落在一台机器上。全局 <code>~/.codex/AGENTS.md</code> 是你 home 目录里的一个文件，memories 是 Codex home 下的一些文件。memories 文档描述的是本地存储，对跨设备同步只字未提。换一台笔记本、开一台云开发机、或者重装一次，都从零开始。而且 memories 是 Codex 写给自己的摘要，不适合用来整理你希望其他工具也能读到的决定。</p>
+<p>项目里的 <code>AGENTS.md</code> 会随仓库走，项目规则放那里正合适。缺的是另一层：个人偏好、跨项目的决定、要跟着你到任何机器和任何工具的进度记录。</p>
+<h2 id="用-git-仓库给-codex-加长期记忆">用 git 仓库给 Codex 加长期记忆</h2>
+<p>最耐用的做法，是一个装 markdown 文件的私有 git 仓库，通过 Codex 每次都读的那个文件——全局 <code>AGENTS.md</code>——接进来。起作用的是其中的指令：启动时 pull，只读一小组文件，其余按需检索，结束前提交自己的改动。</p>
+<p>nestwork 把这件事做成了协议和安装脚本。<a href="https://github.com/songth1ef/nestwork/blob/main/scripts/install/codex.sh" rel="noopener"><code>scripts/install/codex.sh</code></a> 会：</p>
+<ol><li>解析本机主机名（<code>~/.nestwork_host</code>）和 Codex 的 agent id，固定为 <code>codex</code>（<code>~/.nestwork_id_codex</code>）；</li><li>在记忆仓库里创建 <code>agents/&lt;host&gt;/codex/memory.md</code>；</li><li>往 <code>~/.codex/AGENTS.md</code> 写入启动协议，并为旧版配置同时写一份 <code>~/.codex/instructions.md</code>，内容包在 <code>&lt;!-- nestwork:begin --&gt;</code> 和 <code>&lt;!-- nestwork:end --&gt;</code> 之间，其他内容不受影响；</li><li>在 <code>~/.codex/hooks.json</code> 里注册一个 SessionEnd hook（并在 <code>config.toml</code> 里指向它），用于可选的本地历史快照。</li></ol>
+<h2 id="实操步骤">实操步骤</h2>
+<p>用到的命令（Windows 用 <code>.\nestwork\scripts\install\codex.ps1</code>；需要 <code>PATH</code> 里有 <code>python3</code>）：</p>
+<pre class="code"><code data-lang="bash">git clone git@github.com:&lt;you&gt;/nestwork.git ~/nestwork
+bash ~/nestwork/scripts/install/codex.sh</code></pre>
+<ol><li>用 <a href="https://github.com/songth1ef/nestwork/generate" rel="noopener">nestwork 模板</a>创建私有仓库，用第一条命令 clone。</li><li>用第二条命令为 Codex 安装。</li><li>打开 <code>~/.codex/AGENTS.md</code>，确认 nestwork 那段已经写入。</li><li>启动 Codex，让它概括当前指令，应该能看到这段内容。OpenAI 的指南也建议用这个办法确认加载了哪些文件。</li><li>往 <code>queen/agent-rules.md</code> 写一条不敏感的规则并推送，再到另一台同样安装过的机器上让 Codex 复述。</li></ol>
+<h2 id="codex-读什么-什么时候提交">Codex 读什么、什么时候提交</h2>
+<p>会话开始时，Codex pull 记忆仓库，只读常驻层：<code>queen/agent-rules.md</code>、<code>shared/resident.md</code>，以及存在时的 <code>agents/&lt;host&gt;/codex/resident.md</code>。策略、共享历史、自己的 <code>memory.md</code>、<code>projects/</code> 和 <code>workflow/</code> 都在任务需要时才检索。这样启动开销很小：作者自己的仓库里，常驻启动约 640 token，而 2.x 式全量加载约 69,600 token（2026-09 实测，<code>o200k_base</code>）。这对 Codex 尤其重要，它的指令链默认 32 KiB 封顶，而 nestwork 那段只放指针，不放记忆本身。</p>
+<p>提交是刻意设计成手动的。SessionEnd hook 只以脱离进程的方式启动可选的历史快照，因为 Codex 的 SessionEnd hook 最多 3 秒（<a href="https://learn.chatgpt.com/docs/hooks" rel="noopener">Codex hooks 文档</a>），它不碰记忆。启动协议要求 Codex 在记忆有改动时同步自己的目录：</p>
+<pre class="code"><code data-lang="bash">git -C ~/nestwork add agents/&lt;host&gt;/codex/
+git -C ~/nestwork diff --cached --quiet -- agents/&lt;host&gt;/codex/ || \
+  git -C ~/nestwork commit -m &quot;memory: update &lt;host&gt;/codex&quot; -- agents/&lt;host&gt;/codex/
+git -C ~/nestwork push</code></pre>
+<p>Codex 本身现在已支持针对文件编辑的 PreToolUse / PostToolUse hook，但 nestwork 目前没有给 Codex 注册逐次写入同步，只有 Claude Code 和 Kimi Code 有。如果某次会话意外中断，下次会话提交时会把目录里遗留的改动一并带上。</p>
+<h2 id="codex-memories-和-nestwork-一起用">Codex memories 和 nestwork 一起用</h2>
+<p>两者分工不同，互不冲突。Codex memories 是自动的、本地的，关于过去对话的回忆；记忆仓库放的是你挑过、决定保留、其他工具也能读的上下文。如果 Codex memories 里有值得留下的东西，就有意识地迁过来：nestwork 的 <a href="https://github.com/songth1ef/nestwork/blob/main/AGENTS.md" rel="noopener">AGENTS.md §13</a> 把 <code>~/.codex/memories/</code> 列为来源之一，讲了如何蒸馏进 <code>resident.md</code>、按需记忆，或冷层 <code>carryover/codex.md</code>。详见<a href="../rescue-tool-native-memory/">迁移工具原生记忆</a>。</p>
+<h2 id="常见问题">常见问题</h2>
+<h3 id="codex-cli-自带长期记忆吗">Codex CLI 自带长期记忆吗？</h3>
+<p>有两样：每次会话都加载的 <code>AGENTS.md</code>，以及需要手动开启的 memories——把过去的对话摘要写进 <code>~/.codex/memories/</code>。memories 默认关闭，存在那台机器的 Codex home 下。</p>
+<h3 id="全局的-codex-agents-md-在哪">全局的 Codex AGENTS.md 在哪？</h3>
+<p>在 Codex home 里，默认是 <code>~/.codex/AGENTS.md</code>；设置了 <code>CODEX_HOME</code> 就是 <code>$CODEX_HOME/AGENTS.md</code>。同目录下有 <code>AGENTS.override.md</code> 时优先读它。</p>
+<h3 id="记忆多了会不会把-agents-md-撑过-32-kib">记忆多了会不会把 AGENTS.md 撑过 32 KiB？</h3>
+<p>这种配置下不会。全局文件里的 nestwork 段只是一小段路径和规则，记忆文件本身由 Codex 用普通的文件工具读取，而且只读任务需要的那几个。</p>
+<h3 id="codex-和-claude-code-能用同一个记忆仓库吗">Codex 和 Claude Code 能用同一个记忆仓库吗？</h3>
+<p>能。同一台机器上每个工具有自己的 agent id 和目录，见 <a href="../share-memory-claude-code-codex/">Claude Code 和 Codex 共享记忆</a>。</p>
+<h2 id="相关阅读">相关阅读</h2>
+<ul><li><a href="../share-memory-claude-code-codex/">Claude Code 和 Codex 共享记忆</a></li><li><a href="../agents-md-vs-claude-md-vs-memory/">AGENTS.md、CLAUDE.md 和记忆的区别</a></li><li><a href="../topic-memory-on-demand-loading/">主题记忆与按需加载</a></li><li><a href="../rescue-tool-native-memory/">迁移工具原生记忆</a></li><li><a href="../ai-agent-memory/">AI agent 记忆</a></li></ul>
+      <section class="cta" aria-label="给你的 agent 一份记忆">
+        <h2>给你的 agent 一份记忆</h2>
+        <p>nestwork 把一个私有 git 仓库变成 Claude Code、Codex、Gemini、Kimi 等 agent 共享的长期记忆。</p>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">用模板创建我的记忆仓库 →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ 去 GitHub 点个 Star</a>
+      </section>
+    </article>
+    <aside class="toc" aria-label="本文目录"><b>本文目录</b><a href="#codex-自带哪些记忆">Codex 自带哪些记忆</a><a href="#这意味着什么">这意味着什么</a><a href="#用-git-仓库给-codex-加长期记忆">用 git 仓库给 Codex 加长期记忆</a><a href="#实操步骤">实操步骤</a><a href="#codex-读什么-什么时候提交">Codex 读什么、什么时候提交</a><a href="#codex-memories-和-nestwork-一起用">Codex memories 和 nestwork 一起用</a><a href="#常见问题">常见问题</a><a href="#相关阅读">相关阅读</a></aside>
+  </div>
+  <section class="more" aria-label="全部文章">
+    <div class="wrap">
+      <h2>全部文章 →</h2>
+      <div class="cards"><a href="../ai-agent-memory/"><b>AI agent 记忆：四种类型与取舍</b><span>AI agent 记忆是智能体在单次会话之外还能依赖的上下文。对比上下文窗口、工具内置记忆、向量检索服务和文件式记忆，以及编码 agent 的特殊需求。</span></a><a href="../claude-code-memory-across-machines/"><b>Claude Code 记忆跨设备同步：用 git 实现</b><span>Claude Code 的 CLAUDE.md 和 auto memory 都只在本机。本文讲清它们存在哪、为什么换电脑就没了，以及怎样用 git 跨设备同步。</span></a><a href="../share-memory-claude-code-codex/"><b>Claude Code 和 Codex 共享记忆的做法</b><span>Claude Code 读 CLAUDE.md，Codex 读 AGENTS.md。让两者指向同一个私有 git 仓库，就能共享记忆，且各写各的目录。</span></a><a href="../agent-memory-tools-compared/"><b>agent 记忆工具对比：Mem0、Letta、Zep 等</b><span>从架构、部署方式、数据归属和适用场景，对比 Mem0、Letta、Zep、Supermemory、claude-mem、工具内置记忆和 nestwork。</span></a><a href="../agent-memory-benchmarks/"><b>记忆基准测试：LoCoMo、LongMemEval、BEAM</b><span>LoCoMo、LongMemEval、BEAM 各测什么、LLM 裁判怎么打分、厂商分数为何不能横比，以及编码 agent 该看哪些指标。</span></a><a href="../agents-md-vs-claude-md-vs-memory/"><b>AGENTS.md 和 CLAUDE.md 区别，记忆该放哪</b><span>AGENTS.md 是跨工具的指令文件，CLAUDE.md 是 Claude Code 专用的，记忆是 agent 自己写的笔记。各工具读哪个、怎么组合。</span></a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span>nestwork — AI agent memory, git-native.</span>
+    <span><a href="../../../zh/">首页</a><a href="../">文章</a><a href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-lang-switch]').forEach(function (a) {
+  a.addEventListener('click', function () { try { localStorage.setItem('nestwork_lang', a.getAttribute('data-lang-switch')); } catch (e) {} });
+});
+</script>
+</body>
+</html>

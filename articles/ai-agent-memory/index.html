@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Agent Memory — Four Types and Their Trade-offs</title>
+<meta name="description" content="AI agent memory is context an agent keeps beyond one session. Compare context windows, built-in memory, vector services and files for coding agents.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="songth1ef">
+<meta name="theme-color" content="#8fdcf7">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/articles/ai-agent-memory/">
+<link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/ai-agent-memory/">
+<link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/ai-agent-memory/">
+<link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/ai-agent-memory/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232ec4d6'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="nestwork">
+<meta property="og:title" content="AI Agent Memory — Four Types and Their Trade-offs">
+<meta property="og:description" content="AI agent memory is context an agent keeps beyond one session. Compare context windows, built-in memory, vector services and files for coding agents.">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/articles/ai-agent-memory/">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AI Agent Memory — Four Types and Their Trade-offs">
+<meta name="twitter:description" content="AI agent memory is context an agent keeps beyond one session. Compare context windows, built-in memory, vector services and files for coding agents.">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://songth1ef.github.io/nestwork/articles/ai-agent-memory/#article","headline":"AI Agent Memory — Four Types and Their Trade-offs","description":"AI agent memory is context an agent keeps beyond one session. Compare context windows, built-in memory, vector services and files for coding agents.","inLanguage":"en","datePublished":"2026-09-27","dateModified":"2026-09-27","author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"publisher":{"@type":"Organization","name":"nestwork","url":"https://songth1ef.github.io/nestwork/"},"image":["https://songth1ef.github.io/nestwork/og.png"],"mainEntityOfPage":"https://songth1ef.github.io/nestwork/articles/ai-agent-memory/","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://songth1ef.github.io/nestwork/"},{"@type":"ListItem","position":2,"name":"Articles","item":"https://songth1ef.github.io/nestwork/articles/"},{"@type":"ListItem","position":3,"name":"AI Agent Memory — Four Types and Their Trade-offs","item":"https://songth1ef.github.io/nestwork/articles/ai-agent-memory/"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is the difference between short-term and long-term memory for AI agents?","acceptedAnswer":{"@type":"Answer","text":"Short-term memory is the context window of the current session and disappears when it ends. Long-term memory is anything stored outside the session — files, a database, a tool's memory directory — and loaded back later. The engineering work is deciding what to store and what to load."}},{"@type":"Question","name":"Is a bigger context window a substitute for memory?","acceptedAnswer":{"@type":"Answer","text":"Not really. A bigger window lets you load more, but everything loaded costs tokens on every session and attention still degrades as the window fills. The Mem0 paper found a full-context baseline more accurate than their memory system on LoCoMo, but at about 26,000 tokens per query against under 2,000 (arXiv:2504.19413). Memory is largely about loading less, precisely."}},{"@type":"Question","name":"Should I turn off my tool's built-in memory if I use a file-based system?","acceptedAnswer":{"@type":"Answer","text":"No. They cover different layers. Built-in memory is convenient for tool-local notes; a file-based layer carries rules and decisions across tools and machines. nestwork treats built-in memory as a source to distill from periodically, not something to replace."}},{"@type":"Question","name":"Do I need a vector database for a coding agent?","acceptedAnswer":{"@type":"Answer","text":"Usually not for personal rules and project state, which are small and benefit from exact, reviewable text. A vector or graph service earns its cost when you must search large volumes of unstructured conversation, typically in an end-user product."}}]}]}</script>
+<style>
+@font-face { font-family: "VT323"; src: url("../../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+:root {
+  --bg: #fbf8ef; --fg: #111; --muted: #5c5c5c; --teal: #2ec4d6; --teal-dark: #0a8fa0; --magenta: #ff2d8f;
+  --lime: #d6f25a; --yellow: #ffe53d; --sky: #29c6ec; --red: #ec2a33;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::selection { background: var(--yellow); }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 2px solid #111; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.badge { background: var(--teal); color: #000; font-weight: 800; letter-spacing: -0.03em; padding: 2px 10px 3px; border: 2px solid #000; outline: 2px solid var(--teal); text-decoration: none; font-size: 18px; }
+.nav { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 13px; }
+.nav a { text-decoration: none; color: #333; }
+.nav a:hover { background: var(--yellow); color: #000; }
+.nav .gh { background: #111; color: #fff; padding: 4px 10px; font-weight: 700; }
+.art-hero { background: linear-gradient(180deg, #8fdcf7 0%, #d4f3ff 60%, var(--bg) 100%); border-bottom: 2px solid #111; padding: 48px 0 44px; position: relative; overflow: hidden; }
+.art-hero::after { content: ""; position: absolute; right: -60px; top: -40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 11px 11px; -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%); mask-image: radial-gradient(circle, #000 50%, transparent 70%); pointer-events: none; }
+.crumbs { font-family: var(--pixel); font-size: 20px; letter-spacing: 0.04em; color: #0a5f6b; margin: 0 0 14px; position: relative; z-index: 1; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { background: var(--yellow); }
+.art-hero h1 { font-size: clamp(34px, 5.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 0; max-width: 880px; position: relative; z-index: 1; }
+:lang(zh) .art-hero h1 { line-height: 1.2; letter-spacing: -0.01em; }
+.art-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: #333; position: relative; z-index: 1; }
+.art-meta span { background: #fff; border: 2px solid #111; padding: 2px 8px; }
+.art-meta .kind { background: var(--magenta); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; padding-top: 48px; padding-bottom: 72px; }
+.layout.wide { grid-template-columns: 1fr; }
+.layout > * { min-width: 0; }
+.prose p code, .prose li code, .prose td code { overflow-wrap: anywhere; }
+.wide .prose { max-width: none; }
+.wide .toc { display: none; }
+.wide .prose > p:first-child { max-width: 72ch; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+.prose { max-width: 72ch; }
+.prose > p:first-child { font-size: 1.12em; }
+.prose h2 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; line-height: 1.2; margin: 2.1em 0 0.6em; padding-top: 0.2em; border-top: 2px solid #111; scroll-margin-top: 80px; }
+.prose h2::before { content: "// "; font-family: var(--pixel); color: var(--magenta); font-weight: 400; }
+.prose h3 { font-size: 21px; letter-spacing: -0.015em; margin: 1.6em 0 0.4em; scroll-margin-top: 80px; }
+.prose p, .prose li { color: #222; }
+.prose a { text-decoration-color: var(--magenta); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose a:hover { background: var(--yellow); }
+.prose code { font-family: var(--mono); font-size: 0.86em; background: #fff; border: 1.5px solid #111; padding: 0 5px; }
+.prose pre.code { background: #151515; color: #eee; border-left: 5px solid var(--teal); padding: 16px 18px; overflow-x: auto; font-size: 14.5px; line-height: 1.65; box-shadow: 6px 6px 0 #111; }
+.prose pre.code code { background: none; border: 0; padding: 0; font-size: 1em; color: inherit; }
+.prose blockquote { margin: 1.4em 0; padding: 14px 20px; background: #fff; border: 2px solid #111; border-left: 8px solid var(--magenta); box-shadow: 5px 5px 0 #111; }
+.prose blockquote p { margin: 0; font-weight: 600; }
+.prose figure { margin: 1.6em 0; }
+.prose img { width: 100%; height: auto; border: 2px solid #111; box-shadow: 6px 6px 0 #111; display: block; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin: 0.3em 0; }
+.prose li::marker { color: var(--magenta); font-weight: 700; }
+.table-wrap { overflow-x: auto; border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; margin: 1.4em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #0002; vertical-align: top; }
+thead th { background: #111; color: #fff; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.toc { position: sticky; top: 84px; align-self: start; background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 var(--teal); padding: 16px 18px; font-size: 14.5px; line-height: 1.45; }
+.toc b { display: block; font-family: var(--pixel); font-weight: 400; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 8px; }
+.toc a { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px dashed #0003; color: #222; }
+.toc a:hover { background: var(--yellow); }
+.cta { margin-top: 56px; background: var(--lime); border: 2px solid #111; box-shadow: 8px 8px 0 #111; padding: 28px 28px 30px; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; right: -40px; top: -30px; width: 200px; height: 120px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 12px, transparent 12px 24px); transform: rotate(-4deg); }
+.cta h2 { border: 0; margin: 0 0 8px; padding: 0; font-size: 30px; position: relative; z-index: 1; }
+.cta h2::before { content: none; }
+.cta p { margin: 0 0 18px; max-width: 520px; font-weight: 600; position: relative; z-index: 1; }
+.btn { display: inline-flex; gap: 8px; padding: 12px 20px; font-weight: 800; text-decoration: none; border: 2px solid #111; margin: 0 10px 10px 0; position: relative; z-index: 1; }
+.btn:hover { box-shadow: 5px 5px 0 #111; transform: translate(-2px, -2px); }
+.btn-ink { background: #111; color: #fff; }
+.btn-ghost { background: #fff; color: #111; }
+.more { border-top: 2px solid #111; background: #fff; padding: 48px 0 60px; }
+.more h2 { font-family: var(--pixel); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; margin: 0 0 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+.cards a { display: block; text-decoration: none; background: var(--bg); border: 2px solid #111; box-shadow: 5px 5px 0 #111; padding: 16px 18px; }
+.cards a:hover { background: var(--yellow); }
+.cards b { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; }
+.cards span { display: block; margin-top: 6px; font-size: 14px; color: #444; line-height: 1.5; }
+.site-footer { background: #111; color: #aaa; padding: 30px 0 40px; font-family: var(--mono); font-size: 12.5px; }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.site-footer a { color: #ddd; text-decoration: none; margin-left: 16px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="badge" href="../../">nestwork</a>
+    <nav class="nav" aria-label="Articles">
+      <a href="../">Articles</a>
+      <a href="https://songth1ef.github.io/nestwork/zh/articles/ai-agent-memory/" hreflang="zh-CN" data-lang-switch="zh">中文</a>
+      <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="art-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="../../">Home</a> / <a href="../">Articles</a> /</p>
+      <h1>AI Agent Memory — Four Types and Their Trade-offs</h1>
+      <div class="art-meta"><span class="kind">Guides</span><span>6 min read</span><span>Updated 2026-09-27</span></div>
+    </div>
+  </div>
+  <div class="wrap layout">
+    <article class="prose">
+<p>AI agent memory is any context an agent can rely on beyond the current conversation: the rules it must follow, facts about you and your projects, and decisions made earlier. Long-term memory for AI agents comes in four broad shapes — the context window itself, memory built into a tool, a retrieval service backed by vectors or graphs, and plain files loaded by a protocol. For coding agents the deciding questions are less about retrieval cleverness and more about where the memory lives, which tools can read it, and whether a human can review it.</p>
+<h2 id="why-agents-need-memory-at-all">Why agents need memory at all</h2>
+<p>A language model has no state between calls. Claude Code's documentation puts it plainly: "Each Claude Code session begins with a fresh context window" (<a href="https://code.claude.com/docs/en/memory" rel="noopener">Claude Code memory docs</a>). Everything the agent "knows" about you at the start of a session was put there by some mechanism — a file it read, a note it wrote last time, or a search against a store.</p>
+<p>Without such a mechanism you re-explain the same things every session: your coding conventions, the directory nobody should touch, why an approach was abandoned last week. Memory is whatever removes that repetition. The four types below differ in who writes it, where it is stored, and how it gets back into the context window.</p>
+<h2 id="type-1-in-session-context">Type 1: in-session context</h2>
+<p>The simplest memory is the conversation itself. Everything said in the current session sits in the context window until the session ends or the window is compacted.</p>
+<ul><li><strong>Strengths</strong>: nothing to install; perfect recall within the window.</li><li><strong>Weaknesses</strong>: gone when the session ends; long sessions get expensive and attention degrades as the window fills.</li></ul>
+<p>It is working memory, not long-term memory. Every other type exists to decide what gets copied into this window next time.</p>
+<h2 id="type-2-memory-built-into-the-tool">Type 2: memory built into the tool</h2>
+<p>Most coding agents now keep notes for themselves. Claude Code's auto memory writes notes about your preferences and corrections into <code>~/.claude/projects/&lt;project&gt;/memory/</code>, with a <code>MEMORY.md</code> index whose first 200 lines or 25 KB load into every session. Codex stores its memories under <code>~/.codex/memories/</code> and generates them from earlier chats in the background (<a href="https://learn.chatgpt.com/docs/customization/memories?surface=app" rel="noopener">Codex memories docs</a>).</p>
+<ul><li><strong>Strengths</strong>: zero setup, written automatically, tuned for that one tool.</li><li><strong>Weaknesses</strong>: tied to one tool and one machine. Claude Code's docs state: "Auto memory is machine-local … Files are not shared across machines or cloud environments." Codex's docs advise: "Treat memories as a helpful recall layer, not as the only source for rules that must always apply."</li></ul>
+<p>Built-in memory is a good default for a single developer on a single machine with a single tool. It stops being enough the moment any of those three becomes plural.</p>
+<h2 id="type-3-retrieval-services-vector-and-graph-memory">Type 3: retrieval services (vector and graph memory)</h2>
+<p>Services such as <a href="https://github.com/mem0ai/mem0" rel="noopener">Mem0</a>, <a href="https://www.getzep.com/" rel="noopener">Zep</a> and <a href="https://github.com/supermemoryai/supermemory" rel="noopener">Supermemory</a> sit behind an API. You send them conversations; an LLM extracts facts; the facts are stored in a vector index, a graph, or both; and at query time the service returns the relevant ones. Zep's open-source engine, <a href="https://github.com/getzep/graphiti" rel="noopener">Graphiti</a>, gives each fact "a validity window: when it became true, and when (if ever) it was superseded."</p>
+<ul><li><strong>Strengths</strong>: semantic search over large volumes of conversation; per-user memory for applications with many end users; handling of updates and contradictions built in.</li><li><strong>Weaknesses</strong>: a service to run or rent, extra LLM calls on write, and memory stored as database rows you read through the vendor's tools rather than as text you edit.</li></ul>
+<p>This is the right shape when you are building a product that has to remember thousands of users. It is a heavier fit for one developer who wants their own rules to follow them between editors.</p>
+<h2 id="type-4-files-and-protocols">Type 4: files and protocols</h2>
+<p>The fourth type is plain text the agent reads at startup: <code>AGENTS.md</code>, <code>CLAUDE.md</code>, <code>GEMINI.md</code>, and systems built on top of them. <a href="https://agents.md/" rel="noopener">AGENTS.md</a> is an open format used by over 60,000 open-source projects and read by Codex, Cursor, Jules and many other tools; Claude Code reads <code>CLAUDE.md</code> and, in current versions, <code>AGENTS.md</code> when no <code>CLAUDE.md</code> exists.</p>
+<ul><li><strong>Strengths</strong>: readable, diffable and reviewable; reading needs no network or service; any tool that reads markdown can use it; git gives you history for free.</li><li><strong>Weaknesses</strong>: no semantic search out of the box; someone has to decide what gets written; files that grow unchecked cost tokens on every session.</li></ul>
+<div class="table-wrap"><table><thead><tr><th>Type</th><th>Written by</th><th>Lives in</th><th>Crosses tools</th><th>Crosses machines</th><th>Human-reviewable</th></tr></thead><tbody><tr><td>In-session context</td><td>Conversation</td><td>Context window</td><td>No</td><td>No</td><td>Only live</td></tr><tr><td>Built-in tool memory</td><td>The agent</td><td>Tool's local directory</td><td>No</td><td>No</td><td>Yes, if you look</td></tr><tr><td>Retrieval service</td><td>LLM extraction</td><td>Vector/graph database</td><td>Via API/SDK</td><td>Via the service</td><td>Through vendor tools</td></tr><tr><td>Files and protocols</td><td>You and the agent</td><td>Your files / git</td><td>Yes</td><td>Via git or sync</td><td>Yes, as diffs</td></tr></tbody></table></div>
+<h2 id="what-coding-agents-need-that-chatbots-don-t">What coding agents need that chatbots don't</h2>
+<p>Most memory research targets chat assistants that must remember people. Coding agents have a different set of requirements:</p>
+<ol><li><strong>Cross-tool.</strong> Many developers switch between Claude Code, Codex, Gemini CLI and others. A rule learned in one tool should hold in the next.</li><li><strong>Cross-machine.</strong> Laptop, desktop, cloud dev box. Built-in memory in both Claude Code and Codex stays on the machine that wrote it.</li><li><strong>Rule priority.</strong> "Never push to main" must outrank an old note that says "pushed the hotfix to main." Retrieval by similarity does not know which of two conflicting facts is authoritative.</li><li><strong>Reviewable.</strong> You should be able to see what the agent believes about you, correct it, and see who changed what. Plain text in version control does this naturally.</li><li><strong>Cheap startup.</strong> Whatever loads at session start is paid for on every session, so the resident part has to stay small and the rest must be fetched on demand.</li></ol>
+<h2 id="how-nestwork-approaches-it">How nestwork approaches it</h2>
+<p><a href="https://github.com/songth1ef/nestwork" rel="noopener">nestwork</a> is a type-4 system: a git-native memory protocol for AI coding agents. Memory is markdown in a private git repository you create from a template; each tool gets a small bootstrap injected into its instruction file (<code>~/.claude/CLAUDE.md</code>, <code>~/.codex/AGENTS.md</code>, <code>~/.gemini/GEMINI.md</code> and so on); agents pull before work and push after.</p>
+<ul><li><strong>Priority is explicit</strong>: <code>queen/agent-rules.md &gt; queen/strategy.md &gt; shared/memory.md &gt; agents/*/*/memory.md &gt; projects/*.md &gt; workflow/*.md</code>. On conflict the higher source wins; the two are not merged.</li><li><strong>Each agent writes only its own directory</strong> (<code>agents/&lt;host&gt;/&lt;agent-id&gt;/</code>), so parallel agents on different machines do not overwrite each other. Shared memory changes only through a reviewed distillation step.</li><li><strong>Startup loads only a resident tier.</strong> On the author's nest (10 machines, 30+ agent instances), a 2.x-style full startup read 37 files, about 69,600 tokens; the protocol 3.x resident startup is about 640 tokens, and a typical git task (resident + index + one topic file) about 3,600. The whole nest is 180 memory files, about 369,000 tokens — too much for most context windows, which is why loading has to be selective. You can measure your own with <code>scripts/maintenance/measure-context.py</code>.</li></ul>
+<p>Claude Code and Codex are the author's daily drivers; installers for Gemini CLI, Kimi Code, Hermes and OpenClaw exist but are less battle-tested. nestwork is not a vector store or a chat-history archive, and it needs you to be comfortable with git.</p>
+<h2 id="faq">FAQ</h2>
+<h3 id="what-is-the-difference-between-short-term-and-long-term-memory-for-ai-agents">What is the difference between short-term and long-term memory for AI agents?</h3>
+<p>Short-term memory is the context window of the current session and disappears when it ends. Long-term memory is anything stored outside the session — files, a database, a tool's memory directory — and loaded back later. The engineering work is deciding what to store and what to load.</p>
+<h3 id="is-a-bigger-context-window-a-substitute-for-memory">Is a bigger context window a substitute for memory?</h3>
+<p>Not really. A bigger window lets you load more, but everything loaded costs tokens on every session and attention still degrades as the window fills. The Mem0 paper found a full-context baseline more accurate than their memory system on LoCoMo, but at about 26,000 tokens per query against under 2,000 (<a href="https://arxiv.org/abs/2504.19413" rel="noopener">arXiv:2504.19413</a>). Memory is largely about loading less, precisely.</p>
+<h3 id="should-i-turn-off-my-tool-s-built-in-memory-if-i-use-a-file-based-system">Should I turn off my tool's built-in memory if I use a file-based system?</h3>
+<p>No. They cover different layers. Built-in memory is convenient for tool-local notes; a file-based layer carries rules and decisions across tools and machines. nestwork treats built-in memory as a source to distill from periodically, not something to replace.</p>
+<h3 id="do-i-need-a-vector-database-for-a-coding-agent">Do I need a vector database for a coding agent?</h3>
+<p>Usually not for personal rules and project state, which are small and benefit from exact, reviewable text. A vector or graph service earns its cost when you must search large volumes of unstructured conversation, typically in an end-user product.</p>
+<h2 id="related">Related</h2>
+<ul><li><a href="../agent-memory-benchmarks/">Agent memory benchmarks: LoCoMo, LongMemEval and BEAM</a></li><li><a href="../agent-memory-tools-compared/">Agent memory tools compared</a></li><li><a href="../agents-md-vs-claude-md-vs-memory/">AGENTS.md vs CLAUDE.md vs memory</a></li><li><a href="../git-native-agent-memory/">Git-native agent memory</a></li><li><a href="../topic-memory-on-demand-loading/">Topic memory and on-demand loading</a></li></ul>
+      <section class="cta" aria-label="Give your agents a memory">
+        <h2>Give your agents a memory</h2>
+        <p>nestwork turns one private git repo into shared, persistent memory for Claude Code, Codex, Gemini, Kimi and more.</p>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">Use this template →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ Star on GitHub</a>
+      </section>
+    </article>
+    <aside class="toc" aria-label="On this page"><b>On this page</b><a href="#why-agents-need-memory-at-all">Why agents need memory at all</a><a href="#type-1-in-session-context">Type 1: in-session context</a><a href="#type-2-memory-built-into-the-tool">Type 2: memory built into the tool</a><a href="#type-3-retrieval-services-vector-and-graph-memory">Type 3: retrieval services (vector and graph memory)</a><a href="#type-4-files-and-protocols">Type 4: files and protocols</a><a href="#what-coding-agents-need-that-chatbots-don-t">What coding agents need that chatbots don&#x27;t</a><a href="#how-nestwork-approaches-it">How nestwork approaches it</a><a href="#faq">FAQ</a><a href="#related">Related</a></aside>
+  </div>
+  <section class="more" aria-label="All articles">
+    <div class="wrap">
+      <h2>All articles →</h2>
+      <div class="cards"><a href="../claude-code-memory-across-machines/"><b>Claude Code Memory Across Machines, Synced with Git</b><span>Claude Code&#x27;s CLAUDE.md and auto memory stay on one machine. Where they&#x27;re stored, why they don&#x27;t sync, and how to share them across machines with git.</span></a><a href="../share-memory-claude-code-codex/"><b>Share Memory Between Claude Code and Codex</b><span>Claude Code reads ~/.claude/CLAUDE.md, Codex reads ~/.codex/AGENTS.md. Point both at one git repo to share memory, each writing only its own directory.</span></a><a href="../codex-cli-persistent-memory/"><b>Codex CLI Memory, AGENTS.md and Persistent Recall</b><span>How Codex CLI remembers today (AGENTS.md and opt-in local memories), and how to give Codex persistent memory across sessions and machines with git.</span></a><a href="../agent-memory-tools-compared/"><b>Agent Memory Tools Compared — Mem0, Letta, Zep and More</b><span>Mem0, Letta, Zep, Supermemory, claude-mem, built-in tool memory and nestwork compared on architecture, deployment, data ownership and best fit.</span></a><a href="../agent-memory-benchmarks/"><b>Agent Memory Benchmarks — LoCoMo, LongMemEval, BEAM</b><span>What LoCoMo, LongMemEval and BEAM measure, how LLM judges score them, why vendor numbers don&#x27;t compare, and which metrics matter for coding agents.</span></a><a href="../agents-md-vs-claude-md-vs-memory/"><b>AGENTS.md vs CLAUDE.md vs Memory — What Goes Where</b><span>AGENTS.md is a tool-neutral instruction file, CLAUDE.md is Claude Code&#x27;s, and memory is what agents write. Which tool reads which, and how to combine them.</span></a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span>nestwork — AI agent memory, git-native.</span>
+    <span><a href="../../">Home</a><a href="../">Articles</a><a href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-lang-switch]').forEach(function (a) {
+  a.addEventListener('click', function () { try { localStorage.setItem('nestwork_lang', a.getAttribute('data-lang-switch')); } catch (e) {} });
+});
+</script>
+</body>
+</html>

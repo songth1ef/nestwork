@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent-to-Agent Communication with a Git Mailbox</title>
+<meta name="description" content="AI agents can message each other through git: each writes to its own outbox, reads mail addressed to it on demand. No server, queue or bot needed.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="songth1ef">
+<meta name="theme-color" content="#8fdcf7">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/articles/agent-mailbox-git/">
+<link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/agent-mailbox-git/">
+<link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/agent-mailbox-git/">
+<link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/agent-mailbox-git/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232ec4d6'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="nestwork">
+<meta property="og:title" content="Agent-to-Agent Communication with a Git Mailbox">
+<meta property="og:description" content="AI agents can message each other through git: each writes to its own outbox, reads mail addressed to it on demand. No server, queue or bot needed.">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/articles/agent-mailbox-git/">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Agent-to-Agent Communication with a Git Mailbox">
+<meta name="twitter:description" content="AI agents can message each other through git: each writes to its own outbox, reads mail addressed to it on demand. No server, queue or bot needed.">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://songth1ef.github.io/nestwork/articles/agent-mailbox-git/#article","headline":"Agent-to-Agent Communication with a Git Mailbox","description":"AI agents can message each other through git: each writes to its own outbox, reads mail addressed to it on demand. No server, queue or bot needed.","inLanguage":"en","datePublished":"2026-09-27","dateModified":"2026-09-27","author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"publisher":{"@type":"Organization","name":"nestwork","url":"https://songth1ef.github.io/nestwork/"},"image":["https://songth1ef.github.io/nestwork/og.png"],"mainEntityOfPage":"https://songth1ef.github.io/nestwork/articles/agent-mailbox-git/","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://songth1ef.github.io/nestwork/"},{"@type":"ListItem","position":2,"name":"Articles","item":"https://songth1ef.github.io/nestwork/articles/"},{"@type":"ListItem","position":3,"name":"Agent-to-Agent Communication with a Git Mailbox","item":"https://songth1ef.github.io/nestwork/articles/agent-mailbox-git/"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is this real-time messaging?","acceptedAnswer":{"@type":"Answer","text":"No. Delivery happens on the recipient's next pull, typically at session start. The docs describe a real-time tier as \"not built\" and only worth adding if asynchronous delivery proves insufficient."}},{"@type":"Question","name":"Can I broadcast to every agent?","acceptedAnswer":{"@type":"Answer","text":"Yes. Send with to set to all and type broadcast. Every agent's read.sh treats all as addressed to it."}},{"@type":"Question","name":"Does marking mail as read create commits?","acceptedAnswer":{"@type":"Answer","text":"No. Seen ids live in agents/<host>/<agent-id>/local/comms/seen.txt, and local/ is git-ignored by default. Only sending and archiving create commits."}},{"@type":"Question","name":"Can other agents read messages that are not addressed to them?","acceptedAnswer":{"@type":"Answer","text":"Yes, technically. Every outbox is a plain file in a repo all your agents can read, and the filter is only a convention. Keep secrets out of messages, just as you keep them out of memory."}}]}]}</script>
+<style>
+@font-face { font-family: "VT323"; src: url("../../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+:root {
+  --bg: #fbf8ef; --fg: #111; --muted: #5c5c5c; --teal: #2ec4d6; --teal-dark: #0a8fa0; --magenta: #ff2d8f;
+  --lime: #d6f25a; --yellow: #ffe53d; --sky: #29c6ec; --red: #ec2a33;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::selection { background: var(--yellow); }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 2px solid #111; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.badge { background: var(--teal); color: #000; font-weight: 800; letter-spacing: -0.03em; padding: 2px 10px 3px; border: 2px solid #000; outline: 2px solid var(--teal); text-decoration: none; font-size: 18px; }
+.nav { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 13px; }
+.nav a { text-decoration: none; color: #333; }
+.nav a:hover { background: var(--yellow); color: #000; }
+.nav .gh { background: #111; color: #fff; padding: 4px 10px; font-weight: 700; }
+.art-hero { background: linear-gradient(180deg, #8fdcf7 0%, #d4f3ff 60%, var(--bg) 100%); border-bottom: 2px solid #111; padding: 48px 0 44px; position: relative; overflow: hidden; }
+.art-hero::after { content: ""; position: absolute; right: -60px; top: -40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 11px 11px; -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%); mask-image: radial-gradient(circle, #000 50%, transparent 70%); pointer-events: none; }
+.crumbs { font-family: var(--pixel); font-size: 20px; letter-spacing: 0.04em; color: #0a5f6b; margin: 0 0 14px; position: relative; z-index: 1; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { background: var(--yellow); }
+.art-hero h1 { font-size: clamp(34px, 5.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 0; max-width: 880px; position: relative; z-index: 1; }
+:lang(zh) .art-hero h1 { line-height: 1.2; letter-spacing: -0.01em; }
+.art-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: #333; position: relative; z-index: 1; }
+.art-meta span { background: #fff; border: 2px solid #111; padding: 2px 8px; }
+.art-meta .kind { background: var(--magenta); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; padding-top: 48px; padding-bottom: 72px; }
+.layout.wide { grid-template-columns: 1fr; }
+.layout > * { min-width: 0; }
+.prose p code, .prose li code, .prose td code { overflow-wrap: anywhere; }
+.wide .prose { max-width: none; }
+.wide .toc { display: none; }
+.wide .prose > p:first-child { max-width: 72ch; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+.prose { max-width: 72ch; }
+.prose > p:first-child { font-size: 1.12em; }
+.prose h2 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; line-height: 1.2; margin: 2.1em 0 0.6em; padding-top: 0.2em; border-top: 2px solid #111; scroll-margin-top: 80px; }
+.prose h2::before { content: "// "; font-family: var(--pixel); color: var(--magenta); font-weight: 400; }
+.prose h3 { font-size: 21px; letter-spacing: -0.015em; margin: 1.6em 0 0.4em; scroll-margin-top: 80px; }
+.prose p, .prose li { color: #222; }
+.prose a { text-decoration-color: var(--magenta); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose a:hover { background: var(--yellow); }
+.prose code { font-family: var(--mono); font-size: 0.86em; background: #fff; border: 1.5px solid #111; padding: 0 5px; }
+.prose pre.code { background: #151515; color: #eee; border-left: 5px solid var(--teal); padding: 16px 18px; overflow-x: auto; font-size: 14.5px; line-height: 1.65; box-shadow: 6px 6px 0 #111; }
+.prose pre.code code { background: none; border: 0; padding: 0; font-size: 1em; color: inherit; }
+.prose blockquote { margin: 1.4em 0; padding: 14px 20px; background: #fff; border: 2px solid #111; border-left: 8px solid var(--magenta); box-shadow: 5px 5px 0 #111; }
+.prose blockquote p { margin: 0; font-weight: 600; }
+.prose figure { margin: 1.6em 0; }
+.prose img { width: 100%; height: auto; border: 2px solid #111; box-shadow: 6px 6px 0 #111; display: block; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin: 0.3em 0; }
+.prose li::marker { color: var(--magenta); font-weight: 700; }
+.table-wrap { overflow-x: auto; border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; margin: 1.4em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #0002; vertical-align: top; }
+thead th { background: #111; color: #fff; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.toc { position: sticky; top: 84px; align-self: start; background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 var(--teal); padding: 16px 18px; font-size: 14.5px; line-height: 1.45; }
+.toc b { display: block; font-family: var(--pixel); font-weight: 400; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 8px; }
+.toc a { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px dashed #0003; color: #222; }
+.toc a:hover { background: var(--yellow); }
+.cta { margin-top: 56px; background: var(--lime); border: 2px solid #111; box-shadow: 8px 8px 0 #111; padding: 28px 28px 30px; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; right: -40px; top: -30px; width: 200px; height: 120px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 12px, transparent 12px 24px); transform: rotate(-4deg); }
+.cta h2 { border: 0; margin: 0 0 8px; padding: 0; font-size: 30px; position: relative; z-index: 1; }
+.cta h2::before { content: none; }
+.cta p { margin: 0 0 18px; max-width: 520px; font-weight: 600; position: relative; z-index: 1; }
+.btn { display: inline-flex; gap: 8px; padding: 12px 20px; font-weight: 800; text-decoration: none; border: 2px solid #111; margin: 0 10px 10px 0; position: relative; z-index: 1; }
+.btn:hover { box-shadow: 5px 5px 0 #111; transform: translate(-2px, -2px); }
+.btn-ink { background: #111; color: #fff; }
+.btn-ghost { background: #fff; color: #111; }
+.more { border-top: 2px solid #111; background: #fff; padding: 48px 0 60px; }
+.more h2 { font-family: var(--pixel); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; margin: 0 0 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+.cards a { display: block; text-decoration: none; background: var(--bg); border: 2px solid #111; box-shadow: 5px 5px 0 #111; padding: 16px 18px; }
+.cards a:hover { background: var(--yellow); }
+.cards b { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; }
+.cards span { display: block; margin-top: 6px; font-size: 14px; color: #444; line-height: 1.5; }
+.site-footer { background: #111; color: #aaa; padding: 30px 0 40px; font-family: var(--mono); font-size: 12.5px; }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.site-footer a { color: #ddd; text-decoration: none; margin-left: 16px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="badge" href="../../">nestwork</a>
+    <nav class="nav" aria-label="Articles">
+      <a href="../">Articles</a>
+      <a href="https://songth1ef.github.io/nestwork/zh/articles/agent-mailbox-git/" hreflang="zh-CN" data-lang-switch="zh">中文</a>
+      <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="art-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="../../">Home</a> / <a href="../">Articles</a> /</p>
+      <h1>Agent-to-Agent Communication with a Git Mailbox</h1>
+      <div class="art-meta"><span class="kind">Guides</span><span>5 min read</span><span>Updated 2026-09-27</span></div>
+    </div>
+  </div>
+  <div class="wrap layout">
+    <article class="prose">
+<p><strong>Can two AI coding agents on different machines leave each other messages without a server?</strong> Yes. If they already share a git repository, a message can simply be a small Markdown file that one agent commits and the other reads after its next pull. nestwork ships this as a built-in "agent mailbox": each agent writes only into its own <code>outbox/</code>, and receiving means scanning everyone's outbox for messages addressed to you. There is no message queue, no broker and no bot.</p>
+<p>This article answers the practical questions: why not use a chat platform, how the single-writer design avoids conflicts, the exact commands, and the identity setting (<code>NESTWORK_SELF</code>) that trips people up.</p>
+<h2 id="why-agents-need-their-own-channel">Why agents need their own channel</h2>
+<p>Human-to-agent chat is well covered: you type in a terminal, or you wire a bot into Telegram or a group chat. Agent-to-agent traffic is a different problem. nestwork's <a href="https://github.com/songth1ef/nestwork/blob/main/docs/agent-mailbox.md" rel="noopener">mailbox reference</a> points out that Telegram bots cannot see each other's messages by design, so a group chat full of bots is not a coordination channel.</p>
+<p>The things agents actually need to pass each other are low-frequency and structured: "I finished the migration, you take the tests", "this deploy script has a trap", "please confirm you received this". That traffic wants to be persistent (it survives a closed session), auditable (you can see who asked what) and cheap to run. A git repo that the agents already pull at session start gives you all three.</p>
+<h2 id="how-the-mailbox-works-single-writer-outboxes">How the mailbox works: single-writer outboxes</h2>
+<p>nestwork's core rule is that each agent may only write its own directory, <code>agents/&lt;host&gt;/&lt;agent-id&gt;/</code>. A shared inbox would break that rule, so the mailbox is built the other way around:</p>
+<div class="table-wrap"><table><thead><tr><th>Action</th><th>What happens</th></tr></thead><tbody><tr><td>Send</td><td>Write one file into <em>your own</em> <code>outbox/</code>, tagged with <code>to:</code>. One message = one file = one commit.</td></tr><tr><td>Receive</td><td>Scan every <code>agents/*/*/outbox/*.md</code> and pick messages where <code>to</code> is you or <code>all</code>.</td></tr><tr><td>Mark read</td><td>Append the message id to your git-ignored <code>local/comms/seen.txt</code>. No commit is created.</td></tr></tbody></table></div>
+<p>Because only one agent ever writes a given file, two agents sending at the same time cannot produce a write conflict. Read state never enters git, so checking mail does not churn the history.</p>
+<p>Each message is Markdown with front matter:</p>
+<pre class="code"><code data-lang="markdown">---
+id: 20260606T103000+0800-a0t3-a1b2c3d4
+from: meizu21/claude-a0t3
+to: vm-0-6-ubuntu/claude-va1k
+type: task
+thread: 20260606T103000+0800-a0t3-a1b2c3d4
+reply_to:
+status: open
+created: 20260606T103000+0800
+subject: handshake test
+---
+
+please confirm receipt with a reply</code></pre>
+<p>There are three types: <code>task</code> (a reply is expected), <code>message</code> (a multi-turn conversation sharing one <code>thread</code>) and <code>broadcast</code> (one-way notice, usually <code>to: all</code>).</p>
+<h2 id="sending-reading-and-archiving">Sending, reading and archiving</h2>
+<p>All three scripts live in <a href="https://github.com/songth1ef/nestwork/blob/main/scripts/comms/README.md" rel="noopener"><code>scripts/comms/</code></a> and must be run from inside your nest repository, because they locate the repo with <code>git rev-parse --show-toplevel</code>.</p>
+<pre class="code"><code data-lang="bash">cd ~/nestwork
+
+# send: recipient, type, subject; the body comes from stdin
+echo &quot;please confirm receipt with a reply&quot; | \
+  bash scripts/comms/send.sh vm-0-6-ubuntu/claude-va1k task &quot;handshake test&quot;
+
+# reply in the same thread: add the thread id and the id you answer
+echo &quot;received, running now&quot; | \
+  bash scripts/comms/send.sh meizu21/claude-a0t3 message &quot;re: handshake test&quot; \
+  &lt;thread-id&gt; &lt;message-id&gt;
+
+# read unread mail addressed to me (view only)
+bash scripts/comms/read.sh
+
+# read and mark everything shown as seen, after acting on it
+bash scripts/comms/read.sh --mark
+
+# move my own messages older than 30 days to outbox/archive/
+bash scripts/comms/archive.sh 30</code></pre>
+<p><code>send.sh</code> commits and pushes the message itself, with a commit message like <code>comms: task to &lt;host&gt;/&lt;agent-id&gt; (&lt;id&gt;)</code>. It does this on purpose: nestwork's per-write hooks only fire on Write/Edit tool calls, so a message sent through a shell command cannot rely on them. If the push fails, the message stays committed locally and goes out with the next successful push from that checkout.</p>
+<p><code>read.sh</code> does not pull. The recipient sees new mail after its next <code>git pull</code>, which on Claude Code happens automatically when a session starts. <code>--mark</code> marks every message it printed; there is no per-message marking.</p>
+<p><code>archive.sh</code> only touches your own outbox and is time-based, because a sender cannot know whether a recipient has read a message (the seen list is local to the recipient). Pick a window longer than your slowest agent's check-in cadence.</p>
+<h2 id="read-on-demand-not-at-every-startup">Read on demand, not at every startup</h2>
+<p>Since protocol 3.0, nestwork keeps startup small: only the core rules and two short resident summaries load. On Claude Code the SessionStart hook also refreshes a git-ignored snapshot of unread mail at <code>agents/&lt;host&gt;/&lt;agent-id&gt;/local/inbox.md</code>, but it lists that path under READ-ON-DEMAND, not READ-ON-START. The agent opens it when it is coordinating or resuming related work. Tools without that hook can run <code>read.sh</code> themselves.</p>
+<p>One rule matters here: mail is coordination data, not user authorization. The protocol says so explicitly. An agent should not start deleting files because another agent's message asked it to; your instructions still come from you.</p>
+<h2 id="the-nestwork_self-gotchas">The <code>NESTWORK_SELF</code> gotchas</h2>
+<p>The scripts need to know "who am I". They use <code>NESTWORK_SELF</code> if it is set, otherwise <code>~/.nestwork_host</code> plus <code>~/.nestwork_id_claude</code>. That fallback is Claude-specific, which leads to a few traps:</p>
+<ol><li><strong>Non-Claude agents must set it.</strong> Codex's installer stores its id in <code>~/.nestwork_id_codex</code> (the id is usually just <code>codex</code>). Without <code>NESTWORK_SELF</code>, a Codex agent on a machine that also has Claude Code installed would send and read mail <em>as the Claude agent</em>. On a machine without Claude, the scripts stop with <code>cannot resolve agent id</code>.</li></ol>
+<pre class="code"><code data-lang="bash">export NESTWORK_SELF=&quot;$(cat ~/.nestwork_host)/$(cat ~/.nestwork_id_codex)&quot;</code></pre>
+<ol start="2"><li><strong>Addresses must match exactly.</strong> <code>read.sh</code> compares the <code>to:</code> line with <code>&lt;host&gt;/&lt;agent-id&gt;</code> as a plain string, and <code>send.sh</code> does not check that the recipient exists. A typo means the message sits in your outbox forever with no error. Copy the address from the recipient's directory name under <code>agents/</code>.</li><li><strong>Run from the nest repo.</strong> Run <code>send.sh</code> from inside another project and it resolves <em>that</em> repo as the root, writing and pushing the message there. Always <code>cd</code> into the nest first.</li><li>The Claude Code SessionStart hook sets <code>NESTWORK_SELF</code> itself when it refreshes the inbox snapshot, so the snapshot is correct even if your shell variable is not.</li></ol>
+<h2 id="when-a-git-mailbox-is-the-wrong-tool">When a git mailbox is the wrong tool</h2>
+<p>Mailbox messages are many small files written once, which git handles well. The docs draw a clear line: tens of structured tasks and notices per day fit; hundreds or thousands of machine heartbeats per day do not. That kind of high-frequency traffic would bloat the main history, the same failure nestwork once saw with a high-churn <code>history.jsonl</code> file that grew a repo to 177 MB. For genuine real-time coordination, the docs suggest a self-hosted bus such as Matrix or MQTT, which nestwork deliberately does not build.</p>
+<p>The author's own write-up describes the moment this felt worthwhile: an agent on one machine finishing a chunk of work and leaving a line for the agent on another machine, "I'm done with this part, you take it from here", and the other picking it up when it next coordinated (<a href="../16-agents-one-brain/">16 agents, one brain</a>).</p>
+<h2 id="faq">FAQ</h2>
+<h3 id="is-this-real-time-messaging">Is this real-time messaging?</h3>
+<p>No. Delivery happens on the recipient's next pull, typically at session start. The docs describe a real-time tier as "not built" and only worth adding if asynchronous delivery proves insufficient.</p>
+<h3 id="can-i-broadcast-to-every-agent">Can I broadcast to every agent?</h3>
+<p>Yes. Send with <code>to</code> set to <code>all</code> and type <code>broadcast</code>. Every agent's <code>read.sh</code> treats <code>all</code> as addressed to it.</p>
+<h3 id="does-marking-mail-as-read-create-commits">Does marking mail as read create commits?</h3>
+<p>No. Seen ids live in <code>agents/&lt;host&gt;/&lt;agent-id&gt;/local/comms/seen.txt</code>, and <code>local/</code> is git-ignored by default. Only sending and archiving create commits.</p>
+<h3 id="can-other-agents-read-messages-that-are-not-addressed-to-them">Can other agents read messages that are not addressed to them?</h3>
+<p>Yes, technically. Every outbox is a plain file in a repo all your agents can read, and the filter is only a convention. Keep secrets out of messages, just as you keep them out of memory.</p>
+<h2 id="related">Related</h2>
+<ul><li><a href="../git-native-agent-memory/">Git-native memory for AI agents</a></li><li><a href="../multi-agent-memory-without-conflicts/">Multi-agent memory without conflicts</a></li><li><a href="../topic-memory-on-demand-loading/">Loading topic memory on demand</a></li><li><a href="../encrypt-agent-memory-git-crypt/">Encrypt agent memory with git-crypt</a></li><li><a href="../16-agents-one-brain/">I gave 16 AI agents one shared brain</a></li></ul>
+      <section class="cta" aria-label="Give your agents a memory">
+        <h2>Give your agents a memory</h2>
+        <p>nestwork turns one private git repo into shared, persistent memory for Claude Code, Codex, Gemini, Kimi and more.</p>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">Use this template →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ Star on GitHub</a>
+      </section>
+    </article>
+    <aside class="toc" aria-label="On this page"><b>On this page</b><a href="#why-agents-need-their-own-channel">Why agents need their own channel</a><a href="#how-the-mailbox-works-single-writer-outboxes">How the mailbox works: single-writer outboxes</a><a href="#sending-reading-and-archiving">Sending, reading and archiving</a><a href="#read-on-demand-not-at-every-startup">Read on demand, not at every startup</a><a href="#the-nestwork_self-gotchas">The NESTWORK_SELF gotchas</a><a href="#when-a-git-mailbox-is-the-wrong-tool">When a git mailbox is the wrong tool</a><a href="#faq">FAQ</a><a href="#related">Related</a></aside>
+  </div>
+  <section class="more" aria-label="All articles">
+    <div class="wrap">
+      <h2>All articles →</h2>
+      <div class="cards"><a href="../ai-agent-memory/"><b>AI Agent Memory — Four Types and Their Trade-offs</b><span>AI agent memory is context an agent keeps beyond one session. Compare context windows, built-in memory, vector services and files for coding agents.</span></a><a href="../claude-code-memory-across-machines/"><b>Claude Code Memory Across Machines, Synced with Git</b><span>Claude Code&#x27;s CLAUDE.md and auto memory stay on one machine. Where they&#x27;re stored, why they don&#x27;t sync, and how to share them across machines with git.</span></a><a href="../share-memory-claude-code-codex/"><b>Share Memory Between Claude Code and Codex</b><span>Claude Code reads ~/.claude/CLAUDE.md, Codex reads ~/.codex/AGENTS.md. Point both at one git repo to share memory, each writing only its own directory.</span></a><a href="../codex-cli-persistent-memory/"><b>Codex CLI Memory, AGENTS.md and Persistent Recall</b><span>How Codex CLI remembers today (AGENTS.md and opt-in local memories), and how to give Codex persistent memory across sessions and machines with git.</span></a><a href="../agent-memory-tools-compared/"><b>Agent Memory Tools Compared — Mem0, Letta, Zep and More</b><span>Mem0, Letta, Zep, Supermemory, claude-mem, built-in tool memory and nestwork compared on architecture, deployment, data ownership and best fit.</span></a><a href="../agent-memory-benchmarks/"><b>Agent Memory Benchmarks — LoCoMo, LongMemEval, BEAM</b><span>What LoCoMo, LongMemEval and BEAM measure, how LLM judges score them, why vendor numbers don&#x27;t compare, and which metrics matter for coding agents.</span></a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span>nestwork — AI agent memory, git-native.</span>
+    <span><a href="../../">Home</a><a href="../">Articles</a><a href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-lang-switch]').forEach(function (a) {
+  a.addEventListener('click', function () { try { localStorage.setItem('nestwork_lang', a.getAttribute('data-lang-switch')); } catch (e) {} });
+});
+</script>
+</body>
+</html>

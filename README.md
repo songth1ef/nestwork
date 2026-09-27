@@ -15,7 +15,15 @@ clicks **Use this template** inherits a frontend project.
   script, so they cannot drift. It fails on leftover other-language elements,
   unfilled placeholders, duplicate ids, unbalanced tags or more than one `<h1>`.
 - `src/og.html` — source of the 1200×630 share images `og.png` / `og-zh.png`.
-- No external requests at runtime: no web fonts, no analytics, no CDN.
+- `content/articles/<slug>.{en,zh}.md` — articles (both languages required).
+  Format and accuracy rules: `content/WRITING-SPEC.md`. `articles.py` renders
+  them to `articles/<slug>/` and `zh/articles/<slug>/` with Article,
+  BreadcrumbList and FAQPage JSON-LD, plus the two article index pages.
+  The build fails on links to unknown articles, over-long titles/descriptions
+  (use `seo_title:` for a shorter `<title>`), or leftover markdown.
+- `articles/img/` — article images (1200px JPEG; keep them small).
+- `fonts/` — self-hosted OFL fonts (VT323, Inter Tight) with their licenses.
+- No third-party requests at runtime: fonts are self-hosted; no analytics, no CDN.
 
 ## Editing
 

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-Agent Shared Memory Without Write Conflicts</title>
+<meta name="description" content="Several AI agents can share one memory if each writes only its own directory, every write syncs atomically, and fixed ownership rules settle conflicts.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="songth1ef">
+<meta name="theme-color" content="#8fdcf7">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/articles/multi-agent-memory-without-conflicts/">
+<link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/multi-agent-memory-without-conflicts/">
+<link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/multi-agent-memory-without-conflicts/">
+<link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/multi-agent-memory-without-conflicts/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232ec4d6'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="nestwork">
+<meta property="og:title" content="Multi-Agent Shared Memory Without Write Conflicts">
+<meta property="og:description" content="Several AI agents can share one memory if each writes only its own directory, every write syncs atomically, and fixed ownership rules settle conflicts.">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/articles/multi-agent-memory-without-conflicts/">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Multi-Agent Shared Memory Without Write Conflicts">
+<meta name="twitter:description" content="Several AI agents can share one memory if each writes only its own directory, every write syncs atomically, and fixed ownership rules settle conflicts.">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://songth1ef.github.io/nestwork/articles/multi-agent-memory-without-conflicts/#article","headline":"Multi-Agent Shared Memory Without Write Conflicts","description":"Several AI agents can share one memory if each writes only its own directory, every write syncs atomically, and fixed ownership rules settle conflicts.","inLanguage":"en","datePublished":"2026-09-27","dateModified":"2026-09-27","author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"publisher":{"@type":"Organization","name":"nestwork","url":"https://songth1ef.github.io/nestwork/"},"image":["https://songth1ef.github.io/nestwork/og.png"],"mainEntityOfPage":"https://songth1ef.github.io/nestwork/articles/multi-agent-memory-without-conflicts/","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://songth1ef.github.io/nestwork/"},{"@type":"ListItem","position":2,"name":"Articles","item":"https://songth1ef.github.io/nestwork/articles/"},{"@type":"ListItem","position":3,"name":"Multi-Agent Shared Memory Without Write Conflicts","item":"https://songth1ef.github.io/nestwork/articles/multi-agent-memory-without-conflicts/"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What if two agents edit the same project file?","acceptedAnswer":{"@type":"Answer","text":"projects/ and workflow/ are the places where two agents can touch one file. The pre-write pull --rebase shrinks the window to one write; if a real conflict happens, the write is blocked and you merge by hand. Keeping project status short and per-project reduces the odds further."}},{"@type":"Question","name":"Do two Claude Code sessions on one machine get separate directories?","acceptedAnswer":{"@type":"Answer","text":"No. The identity is per tool per machine: the installer generates an id such as claude-a7k2 once and reuses it from ~/.nestwork_id_claude. Two sessions on the same machine write the same directory in the same local clone, so git sees no conflict between them; they only need to avoid rewriting the same memory file at the same moment. Different tools and different machines always get separate directories."}},{"@type":"Question","name":"Why not use a lock or a database transaction?","acceptedAnswer":{"@type":"Answer","text":"That needs a running service, which nestwork deliberately avoids. Ownership plus rebase-and-retry gets close enough for memory, where writes are small and infrequent, without any server."}},{"@type":"Question","name":"What does the hook do when I'm offline?","acceptedAnswer":{"@type":"Answer","text":"The pre-write pull fails, and the hook treats that like a conflict: on Claude Code the memory write is blocked until the remote is reachable. Reading memory still works from the local clone."}}]}]}</script>
+<style>
+@font-face { font-family: "VT323"; src: url("../../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+:root {
+  --bg: #fbf8ef; --fg: #111; --muted: #5c5c5c; --teal: #2ec4d6; --teal-dark: #0a8fa0; --magenta: #ff2d8f;
+  --lime: #d6f25a; --yellow: #ffe53d; --sky: #29c6ec; --red: #ec2a33;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::selection { background: var(--yellow); }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 2px solid #111; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.badge { background: var(--teal); color: #000; font-weight: 800; letter-spacing: -0.03em; padding: 2px 10px 3px; border: 2px solid #000; outline: 2px solid var(--teal); text-decoration: none; font-size: 18px; }
+.nav { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 13px; }
+.nav a { text-decoration: none; color: #333; }
+.nav a:hover { background: var(--yellow); color: #000; }
+.nav .gh { background: #111; color: #fff; padding: 4px 10px; font-weight: 700; }
+.art-hero { background: linear-gradient(180deg, #8fdcf7 0%, #d4f3ff 60%, var(--bg) 100%); border-bottom: 2px solid #111; padding: 48px 0 44px; position: relative; overflow: hidden; }
+.art-hero::after { content: ""; position: absolute; right: -60px; top: -40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 11px 11px; -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%); mask-image: radial-gradient(circle, #000 50%, transparent 70%); pointer-events: none; }
+.crumbs { font-family: var(--pixel); font-size: 20px; letter-spacing: 0.04em; color: #0a5f6b; margin: 0 0 14px; position: relative; z-index: 1; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { background: var(--yellow); }
+.art-hero h1 { font-size: clamp(34px, 5.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 0; max-width: 880px; position: relative; z-index: 1; }
+:lang(zh) .art-hero h1 { line-height: 1.2; letter-spacing: -0.01em; }
+.art-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: #333; position: relative; z-index: 1; }
+.art-meta span { background: #fff; border: 2px solid #111; padding: 2px 8px; }
+.art-meta .kind { background: var(--magenta); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; padding-top: 48px; padding-bottom: 72px; }
+.layout.wide { grid-template-columns: 1fr; }
+.layout > * { min-width: 0; }
+.prose p code, .prose li code, .prose td code { overflow-wrap: anywhere; }
+.wide .prose { max-width: none; }
+.wide .toc { display: none; }
+.wide .prose > p:first-child { max-width: 72ch; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+.prose { max-width: 72ch; }
+.prose > p:first-child { font-size: 1.12em; }
+.prose h2 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; line-height: 1.2; margin: 2.1em 0 0.6em; padding-top: 0.2em; border-top: 2px solid #111; scroll-margin-top: 80px; }
+.prose h2::before { content: "// "; font-family: var(--pixel); color: var(--magenta); font-weight: 400; }
+.prose h3 { font-size: 21px; letter-spacing: -0.015em; margin: 1.6em 0 0.4em; scroll-margin-top: 80px; }
+.prose p, .prose li { color: #222; }
+.prose a { text-decoration-color: var(--magenta); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose a:hover { background: var(--yellow); }
+.prose code { font-family: var(--mono); font-size: 0.86em; background: #fff; border: 1.5px solid #111; padding: 0 5px; }
+.prose pre.code { background: #151515; color: #eee; border-left: 5px solid var(--teal); padding: 16px 18px; overflow-x: auto; font-size: 14.5px; line-height: 1.65; box-shadow: 6px 6px 0 #111; }
+.prose pre.code code { background: none; border: 0; padding: 0; font-size: 1em; color: inherit; }
+.prose blockquote { margin: 1.4em 0; padding: 14px 20px; background: #fff; border: 2px solid #111; border-left: 8px solid var(--magenta); box-shadow: 5px 5px 0 #111; }
+.prose blockquote p { margin: 0; font-weight: 600; }
+.prose figure { margin: 1.6em 0; }
+.prose img { width: 100%; height: auto; border: 2px solid #111; box-shadow: 6px 6px 0 #111; display: block; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin: 0.3em 0; }
+.prose li::marker { color: var(--magenta); font-weight: 700; }
+.table-wrap { overflow-x: auto; border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; margin: 1.4em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #0002; vertical-align: top; }
+thead th { background: #111; color: #fff; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.toc { position: sticky; top: 84px; align-self: start; background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 var(--teal); padding: 16px 18px; font-size: 14.5px; line-height: 1.45; }
+.toc b { display: block; font-family: var(--pixel); font-weight: 400; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 8px; }
+.toc a { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px dashed #0003; color: #222; }
+.toc a:hover { background: var(--yellow); }
+.cta { margin-top: 56px; background: var(--lime); border: 2px solid #111; box-shadow: 8px 8px 0 #111; padding: 28px 28px 30px; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; right: -40px; top: -30px; width: 200px; height: 120px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 12px, transparent 12px 24px); transform: rotate(-4deg); }
+.cta h2 { border: 0; margin: 0 0 8px; padding: 0; font-size: 30px; position: relative; z-index: 1; }
+.cta h2::before { content: none; }
+.cta p { margin: 0 0 18px; max-width: 520px; font-weight: 600; position: relative; z-index: 1; }
+.btn { display: inline-flex; gap: 8px; padding: 12px 20px; font-weight: 800; text-decoration: none; border: 2px solid #111; margin: 0 10px 10px 0; position: relative; z-index: 1; }
+.btn:hover { box-shadow: 5px 5px 0 #111; transform: translate(-2px, -2px); }
+.btn-ink { background: #111; color: #fff; }
+.btn-ghost { background: #fff; color: #111; }
+.more { border-top: 2px solid #111; background: #fff; padding: 48px 0 60px; }
+.more h2 { font-family: var(--pixel); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; margin: 0 0 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+.cards a { display: block; text-decoration: none; background: var(--bg); border: 2px solid #111; box-shadow: 5px 5px 0 #111; padding: 16px 18px; }
+.cards a:hover { background: var(--yellow); }
+.cards b { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; }
+.cards span { display: block; margin-top: 6px; font-size: 14px; color: #444; line-height: 1.5; }
+.site-footer { background: #111; color: #aaa; padding: 30px 0 40px; font-family: var(--mono); font-size: 12.5px; }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.site-footer a { color: #ddd; text-decoration: none; margin-left: 16px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="badge" href="../../">nestwork</a>
+    <nav class="nav" aria-label="Articles">
+      <a href="../">Articles</a>
+      <a href="https://songth1ef.github.io/nestwork/zh/articles/multi-agent-memory-without-conflicts/" hreflang="zh-CN" data-lang-switch="zh">中文</a>
+      <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="art-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="../../">Home</a> / <a href="../">Articles</a> /</p>
+      <h1>Multi-Agent Shared Memory Without Write Conflicts</h1>
+      <div class="art-meta"><span class="kind">Guides</span><span>5 min read</span><span>Updated 2026-09-27</span></div>
+    </div>
+  </div>
+  <div class="wrap layout">
+    <article class="prose">
+<p>How do multiple AI agents share the same memory without overwriting each other? Give every agent its own directory that only it writes to, wrap each memory write in pull, write, commit and push, and decide in advance who wins when a pull conflicts. nestwork does exactly this on top of a git repository, and the result is that agents on different machines and from different vendors read one memory while their writes almost never collide.</p>
+<p>The rest of this article walks through the four pieces: write isolation, the per-write hook, the conflict rules and the priority chain.</p>
+<h2 id="why-shared-memory-is-hard-for-agents">Why shared memory is hard for agents</h2>
+<p>Sharing memory is easy when only one agent writes. It gets hard when several do. The nestwork author ran into this before building anything: an agent on one machine wrote down that a project's deploy script had a nasty gotcha, and the next day an agent on another machine stepped on the same problem (<a href="../16-agents-one-brain/">blog post</a>). Once memory is shared to prevent that, three new questions appear:</p>
+<ul><li><strong>Concurrency.</strong> Two machines write memory at nearly the same time. Which write survives?</li><li><strong>Authority.</strong> One agent's note contradicts another's. Which one should an agent follow?</li><li><strong>Scope.</strong> A throwaway debugging note from one agent. Should every other agent see it?</li></ul>
+<p>None of these is about where memory is stored. They are coordination rules, which is why nestwork treats memory as a protocol rather than a database.</p>
+<h2 id="1-write-isolation-one-directory-per-host-and-agent">1. Write isolation: one directory per host and agent</h2>
+<p>Every agent instance owns exactly one directory:</p>
+<pre class="code"><code data-lang="text">agents/&lt;host&gt;/&lt;agent-id&gt;/
+agents/desktop-rkv5ls4/claude-a7k2/
+agents/macbook/codex/</code></pre>
+<p>The host is the lowercased short hostname; the agent id is <code>&lt;tool&gt;-&lt;4-char suffix&gt;</code> for tools that run several instances, or just <code>&lt;tool&gt;</code>. The installer saves them in <code>~/.nestwork_host</code> and <code>~/.nestwork_id_&lt;tool&gt;</code>, so installing Codex never changes Claude Code's identity on the same machine.</p>
+<p>The write rules in <a href="https://github.com/songth1ef/nestwork/blob/main/AGENTS.md" rel="noopener">AGENTS.md §2</a> follow from that:</p>
+<div class="table-wrap"><table><thead><tr><th>Path</th><th>Who writes</th><th>Can agents collide here?</th></tr></thead><tbody><tr><td><code>agents/&lt;host&gt;/&lt;agent-id&gt;/</code></td><td>only that agent</td><td>no, for ordinary memory writes</td></tr><tr><td><code>agents/&lt;other-host&gt;/...</code></td><td>never this agent</td><td>no</td></tr><tr><td><code>queen/</code></td><td>you, by hand</td><td>no; agents never write it</td></tr><tr><td><code>shared/</code></td><td>only during an explicit distillation</td><td>no, during normal work</td></tr><tr><td><code>projects/</code>, <code>workflow/</code></td><td>agents or you</td><td>possible; the pre-write pull makes it rare</td></tr></tbody></table></div>
+<p>A git conflict needs two writers on the same lines. With this layout, two agents usually aren't even in the same file.</p>
+<h2 id="2-atomic-per-write-sync">2. Atomic per-write sync</h2>
+<p>Isolation removes most conflicts, but two machines still push to the same branch. If an agent only synced at the end of a long session, the window for a rejected push would be the whole session. On Claude Code and Kimi Code, nestwork closes that window with hooks around every Write or Edit inside the agent's own directory. The logic lives in <a href="https://github.com/songth1ef/nestwork/blob/main/scripts/hooks/nestwork.sh" rel="noopener"><code>scripts/hooks/nestwork.sh</code></a>:</p>
+<pre class="code"><code data-lang="text">PreToolUse   path under agents/&lt;host&gt;/&lt;agent-id&gt;/ ?
+             git pull --rebase --autostash
+             on conflict (or a leftover autostash) -&gt; exit 2, the write is blocked
+(write)      the agent edits its memory file
+PostToolUse  git add + commit, scoped to its own directory
+             git push; if rejected: back off (~0.5s, ~1s, ~2s plus jitter),
+             undo the local commit, pull --rebase, commit again, retry
+             after three failed pushes the commit stays local for the next hook
+Stop         the same commit + push once per turn as a safety net</code></pre>
+<p>A few details matter:</p>
+<ul><li>The commit uses an explicit pathspec, <code>memory: update &lt;host&gt;/&lt;agent-id&gt;</code>, so it never sweeps up unrelated staged files.</li><li>The autostash check exists because git can park uncommitted changes in the stash and still exit 0; a later write would then silently overwrite them. The hook counts stash entries and treats a leftover as a conflict.</li><li>The post hook never blocks the agent; it prints a warning and leaves the commit for the next attempt.</li></ul>
+<p>The effect is that the race window shrinks from a session to a single write. Codex, Gemini CLI, OpenClaw and Hermes have no per-write hooks; they follow the bootstrap and commit their own directory at session end, which widens the window but, because each writes only its own directory, rarely matters.</p>
+<h2 id="3-deterministic-conflict-rules">3. Deterministic conflict rules</h2>
+<p>When a pull does hit a conflict, nobody should have to guess. <a href="https://github.com/songth1ef/nestwork/blob/main/AGENTS.md" rel="noopener">AGENTS.md §5</a> settles it by ownership:</p>
+<div class="table-wrap"><table><thead><tr><th>Conflicting path</th><th>Take</th><th>Reason</th></tr></thead><tbody><tr><td><code>queen/</code>, <code>shared/</code></td><td>remote</td><td>managed upstream by you or by distillation</td></tr><tr><td><code>agents/&lt;host&gt;/&lt;agent-id&gt;/</code> (your own)</td><td>local</td><td>this instance owns its directory</td></tr><tr><td><code>agents/&lt;other-host&gt;/...</code></td><td>remote</td><td>another machine owns it</td></tr></tbody></table></div>
+<p>The owner decides, and every agent applies the same rule, so two machines resolving the same conflict reach the same result.</p>
+<h2 id="4-the-priority-chain-for-contradictions">4. The priority chain for contradictions</h2>
+<p>Git conflicts are about bytes. Contradicting instructions are about meaning, and they need a separate rule. nestwork uses a fixed authority order:</p>
+<pre class="code"><code data-lang="text">queen/agent-rules.md &gt; queen/strategy.md &gt; shared/memory.md &gt; agents/*/*/memory.md &gt; projects/*.md &gt; workflow/*.md</code></pre>
+<p>When two sources disagree, the agent follows the higher one and does not merge them. A blended "compromise" instruction is often worse than either original. This order is authority, not loading order: since protocol 3.0 an agent loads only small resident files at startup and looks up the rest on demand, and a resident summary inherits the priority of the source it summarizes.</p>
+<h2 id="how-agents-share-without-writing-to-each-other">How agents share without writing to each other</h2>
+<p>If nobody writes anywhere but their own directory, how does knowledge spread?</p>
+<ul><li><strong>Reading is open.</strong> Every agent can read every directory after a pull. An agent on your desktop can read what the laptop agent recorded this morning.</li><li><strong>Distillation merges.</strong> Stable facts from all agents are merged into <code>shared/</code> only when you trigger it, with a sub-agent review and your confirmation (see <a href="../memory-distillation/">memory distillation</a>).</li><li><strong>The mailbox handles messages.</strong> To address another agent, an agent writes a file into its own <code>outbox/</code> tagged <code>to:</code>; the recipient scans everyone's outboxes. There is no shared inbox, so the single-writer rule still holds (see <a href="../agent-mailbox-git/">agent mailbox over git</a>).</li></ul>
+<p>The author runs this across 10 machines and more than 30 agent instances on Windows, macOS, Linux and Android.</p>
+<h2 id="faq">FAQ</h2>
+<h3 id="what-if-two-agents-edit-the-same-project-file">What if two agents edit the same project file?</h3>
+<p><code>projects/</code> and <code>workflow/</code> are the places where two agents can touch one file. The pre-write <code>pull --rebase</code> shrinks the window to one write; if a real conflict happens, the write is blocked and you merge by hand. Keeping project status short and per-project reduces the odds further.</p>
+<h3 id="do-two-claude-code-sessions-on-one-machine-get-separate-directories">Do two Claude Code sessions on one machine get separate directories?</h3>
+<p>No. The identity is per tool per machine: the installer generates an id such as <code>claude-a7k2</code> once and reuses it from <code>~/.nestwork_id_claude</code>. Two sessions on the same machine write the same directory in the same local clone, so git sees no conflict between them; they only need to avoid rewriting the same memory file at the same moment. Different tools and different machines always get separate directories.</p>
+<h3 id="why-not-use-a-lock-or-a-database-transaction">Why not use a lock or a database transaction?</h3>
+<p>That needs a running service, which nestwork deliberately avoids. Ownership plus rebase-and-retry gets close enough for memory, where writes are small and infrequent, without any server.</p>
+<h3 id="what-does-the-hook-do-when-i-m-offline">What does the hook do when I'm offline?</h3>
+<p>The pre-write pull fails, and the hook treats that like a conflict: on Claude Code the memory write is blocked until the remote is reachable. Reading memory still works from the local clone.</p>
+<h2 id="related">Related</h2>
+<ul><li><a href="../git-native-agent-memory/">Git-native agent memory: why git is enough</a></li><li><a href="../memory-distillation/">Memory distillation: merging many agents' memory</a></li><li><a href="../agent-mailbox-git/">An agent mailbox over git</a></li><li><a href="../share-memory-claude-code-codex/">Sharing memory between Claude Code and Codex</a></li><li><a href="../16-agents-one-brain/">16 agents, one brain</a></li></ul>
+      <section class="cta" aria-label="Give your agents a memory">
+        <h2>Give your agents a memory</h2>
+        <p>nestwork turns one private git repo into shared, persistent memory for Claude Code, Codex, Gemini, Kimi and more.</p>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">Use this template →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ Star on GitHub</a>
+      </section>
+    </article>
+    <aside class="toc" aria-label="On this page"><b>On this page</b><a href="#why-shared-memory-is-hard-for-agents">Why shared memory is hard for agents</a><a href="#1-write-isolation-one-directory-per-host-and-agent">1. Write isolation: one directory per host and agent</a><a href="#2-atomic-per-write-sync">2. Atomic per-write sync</a><a href="#3-deterministic-conflict-rules">3. Deterministic conflict rules</a><a href="#4-the-priority-chain-for-contradictions">4. The priority chain for contradictions</a><a href="#how-agents-share-without-writing-to-each-other">How agents share without writing to each other</a><a href="#faq">FAQ</a><a href="#related">Related</a></aside>
+  </div>
+  <section class="more" aria-label="All articles">
+    <div class="wrap">
+      <h2>All articles →</h2>
+      <div class="cards"><a href="../ai-agent-memory/"><b>AI Agent Memory — Four Types and Their Trade-offs</b><span>AI agent memory is context an agent keeps beyond one session. Compare context windows, built-in memory, vector services and files for coding agents.</span></a><a href="../claude-code-memory-across-machines/"><b>Claude Code Memory Across Machines, Synced with Git</b><span>Claude Code&#x27;s CLAUDE.md and auto memory stay on one machine. Where they&#x27;re stored, why they don&#x27;t sync, and how to share them across machines with git.</span></a><a href="../share-memory-claude-code-codex/"><b>Share Memory Between Claude Code and Codex</b><span>Claude Code reads ~/.claude/CLAUDE.md, Codex reads ~/.codex/AGENTS.md. Point both at one git repo to share memory, each writing only its own directory.</span></a><a href="../codex-cli-persistent-memory/"><b>Codex CLI Memory, AGENTS.md and Persistent Recall</b><span>How Codex CLI remembers today (AGENTS.md and opt-in local memories), and how to give Codex persistent memory across sessions and machines with git.</span></a><a href="../agent-memory-tools-compared/"><b>Agent Memory Tools Compared — Mem0, Letta, Zep and More</b><span>Mem0, Letta, Zep, Supermemory, claude-mem, built-in tool memory and nestwork compared on architecture, deployment, data ownership and best fit.</span></a><a href="../agent-memory-benchmarks/"><b>Agent Memory Benchmarks — LoCoMo, LongMemEval, BEAM</b><span>What LoCoMo, LongMemEval and BEAM measure, how LLM judges score them, why vendor numbers don&#x27;t compare, and which metrics matter for coding agents.</span></a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span>nestwork — AI agent memory, git-native.</span>
+    <span><a href="../../">Home</a><a href="../">Articles</a><a href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-lang-switch]').forEach(function (a) {
+  a.addEventListener('click', function () { try { localStorage.setItem('nestwork_lang', a.getAttribute('data-lang-switch')); } catch (e) {} });
+});
+</script>
+</body>
+</html>

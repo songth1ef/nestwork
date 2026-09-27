@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>nestwork Setup FAQ: Long-Term Memory for Claude Code</title>
+<meta name="description" content="How to give Claude Code and Codex long-term memory with nestwork: prerequisites, install, verify, uninstall, cost, privacy, upgrades and team use.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="songth1ef">
+<meta name="theme-color" content="#8fdcf7">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/articles/nestwork-getting-started-faq/">
+<link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/nestwork-getting-started-faq/">
+<link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/nestwork-getting-started-faq/">
+<link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/nestwork-getting-started-faq/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232ec4d6'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="nestwork">
+<meta property="og:title" content="nestwork Setup FAQ: Long-Term Memory for Claude Code">
+<meta property="og:description" content="How to give Claude Code and Codex long-term memory with nestwork: prerequisites, install, verify, uninstall, cost, privacy, upgrades and team use.">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/articles/nestwork-getting-started-faq/">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="nestwork Setup FAQ: Long-Term Memory for Claude Code">
+<meta name="twitter:description" content="How to give Claude Code and Codex long-term memory with nestwork: prerequisites, install, verify, uninstall, cost, privacy, upgrades and team use.">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://songth1ef.github.io/nestwork/articles/nestwork-getting-started-faq/#article","headline":"nestwork Setup FAQ: Long-Term Memory for Claude Code","description":"How to give Claude Code and Codex long-term memory with nestwork: prerequisites, install, verify, uninstall, cost, privacy, upgrades and team use.","inLanguage":"en","datePublished":"2026-09-27","dateModified":"2026-09-27","author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"publisher":{"@type":"Organization","name":"nestwork","url":"https://songth1ef.github.io/nestwork/"},"image":["https://songth1ef.github.io/nestwork/og.png"],"mainEntityOfPage":"https://songth1ef.github.io/nestwork/articles/nestwork-getting-started-faq/","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://songth1ef.github.io/nestwork/"},{"@type":"ListItem","position":2,"name":"Articles","item":"https://songth1ef.github.io/nestwork/articles/"},{"@type":"ListItem","position":3,"name":"nestwork Setup FAQ: Long-Term Memory for Claude Code","item":"https://songth1ef.github.io/nestwork/articles/nestwork-getting-started-faq/"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Do I have to change how I use Claude Code?","acceptedAnswer":{"@type":"Answer","text":"No. The README says there is nothing new to learn. The main new habit is telling the agent when something is worth recording."}},{"@type":"Question","name":"Can I install it for several tools on one machine?","acceptedAnswer":{"@type":"Answer","text":"Yes. Each tool gets its own identity file, such as ~/.nestwork_id_claude and ~/.nestwork_id_codex, so installing one never replaces another."}},{"@type":"Question","name":"What if the installer fails with an identity error?","acceptedAnswer":{"@type":"Answer","text":"The installers need python3 on PATH to resolve host and agent id. You can pin the values with NESTWORK_HOST and NESTWORK_AGENT_ID."}},{"@type":"Question","name":"Does it work with Cursor or Copilot?","acceptedAnswer":{"@type":"Answer","text":"At the workspace level, by symlinking AGENTS.md into .cursor/rules/, .windsurf/rules/, .clinerules/ or .github/copilot-instructions.md. gh copilot is listed as unsupported."}}]}]}</script>
+<style>
+@font-face { font-family: "VT323"; src: url("../../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+:root {
+  --bg: #fbf8ef; --fg: #111; --muted: #5c5c5c; --teal: #2ec4d6; --teal-dark: #0a8fa0; --magenta: #ff2d8f;
+  --lime: #d6f25a; --yellow: #ffe53d; --sky: #29c6ec; --red: #ec2a33;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::selection { background: var(--yellow); }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 2px solid #111; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.badge { background: var(--teal); color: #000; font-weight: 800; letter-spacing: -0.03em; padding: 2px 10px 3px; border: 2px solid #000; outline: 2px solid var(--teal); text-decoration: none; font-size: 18px; }
+.nav { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 13px; }
+.nav a { text-decoration: none; color: #333; }
+.nav a:hover { background: var(--yellow); color: #000; }
+.nav .gh { background: #111; color: #fff; padding: 4px 10px; font-weight: 700; }
+.art-hero { background: linear-gradient(180deg, #8fdcf7 0%, #d4f3ff 60%, var(--bg) 100%); border-bottom: 2px solid #111; padding: 48px 0 44px; position: relative; overflow: hidden; }
+.art-hero::after { content: ""; position: absolute; right: -60px; top: -40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 11px 11px; -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%); mask-image: radial-gradient(circle, #000 50%, transparent 70%); pointer-events: none; }
+.crumbs { font-family: var(--pixel); font-size: 20px; letter-spacing: 0.04em; color: #0a5f6b; margin: 0 0 14px; position: relative; z-index: 1; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { background: var(--yellow); }
+.art-hero h1 { font-size: clamp(34px, 5.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 0; max-width: 880px; position: relative; z-index: 1; }
+:lang(zh) .art-hero h1 { line-height: 1.2; letter-spacing: -0.01em; }
+.art-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: #333; position: relative; z-index: 1; }
+.art-meta span { background: #fff; border: 2px solid #111; padding: 2px 8px; }
+.art-meta .kind { background: var(--magenta); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; padding-top: 48px; padding-bottom: 72px; }
+.layout.wide { grid-template-columns: 1fr; }
+.layout > * { min-width: 0; }
+.prose p code, .prose li code, .prose td code { overflow-wrap: anywhere; }
+.wide .prose { max-width: none; }
+.wide .toc { display: none; }
+.wide .prose > p:first-child { max-width: 72ch; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+.prose { max-width: 72ch; }
+.prose > p:first-child { font-size: 1.12em; }
+.prose h2 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; line-height: 1.2; margin: 2.1em 0 0.6em; padding-top: 0.2em; border-top: 2px solid #111; scroll-margin-top: 80px; }
+.prose h2::before { content: "// "; font-family: var(--pixel); color: var(--magenta); font-weight: 400; }
+.prose h3 { font-size: 21px; letter-spacing: -0.015em; margin: 1.6em 0 0.4em; scroll-margin-top: 80px; }
+.prose p, .prose li { color: #222; }
+.prose a { text-decoration-color: var(--magenta); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose a:hover { background: var(--yellow); }
+.prose code { font-family: var(--mono); font-size: 0.86em; background: #fff; border: 1.5px solid #111; padding: 0 5px; }
+.prose pre.code { background: #151515; color: #eee; border-left: 5px solid var(--teal); padding: 16px 18px; overflow-x: auto; font-size: 14.5px; line-height: 1.65; box-shadow: 6px 6px 0 #111; }
+.prose pre.code code { background: none; border: 0; padding: 0; font-size: 1em; color: inherit; }
+.prose blockquote { margin: 1.4em 0; padding: 14px 20px; background: #fff; border: 2px solid #111; border-left: 8px solid var(--magenta); box-shadow: 5px 5px 0 #111; }
+.prose blockquote p { margin: 0; font-weight: 600; }
+.prose figure { margin: 1.6em 0; }
+.prose img { width: 100%; height: auto; border: 2px solid #111; box-shadow: 6px 6px 0 #111; display: block; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin: 0.3em 0; }
+.prose li::marker { color: var(--magenta); font-weight: 700; }
+.table-wrap { overflow-x: auto; border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; margin: 1.4em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #0002; vertical-align: top; }
+thead th { background: #111; color: #fff; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.toc { position: sticky; top: 84px; align-self: start; background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 var(--teal); padding: 16px 18px; font-size: 14.5px; line-height: 1.45; }
+.toc b { display: block; font-family: var(--pixel); font-weight: 400; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 8px; }
+.toc a { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px dashed #0003; color: #222; }
+.toc a:hover { background: var(--yellow); }
+.cta { margin-top: 56px; background: var(--lime); border: 2px solid #111; box-shadow: 8px 8px 0 #111; padding: 28px 28px 30px; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; right: -40px; top: -30px; width: 200px; height: 120px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 12px, transparent 12px 24px); transform: rotate(-4deg); }
+.cta h2 { border: 0; margin: 0 0 8px; padding: 0; font-size: 30px; position: relative; z-index: 1; }
+.cta h2::before { content: none; }
+.cta p { margin: 0 0 18px; max-width: 520px; font-weight: 600; position: relative; z-index: 1; }
+.btn { display: inline-flex; gap: 8px; padding: 12px 20px; font-weight: 800; text-decoration: none; border: 2px solid #111; margin: 0 10px 10px 0; position: relative; z-index: 1; }
+.btn:hover { box-shadow: 5px 5px 0 #111; transform: translate(-2px, -2px); }
+.btn-ink { background: #111; color: #fff; }
+.btn-ghost { background: #fff; color: #111; }
+.more { border-top: 2px solid #111; background: #fff; padding: 48px 0 60px; }
+.more h2 { font-family: var(--pixel); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; margin: 0 0 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+.cards a { display: block; text-decoration: none; background: var(--bg); border: 2px solid #111; box-shadow: 5px 5px 0 #111; padding: 16px 18px; }
+.cards a:hover { background: var(--yellow); }
+.cards b { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; }
+.cards span { display: block; margin-top: 6px; font-size: 14px; color: #444; line-height: 1.5; }
+.site-footer { background: #111; color: #aaa; padding: 30px 0 40px; font-family: var(--mono); font-size: 12.5px; }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.site-footer a { color: #ddd; text-decoration: none; margin-left: 16px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="badge" href="../../">nestwork</a>
+    <nav class="nav" aria-label="Articles">
+      <a href="../">Articles</a>
+      <a href="https://songth1ef.github.io/nestwork/zh/articles/nestwork-getting-started-faq/" hreflang="zh-CN" data-lang-switch="zh">中文</a>
+      <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="art-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="../../">Home</a> / <a href="../">Articles</a> /</p>
+      <h1>nestwork Setup FAQ: Long-Term Memory for Claude Code</h1>
+      <div class="art-meta"><span class="kind">Guides</span><span>6 min read</span><span>Updated 2026-09-27</span></div>
+    </div>
+  </div>
+  <div class="wrap layout">
+    <article class="prose">
+<p><strong>How do you give Claude Code long-term memory with nestwork?</strong> Create a private repo from the nestwork template, clone it to each machine, and run the installer for your tool, for example <code>bash ~/nestwork/scripts/install/claude.sh</code>. After that, sessions start by pulling the repo and reading your rules plus a small resident summary, and memory the agent writes is committed and pushed so your other machines and tools can read it.</p>
+<p>Below are the questions people ask before and right after installing, each checked against the <a href="https://github.com/songth1ef/nestwork/blob/main/README.md" rel="noopener">README</a>.</p>
+<h2 id="what-do-i-need-before-installing">What do I need before installing?</h2>
+<div class="table-wrap"><table><thead><tr><th>Requirement</th><th>Why</th></tr></thead><tbody><tr><td>git, and a git host you can push to (GitHub, or a self-hosted server)</td><td>Memory lives in a private git repo; sync is pull and push</td></tr><tr><td>Non-interactive push credentials (SSH key or a credential helper)</td><td>Hooks run in the background and cannot answer a password prompt</td></tr><tr><td><code>python3</code> on <code>PATH</code> (Windows: <code>python3</code>, <code>python</code> or <code>py</code>)</td><td>The installers use small Python helpers to resolve identity and edit config files</td></tr><tr><td>bash on macOS/Linux; PowerShell for the Windows installers</td><td>The installers and hooks are shell scripts; the hook code also handles Git Bash paths on Windows</td></tr><tr><td>The agent tool itself</td><td>Claude Code, Codex CLI, Gemini CLI, Kimi Code, OpenClaw, Hermes, or any CLI that reads a Markdown file at startup</td></tr></tbody></table></div>
+<p>You also need to be comfortable with basic git. The README is explicit: git is the core of nestwork, not optional, and if you don't know git, nestwork is not a good fit.</p>
+<h2 id="how-do-i-install-it">How do I install it?</h2>
+<p>Three steps. There is no service to deploy and no account to create beyond your git host.</p>
+<ol><li>On GitHub, open the <a href="https://github.com/songth1ef/nestwork/generate" rel="noopener">template</a> (Use this template → Create a new repository) and set visibility to <strong>Private</strong>. Use the template rather than a fork: forks are public by default and share history with upstream, which would make every update collide with your private data.</li><li>Clone it on each machine:</li></ol>
+<pre class="code"><code data-lang="bash">git clone git@github.com:&lt;your-username&gt;/nestwork.git ~/nestwork</code></pre>
+<ol start="3"><li>Run the installer for each tool you use on that machine:</li></ol>
+<pre class="code"><code data-lang="bash">bash ~/nestwork/scripts/install/claude.sh     # Claude Code, macOS / Linux
+bash ~/nestwork/scripts/install/codex.sh      # Codex CLI</code></pre>
+<p>On Windows, use <code>.\nestwork\scripts\install\claude.ps1</code> and <code>codex.ps1</code>. Gemini CLI, Kimi Code, OpenClaw and Hermes follow the same pattern with their own script name. Other Markdown-config CLIs use <code>bash scripts/install/generic.sh &lt;prefix&gt; &lt;config-path&gt;</code>.</p>
+<p>The README does not give an install time, so none is promised here. The installers only write local files: they create the agent's directory, inject a marked bootstrap block into the tool's startup file, and register hooks where the tool supports them.</p>
+<h3 id="what-does-each-tool-actually-get">What does each tool actually get?</h3>
+<p>Tool support is not uniform, and the README says so:</p>
+<div class="table-wrap"><table><thead><tr><th>Tool</th><th>Entry file</th><th>Sync behavior</th><th>Author's status</th></tr></thead><tbody><tr><td>Claude Code</td><td><code>~/.claude/CLAUDE.md</code> + hooks</td><td>Session-start pull; commit and push after every memory write; Stop and SessionEnd hooks</td><td>Daily driver</td></tr><tr><td>Codex CLI</td><td><code>~/.codex/AGENTS.md</code></td><td>Follows the bootstrap; commits its directory manually; SessionEnd hook only for optional history</td><td>Daily driver</td></tr><tr><td>Kimi Code</td><td><code>~/.kimi-code/AGENTS.md</code> + hooks</td><td>Per-write hooks like Claude Code, but hooks cannot inject context</td><td>Installer exists, untested by author</td></tr><tr><td>Gemini CLI, OpenClaw, Hermes</td><td>Their own startup file</td><td>No hooks; commit at session end</td><td>Installer exists, untested by author</td></tr></tbody></table></div>
+<p>If you rely on one of the less-tested tools, verify it yourself (next question) before trusting it with real work.</p>
+<h2 id="how-do-i-verify-it-worked">How do I verify it worked?</h2>
+<p>The README's verification is a cross-device test, and it is the one that matters:</p>
+<ol><li>Add a non-sensitive, recognizable rule or project-status note to your private repo, then commit and push it.</li><li>Open an installed agent on a second computer or a cloud host.</li><li>Ask it to summarize your current rule or project status. It should pull the repo and answer from the shared context without you repeating anything.</li></ol>
+<p>Don't use API keys, secrets or employer-confidential details as test content.</p>
+<p>If the agent does not seem to load anything on Claude Code, check that the hooks were registered and re-run the installer if they are missing:</p>
+<pre class="code"><code data-lang="bash">grep -A 5 SessionStart ~/.claude/settings.json
+cat ~/.nestwork_host ~/.nestwork_id_claude</code></pre>
+<p>If commits are not pushed, the README's checklist is: the remote (<code>git -C ~/nestwork remote -v</code>), the hooks in <code>settings.json</code>, and whether a manual <code>git push</code> asks for interactive credentials.</p>
+<h2 id="how-do-i-uninstall">How do I uninstall?</h2>
+<p>Every installer has a mirror under <code>scripts/uninstall/</code>:</p>
+<pre class="code"><code data-lang="bash">bash ~/nestwork/scripts/uninstall/claude.sh</code></pre>
+<p>It only unbinds: the bootstrap block leaves the tool's startup file and nestwork's hooks are deregistered. Your memory in <code>agents/&lt;host&gt;/&lt;agent-id&gt;/</code>, the identity files (<code>~/.nestwork_host</code>, <code>~/.nestwork_id_&lt;tool&gt;</code>) and your own content in the same config files stay put. Re-running the installer restores the same identity. Add <code>--purge-identity</code> (PowerShell: <code>-PurgeIdentity</code>) if the next install should start as a brand-new agent.</p>
+<h2 id="does-it-cost-anything-and-is-it-private">Does it cost anything, and is it private?</h2>
+<p>nestwork has no hosted service, subscription or server; it is scripts and Markdown in a repo you own. The costs are the ones you already have: a git host for the private repo, and your agent tool's own usage. <code>distill.py --run-claude</code> or <code>--run-codex</code> runs a merge through your local CLI, so that uses your plan's quota like any other prompt.</p>
+<p>On privacy, the defaults are simple. The repo is private and yours. Memory is plain Markdown, so anyone with access to the repo can read it, and the agent sends what it reads to its model provider as part of normal work. For content that must sync but stay unreadable to the git host, there is an optional git-crypt mode (see <a href="../encrypt-agent-memory-git-crypt/">encrypting agent memory</a>). API keys and passwords should never be stored in the nest, encrypted or not. To try it without pushing anywhere, clone locally and don't add a remote, or point <code>origin</code> at your own git server.</p>
+<h2 id="how-do-upgrades-work">How do upgrades work?</h2>
+<p>Your private repo does not follow upstream automatically. Two ways to pull protocol updates, neither of which touches <code>agents/</code>, <code>queen/</code>, <code>shared/</code> or your own project files:</p>
+<pre class="code"><code data-lang="bash">bash ~/nestwork/scripts/maintenance/update.sh</code></pre>
+<p><code>update.sh</code> refuses to run with uncommitted changes, shows the incoming diff, asks for confirmation, and commits locally; you push when ready. Alternatively, the included GitHub Action ("Sync Nestwork upstream") opens a PR when run by hand, or weekly if you set the repository variable <code>NESTWORK_AUTO_SYNC</code> to <code>true</code>. The Claude Code session-start hook also checks upstream's protocol version (cached for 24 hours) and prints a one-line advisory when a newer one exists; it never applies anything.</p>
+<p>One catch: updating repo files does not rewrite each machine's tool config. <strong>Coming from 2.x to 3.x, re-run the installer for every tool on every machine</strong> (or <code>python3 scripts/install/_bootstrap.py</code>), then open a new session, because existing conversations keep the old instructions. Going from 3.0 to 3.1 needs no bootstrap refresh; topic memory is opt-in.</p>
+<h2 id="can-a-team-use-it">Can a team use it?</h2>
+<p>Carefully. The FAQ answer is yes, starting from a private repo with clear write rules: one memory directory per agent instance and human-managed rules in <code>queen/</code>. But know the boundary. nestwork is aimed at individual developers working with many agents, and team-level access control is an explicit non-goal: repo visibility relies on your git host's permissions, so everyone with access can read every agent's memory. Shared <code>projects/</code> and <code>workflow/</code> files can be written by several agents, where the pre-write pull reduces but cannot fully eliminate conflicts.</p>
+<h2 id="faq">FAQ</h2>
+<h3 id="do-i-have-to-change-how-i-use-claude-code">Do I have to change how I use Claude Code?</h3>
+<p>No. The README says there is nothing new to learn. The main new habit is telling the agent when something is worth recording.</p>
+<h3 id="can-i-install-it-for-several-tools-on-one-machine">Can I install it for several tools on one machine?</h3>
+<p>Yes. Each tool gets its own identity file, such as <code>~/.nestwork_id_claude</code> and <code>~/.nestwork_id_codex</code>, so installing one never replaces another.</p>
+<h3 id="what-if-the-installer-fails-with-an-identity-error">What if the installer fails with an identity error?</h3>
+<p>The installers need <code>python3</code> on <code>PATH</code> to resolve host and agent id. You can pin the values with <code>NESTWORK_HOST</code> and <code>NESTWORK_AGENT_ID</code>.</p>
+<h3 id="does-it-work-with-cursor-or-copilot">Does it work with Cursor or Copilot?</h3>
+<p>At the workspace level, by symlinking <code>AGENTS.md</code> into <code>.cursor/rules/</code>, <code>.windsurf/rules/</code>, <code>.clinerules/</code> or <code>.github/copilot-instructions.md</code>. <code>gh copilot</code> is listed as unsupported.</p>
+<h2 id="related">Related</h2>
+<ul><li><a href="../ai-agent-memory/">AI agent memory, explained</a></li><li><a href="../claude-code-memory-across-machines/">Claude Code memory across machines</a></li><li><a href="../share-memory-claude-code-codex/">Share memory between Claude Code and Codex</a></li><li><a href="../long-term-memory-in-practice/">AI agent long-term memory in practice</a></li><li><a href="../nestwork-overview/">nestwork overview</a></li></ul>
+      <section class="cta" aria-label="Give your agents a memory">
+        <h2>Give your agents a memory</h2>
+        <p>nestwork turns one private git repo into shared, persistent memory for Claude Code, Codex, Gemini, Kimi and more.</p>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">Use this template →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ Star on GitHub</a>
+      </section>
+    </article>
+    <aside class="toc" aria-label="On this page"><b>On this page</b><a href="#what-do-i-need-before-installing">What do I need before installing?</a><a href="#how-do-i-install-it">How do I install it?</a><a href="#how-do-i-verify-it-worked">How do I verify it worked?</a><a href="#how-do-i-uninstall">How do I uninstall?</a><a href="#does-it-cost-anything-and-is-it-private">Does it cost anything, and is it private?</a><a href="#how-do-upgrades-work">How do upgrades work?</a><a href="#can-a-team-use-it">Can a team use it?</a><a href="#faq">FAQ</a><a href="#related">Related</a></aside>
+  </div>
+  <section class="more" aria-label="All articles">
+    <div class="wrap">
+      <h2>All articles →</h2>
+      <div class="cards"><a href="../ai-agent-memory/"><b>AI Agent Memory — Four Types and Their Trade-offs</b><span>AI agent memory is context an agent keeps beyond one session. Compare context windows, built-in memory, vector services and files for coding agents.</span></a><a href="../claude-code-memory-across-machines/"><b>Claude Code Memory Across Machines, Synced with Git</b><span>Claude Code&#x27;s CLAUDE.md and auto memory stay on one machine. Where they&#x27;re stored, why they don&#x27;t sync, and how to share them across machines with git.</span></a><a href="../share-memory-claude-code-codex/"><b>Share Memory Between Claude Code and Codex</b><span>Claude Code reads ~/.claude/CLAUDE.md, Codex reads ~/.codex/AGENTS.md. Point both at one git repo to share memory, each writing only its own directory.</span></a><a href="../codex-cli-persistent-memory/"><b>Codex CLI Memory, AGENTS.md and Persistent Recall</b><span>How Codex CLI remembers today (AGENTS.md and opt-in local memories), and how to give Codex persistent memory across sessions and machines with git.</span></a><a href="../agent-memory-tools-compared/"><b>Agent Memory Tools Compared — Mem0, Letta, Zep and More</b><span>Mem0, Letta, Zep, Supermemory, claude-mem, built-in tool memory and nestwork compared on architecture, deployment, data ownership and best fit.</span></a><a href="../agent-memory-benchmarks/"><b>Agent Memory Benchmarks — LoCoMo, LongMemEval, BEAM</b><span>What LoCoMo, LongMemEval and BEAM measure, how LLM judges score them, why vendor numbers don&#x27;t compare, and which metrics matter for coding agents.</span></a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span>nestwork — AI agent memory, git-native.</span>
+    <span><a href="../../">Home</a><a href="../">Articles</a><a href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-lang-switch]').forEach(function (a) {
+  a.addEventListener('click', function () { try { localStorage.setItem('nestwork_lang', a.getAttribute('data-lang-switch')); } catch (e) {} });
+});
+</script>
+</body>
+</html>

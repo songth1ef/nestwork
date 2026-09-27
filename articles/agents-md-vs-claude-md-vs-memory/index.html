@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AGENTS.md vs CLAUDE.md vs Memory — What Goes Where</title>
+<meta name="description" content="AGENTS.md is a tool-neutral instruction file, CLAUDE.md is Claude Code&#x27;s, and memory is what agents write. Which tool reads which, and how to combine them.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="songth1ef">
+<meta name="theme-color" content="#8fdcf7">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/articles/agents-md-vs-claude-md-vs-memory/">
+<link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/agents-md-vs-claude-md-vs-memory/">
+<link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/agents-md-vs-claude-md-vs-memory/">
+<link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/agents-md-vs-claude-md-vs-memory/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232ec4d6'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="nestwork">
+<meta property="og:title" content="AGENTS.md vs CLAUDE.md vs Memory — What Goes Where">
+<meta property="og:description" content="AGENTS.md is a tool-neutral instruction file, CLAUDE.md is Claude Code&#x27;s, and memory is what agents write. Which tool reads which, and how to combine them.">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/articles/agents-md-vs-claude-md-vs-memory/">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AGENTS.md vs CLAUDE.md vs Memory — What Goes Where">
+<meta name="twitter:description" content="AGENTS.md is a tool-neutral instruction file, CLAUDE.md is Claude Code&#x27;s, and memory is what agents write. Which tool reads which, and how to combine them.">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://songth1ef.github.io/nestwork/articles/agents-md-vs-claude-md-vs-memory/#article","headline":"AGENTS.md vs CLAUDE.md vs Memory — What Goes Where","description":"AGENTS.md is a tool-neutral instruction file, CLAUDE.md is Claude Code's, and memory is what agents write. Which tool reads which, and how to combine them.","inLanguage":"en","datePublished":"2026-09-27","dateModified":"2026-09-27","author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"publisher":{"@type":"Organization","name":"nestwork","url":"https://songth1ef.github.io/nestwork/"},"image":["https://songth1ef.github.io/nestwork/og.png"],"mainEntityOfPage":"https://songth1ef.github.io/nestwork/articles/agents-md-vs-claude-md-vs-memory/","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://songth1ef.github.io/nestwork/"},{"@type":"ListItem","position":2,"name":"Articles","item":"https://songth1ef.github.io/nestwork/articles/"},{"@type":"ListItem","position":3,"name":"AGENTS.md vs CLAUDE.md vs Memory — What Goes Where","item":"https://songth1ef.github.io/nestwork/articles/agents-md-vs-claude-md-vs-memory/"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Should I use AGENTS.md or CLAUDE.md?","acceptedAnswer":{"@type":"Answer","text":"If more than one tool touches the repository, write AGENTS.md as the source and add a CLAUDE.md containing @AGENTS.md only if you need Claude-specific instructions or some sessions can't read AGENTS.md directly. If only Claude Code is used, CLAUDE.md alone is fine."}},{"@type":"Question","name":"Is AGENTS.md memory?","acceptedAnswer":{"@type":"Answer","text":"Not in the usual sense. It is instructions you write and review; memory is what the agent records on its own. An AGENTS.md can, however, tell the agent where its memory lives and how to load it, which is exactly how nestwork uses it."}},{"@type":"Question","name":"Does Claude Code read both AGENTS.md and CLAUDE.md?","acceptedAnswer":{"@type":"Answer","text":"By default it reads CLAUDE.md when one exists and falls back to AGENTS.md otherwise. Import @AGENTS.md from CLAUDE.md, or set Project instructions to claude-md-and-agents-md, to get both."}},{"@type":"Question","name":"Where should personal preferences go?","acceptedAnswer":{"@type":"Answer","text":"Not in a committed repository file. Use a user-level file such as ~/.claude/CLAUDE.md for one machine, or keep them in a synced store like a nestwork repository if they should follow you across machines and tools."}}]}]}</script>
+<style>
+@font-face { font-family: "VT323"; src: url("../../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+:root {
+  --bg: #fbf8ef; --fg: #111; --muted: #5c5c5c; --teal: #2ec4d6; --teal-dark: #0a8fa0; --magenta: #ff2d8f;
+  --lime: #d6f25a; --yellow: #ffe53d; --sky: #29c6ec; --red: #ec2a33;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::selection { background: var(--yellow); }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 2px solid #111; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.badge { background: var(--teal); color: #000; font-weight: 800; letter-spacing: -0.03em; padding: 2px 10px 3px; border: 2px solid #000; outline: 2px solid var(--teal); text-decoration: none; font-size: 18px; }
+.nav { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 13px; }
+.nav a { text-decoration: none; color: #333; }
+.nav a:hover { background: var(--yellow); color: #000; }
+.nav .gh { background: #111; color: #fff; padding: 4px 10px; font-weight: 700; }
+.art-hero { background: linear-gradient(180deg, #8fdcf7 0%, #d4f3ff 60%, var(--bg) 100%); border-bottom: 2px solid #111; padding: 48px 0 44px; position: relative; overflow: hidden; }
+.art-hero::after { content: ""; position: absolute; right: -60px; top: -40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 11px 11px; -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%); mask-image: radial-gradient(circle, #000 50%, transparent 70%); pointer-events: none; }
+.crumbs { font-family: var(--pixel); font-size: 20px; letter-spacing: 0.04em; color: #0a5f6b; margin: 0 0 14px; position: relative; z-index: 1; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { background: var(--yellow); }
+.art-hero h1 { font-size: clamp(34px, 5.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 0; max-width: 880px; position: relative; z-index: 1; }
+:lang(zh) .art-hero h1 { line-height: 1.2; letter-spacing: -0.01em; }
+.art-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: #333; position: relative; z-index: 1; }
+.art-meta span { background: #fff; border: 2px solid #111; padding: 2px 8px; }
+.art-meta .kind { background: var(--magenta); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; padding-top: 48px; padding-bottom: 72px; }
+.layout.wide { grid-template-columns: 1fr; }
+.layout > * { min-width: 0; }
+.prose p code, .prose li code, .prose td code { overflow-wrap: anywhere; }
+.wide .prose { max-width: none; }
+.wide .toc { display: none; }
+.wide .prose > p:first-child { max-width: 72ch; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+.prose { max-width: 72ch; }
+.prose > p:first-child { font-size: 1.12em; }
+.prose h2 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; line-height: 1.2; margin: 2.1em 0 0.6em; padding-top: 0.2em; border-top: 2px solid #111; scroll-margin-top: 80px; }
+.prose h2::before { content: "// "; font-family: var(--pixel); color: var(--magenta); font-weight: 400; }
+.prose h3 { font-size: 21px; letter-spacing: -0.015em; margin: 1.6em 0 0.4em; scroll-margin-top: 80px; }
+.prose p, .prose li { color: #222; }
+.prose a { text-decoration-color: var(--magenta); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose a:hover { background: var(--yellow); }
+.prose code { font-family: var(--mono); font-size: 0.86em; background: #fff; border: 1.5px solid #111; padding: 0 5px; }
+.prose pre.code { background: #151515; color: #eee; border-left: 5px solid var(--teal); padding: 16px 18px; overflow-x: auto; font-size: 14.5px; line-height: 1.65; box-shadow: 6px 6px 0 #111; }
+.prose pre.code code { background: none; border: 0; padding: 0; font-size: 1em; color: inherit; }
+.prose blockquote { margin: 1.4em 0; padding: 14px 20px; background: #fff; border: 2px solid #111; border-left: 8px solid var(--magenta); box-shadow: 5px 5px 0 #111; }
+.prose blockquote p { margin: 0; font-weight: 600; }
+.prose figure { margin: 1.6em 0; }
+.prose img { width: 100%; height: auto; border: 2px solid #111; box-shadow: 6px 6px 0 #111; display: block; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin: 0.3em 0; }
+.prose li::marker { color: var(--magenta); font-weight: 700; }
+.table-wrap { overflow-x: auto; border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; margin: 1.4em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #0002; vertical-align: top; }
+thead th { background: #111; color: #fff; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.toc { position: sticky; top: 84px; align-self: start; background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 var(--teal); padding: 16px 18px; font-size: 14.5px; line-height: 1.45; }
+.toc b { display: block; font-family: var(--pixel); font-weight: 400; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 8px; }
+.toc a { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px dashed #0003; color: #222; }
+.toc a:hover { background: var(--yellow); }
+.cta { margin-top: 56px; background: var(--lime); border: 2px solid #111; box-shadow: 8px 8px 0 #111; padding: 28px 28px 30px; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; right: -40px; top: -30px; width: 200px; height: 120px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 12px, transparent 12px 24px); transform: rotate(-4deg); }
+.cta h2 { border: 0; margin: 0 0 8px; padding: 0; font-size: 30px; position: relative; z-index: 1; }
+.cta h2::before { content: none; }
+.cta p { margin: 0 0 18px; max-width: 520px; font-weight: 600; position: relative; z-index: 1; }
+.btn { display: inline-flex; gap: 8px; padding: 12px 20px; font-weight: 800; text-decoration: none; border: 2px solid #111; margin: 0 10px 10px 0; position: relative; z-index: 1; }
+.btn:hover { box-shadow: 5px 5px 0 #111; transform: translate(-2px, -2px); }
+.btn-ink { background: #111; color: #fff; }
+.btn-ghost { background: #fff; color: #111; }
+.more { border-top: 2px solid #111; background: #fff; padding: 48px 0 60px; }
+.more h2 { font-family: var(--pixel); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; margin: 0 0 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+.cards a { display: block; text-decoration: none; background: var(--bg); border: 2px solid #111; box-shadow: 5px 5px 0 #111; padding: 16px 18px; }
+.cards a:hover { background: var(--yellow); }
+.cards b { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; }
+.cards span { display: block; margin-top: 6px; font-size: 14px; color: #444; line-height: 1.5; }
+.site-footer { background: #111; color: #aaa; padding: 30px 0 40px; font-family: var(--mono); font-size: 12.5px; }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.site-footer a { color: #ddd; text-decoration: none; margin-left: 16px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="badge" href="../../">nestwork</a>
+    <nav class="nav" aria-label="Articles">
+      <a href="../">Articles</a>
+      <a href="https://songth1ef.github.io/nestwork/zh/articles/agents-md-vs-claude-md-vs-memory/" hreflang="zh-CN" data-lang-switch="zh">中文</a>
+      <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="art-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="../../">Home</a> / <a href="../">Articles</a> /</p>
+      <h1>AGENTS.md vs CLAUDE.md vs Memory — What Goes Where</h1>
+      <div class="art-meta"><span class="kind">Guides</span><span>6 min read</span><span>Updated 2026-09-27</span></div>
+    </div>
+  </div>
+  <div class="wrap layout">
+    <article class="prose">
+<p><code>AGENTS.md</code> and <code>CLAUDE.md</code> are both instruction files that you write and the agent reads at the start of a session; the difference is who reads them. <code>AGENTS.md</code> is an open format read by Codex, Cursor, Jules and many other tools, while <code>CLAUDE.md</code> is Claude Code's own file — and current Claude Code reads <code>AGENTS.md</code> too when no <code>CLAUDE.md</code> is present. Memory is a third thing: notes the agent writes for itself, which in Claude Code and Codex stay on the local machine. Put rules in instruction files, let memory hold what the agent learns, and keep one source of truth so the files don't drift.</p>
+<h2 id="three-kinds-of-files-three-owners">Three kinds of files, three owners</h2>
+<p>It helps to sort agent context by who writes it and how far it should travel:</p>
+<div class="table-wrap"><table><thead><tr><th>Kind</th><th>Example</th><th>Written by</th><th>Scope</th><th>Travels via</th></tr></thead><tbody><tr><td>Repository instructions</td><td><code>AGENTS.md</code>, <code>CLAUDE.md</code> in the repo</td><td>You and your team</td><td>One project</td><td>Source control</td></tr><tr><td>User-level instructions</td><td><code>~/.claude/CLAUDE.md</code>, <code>~/.codex/AGENTS.md</code>, <code>~/.gemini/GEMINI.md</code></td><td>You</td><td>All your projects on this machine</td><td>Nothing, by default</td></tr><tr><td>Tool memory</td><td><code>~/.claude/projects/&lt;project&gt;/memory/</code>, <code>~/.codex/memories/</code></td><td>The agent</td><td>One tool on one machine</td><td>Nothing, by default</td></tr></tbody></table></div>
+<p>Repository instructions are the only layer that already travels well: they are committed with the code. User-level instructions and tool memory both sit in your home directory and stay on the machine that has them.</p>
+<h2 id="which-tool-reads-which-file">Which tool reads which file</h2>
+<div class="table-wrap"><table><thead><tr><th>Tool</th><th>Repository file</th><th>User-level file</th><th>Built-in memory</th></tr></thead><tbody><tr><td>Claude Code</td><td><code>CLAUDE.md</code>, <code>.claude/CLAUDE.md</code>, <code>CLAUDE.local.md</code>; <code>AGENTS.md</code> when no <code>CLAUDE.md</code> exists</td><td><code>~/.claude/CLAUDE.md</code></td><td>Auto memory in <code>~/.claude/projects/&lt;project&gt;/memory/</code></td></tr><tr><td>Codex CLI</td><td><code>AGENTS.override.md</code> or <code>AGENTS.md</code>, from the git root down to the working directory</td><td><code>~/.codex/AGENTS.md</code> (or <code>AGENTS.override.md</code>)</td><td><code>~/.codex/memories/</code></td></tr><tr><td>Gemini CLI</td><td><code>GEMINI.md</code> by default; <code>context.fileName</code> can add <code>AGENTS.md</code></td><td><code>~/.gemini/GEMINI.md</code></td><td>—</td></tr><tr><td>Cursor, Jules, Copilot coding agent and others</td><td><code>AGENTS.md</code></td><td>Varies by tool</td><td>Varies by tool</td></tr></tbody></table></div>
+<p>Sources: <a href="https://code.claude.com/docs/en/memory" rel="noopener">Claude Code memory docs</a>, <a href="https://learn.chatgpt.com/docs/agent-configuration/agents-md" rel="noopener">Codex AGENTS.md guide</a>, <a href="https://geminicli.com/docs/cli/gemini-md/" rel="noopener">Gemini CLI GEMINI.md docs</a>, <a href="https://agents.md/" rel="noopener">agents.md</a>.</p>
+<p>A few details matter in practice:</p>
+<ul><li><strong>Codex caps the combined size.</strong> It concatenates files from the root down, one per directory, and stops at <code>project_doc_max_bytes</code>, 32 KiB by default. Files closer to your working directory appear later and so take precedence.</li><li><strong>Claude Code concatenates rather than overrides.</strong> All <code>CLAUDE.md</code> files from the filesystem root down to the working directory are loaded, ordered root first. Anthropic suggests keeping each file under 200 lines.</li><li><strong>AGENTS.md is stewarded by the Agentic AI Foundation</strong> under the Linux Foundation and, per its site, used by over 60,000 open-source projects. Nested files follow one rule: the closest <code>AGENTS.md</code> to the edited file wins.</li></ul>
+<h2 id="how-claude-code-decides-between-agents-md-and-claude-md">How Claude Code decides between AGENTS.md and CLAUDE.md</h2>
+<p>Since v2.1.277, Claude Code can read <code>AGENTS.md</code> directly. The default (<code>claude-md-or-agents-md</code>) is:</p>
+<div class="table-wrap"><table><thead><tr><th>Your repository has</th><th>Claude reads</th></tr></thead><tbody><tr><td><code>AGENTS.md</code>, and no <code>CLAUDE.md</code> or <code>CLAUDE.local.md</code> in the working directory or above</td><td><code>AGENTS.md</code></td></tr><tr><td><code>AGENTS.md</code> and a <code>CLAUDE.md</code> or <code>CLAUDE.local.md</code></td><td>Only the <code>CLAUDE.md</code> files</td></tr><tr><td>A <code>CLAUDE.md</code> that imports <code>@AGENTS.md</code></td><td><code>CLAUDE.md</code>, with <code>AGENTS.md</code> included through the import</td></tr></tbody></table></div>
+<p>Two traps follow. Adding a personal <code>CLAUDE.local.md</code> to a project that relies on <code>AGENTS.md</code> silently stops Claude from reading <code>AGENTS.md</code> for you. And your user-level <code>~/.claude/CLAUDE.md</code> does not count for this check — it always loads alongside. You can change the behavior with the <strong>Project instructions</strong> setting, for example <code>claude-md-and-agents-md</code> to read both.</p>
+<h2 id="combining-them-one-source-thin-wrappers">Combining them: one source, thin wrappers</h2>
+<p>The pattern that avoids drift is to write the shared rules once in <code>AGENTS.md</code> and make every other file a thin wrapper.</p>
+<p>For Claude Code, Anthropic's docs recommend an import when you also need Claude-specific content:</p>
+<pre class="code"><code data-lang="markdown">@AGENTS.md
+
+## Claude Code
+
+Use plan mode for changes under `src/billing/`.</code></pre>
+<p>A symlink (<code>ln -s AGENTS.md CLAUDE.md</code>) also works, but the docs warn against it if anyone clones on Windows: Git checks a committed symlink out as a plain text file unless <code>core.symlinks</code> is enabled, leaving a one-line <code>CLAUDE.md</code> in place of your instructions. For Gemini CLI, add <code>AGENTS.md</code> to <code>context.fileName</code> in <code>settings.json</code>.</p>
+<p>Then decide what does not belong in these files at all:</p>
+<ul><li><strong>Temporary task notes and chat history.</strong> They bloat every session.</li><li><strong>Facts the agent learned about you.</strong> That is memory, and it changes more often than rules.</li><li><strong>Anything secret.</strong> Instruction files are committed and shared.</li></ul>
+<p>Codex's documentation draws the same line from the other side: "Keep required team guidance in <code>AGENTS.md</code> or checked-in documentation. Treat memories as a helpful recall layer, not as the only source for rules that must always apply."</p>
+<h2 id="the-gap-user-level-context-that-travels">The gap: user-level context that travels</h2>
+<p>Repository instructions cover one project. What they don't cover is everything that belongs to <em>you</em> rather than to a repo — your preferences, cross-project lessons, the state of work you left on another machine. That lands in user-level files and tool memory, and both stay on one machine. Claude Code's docs say it outright: "Auto memory is machine-local … Files are not shared across machines or cloud environments."</p>
+<p>So you end up with four copies of your preferences in four home directories, each a little different, and a rule you taught Claude Code on the laptop is unknown to Codex on the desktop.</p>
+<h2 id="how-nestwork-uses-agents-md-as-a-startup-protocol">How nestwork uses AGENTS.md as a startup protocol</h2>
+<p><a href="https://github.com/songth1ef/nestwork" rel="noopener">nestwork</a> closes that gap by moving user-level context into a private git repository and using instruction files only as a pointer to it.</p>
+<ol><li><strong>One canonical protocol.</strong> The nest's own <a href="https://github.com/songth1ef/nestwork/blob/main/AGENTS.md" rel="noopener"><code>AGENTS.md</code></a> is the single bootstrap source; <code>CLAUDE.md</code> in the nest is a generated mirror kept in sync by <code>scripts/maintenance/sync-claude-md.sh</code>. It is a real file rather than a symlink because Windows clones without symlink support were receiving a broken 9-byte text file.</li><li><strong>A marked block in each tool's user-level file.</strong> The installers write a short startup block between <code>&lt;!-- nestwork:begin --&gt;</code> and <code>&lt;!-- nestwork:end --&gt;</code> markers into <code>~/.claude/CLAUDE.md</code>, <code>~/.codex/AGENTS.md</code>, <code>~/.gemini/GEMINI.md</code> and similar files, preserving whatever else you keep there. Re-running an installer replaces only the block.</li><li><strong>What the block says.</strong> Pull the nest; read only the resident tier — <code>queen/agent-rules.md</code>, <code>shared/resident.md</code> and this agent's <code>resident.md</code>; search history, projects and workflows on demand; write memory only to this agent's own directory.</li></ol>
+<pre class="code"><code data-lang="text">queen/agent-rules.md &gt; queen/strategy.md &gt; shared/memory.md
+  &gt; agents/*/*/memory.md &gt; projects/*.md &gt; workflow/*.md</code></pre>
+<p>That priority chain decides conflicts, and it is separate from load order: only the resident files load at startup, about 640 tokens on the author's nest, against about 69,600 for the older load-everything startup.</p>
+<p>nestwork does not replace a project's own <code>AGENTS.md</code>. Its rule of thumb: if knowledge changes when you switch employers, it belongs in that repository's docs; if it survives the switch, it belongs in the nest's <code>workflow/</code>; project state that helps an agent resume work goes in the nest's <code>projects/&lt;name&gt;.md</code>. Claude Code and Codex are the author's daily drivers; the Gemini CLI, Kimi Code, Hermes and OpenClaw installers exist but are less battle-tested.</p>
+<h2 id="faq">FAQ</h2>
+<h3 id="should-i-use-agents-md-or-claude-md">Should I use AGENTS.md or CLAUDE.md?</h3>
+<p>If more than one tool touches the repository, write <code>AGENTS.md</code> as the source and add a <code>CLAUDE.md</code> containing <code>@AGENTS.md</code> only if you need Claude-specific instructions or some sessions can't read <code>AGENTS.md</code> directly. If only Claude Code is used, <code>CLAUDE.md</code> alone is fine.</p>
+<h3 id="is-agents-md-memory">Is AGENTS.md memory?</h3>
+<p>Not in the usual sense. It is instructions you write and review; memory is what the agent records on its own. An <code>AGENTS.md</code> can, however, tell the agent where its memory lives and how to load it, which is exactly how nestwork uses it.</p>
+<h3 id="does-claude-code-read-both-agents-md-and-claude-md">Does Claude Code read both AGENTS.md and CLAUDE.md?</h3>
+<p>By default it reads <code>CLAUDE.md</code> when one exists and falls back to <code>AGENTS.md</code> otherwise. Import <code>@AGENTS.md</code> from <code>CLAUDE.md</code>, or set Project instructions to <code>claude-md-and-agents-md</code>, to get both.</p>
+<h3 id="where-should-personal-preferences-go">Where should personal preferences go?</h3>
+<p>Not in a committed repository file. Use a user-level file such as <code>~/.claude/CLAUDE.md</code> for one machine, or keep them in a synced store like a nestwork repository if they should follow you across machines and tools.</p>
+<h2 id="related">Related</h2>
+<ul><li><a href="../ai-agent-memory/">AI agent memory: four types and their trade-offs</a></li><li><a href="../share-memory-claude-code-codex/">Share memory between Claude Code and Codex</a></li><li><a href="../claude-code-memory-across-machines/">Claude Code memory across machines</a></li><li><a href="../codex-cli-persistent-memory/">Codex CLI persistent memory</a></li><li><a href="../topic-memory-on-demand-loading/">Topic memory and on-demand loading</a></li></ul>
+      <section class="cta" aria-label="Give your agents a memory">
+        <h2>Give your agents a memory</h2>
+        <p>nestwork turns one private git repo into shared, persistent memory for Claude Code, Codex, Gemini, Kimi and more.</p>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">Use this template →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ Star on GitHub</a>
+      </section>
+    </article>
+    <aside class="toc" aria-label="On this page"><b>On this page</b><a href="#three-kinds-of-files-three-owners">Three kinds of files, three owners</a><a href="#which-tool-reads-which-file">Which tool reads which file</a><a href="#how-claude-code-decides-between-agents-md-and-claude-md">How Claude Code decides between AGENTS.md and CLAUDE.md</a><a href="#combining-them-one-source-thin-wrappers">Combining them: one source, thin wrappers</a><a href="#the-gap-user-level-context-that-travels">The gap: user-level context that travels</a><a href="#how-nestwork-uses-agents-md-as-a-startup-protocol">How nestwork uses AGENTS.md as a startup protocol</a><a href="#faq">FAQ</a><a href="#related">Related</a></aside>
+  </div>
+  <section class="more" aria-label="All articles">
+    <div class="wrap">
+      <h2>All articles →</h2>
+      <div class="cards"><a href="../ai-agent-memory/"><b>AI Agent Memory — Four Types and Their Trade-offs</b><span>AI agent memory is context an agent keeps beyond one session. Compare context windows, built-in memory, vector services and files for coding agents.</span></a><a href="../claude-code-memory-across-machines/"><b>Claude Code Memory Across Machines, Synced with Git</b><span>Claude Code&#x27;s CLAUDE.md and auto memory stay on one machine. Where they&#x27;re stored, why they don&#x27;t sync, and how to share them across machines with git.</span></a><a href="../share-memory-claude-code-codex/"><b>Share Memory Between Claude Code and Codex</b><span>Claude Code reads ~/.claude/CLAUDE.md, Codex reads ~/.codex/AGENTS.md. Point both at one git repo to share memory, each writing only its own directory.</span></a><a href="../codex-cli-persistent-memory/"><b>Codex CLI Memory, AGENTS.md and Persistent Recall</b><span>How Codex CLI remembers today (AGENTS.md and opt-in local memories), and how to give Codex persistent memory across sessions and machines with git.</span></a><a href="../agent-memory-tools-compared/"><b>Agent Memory Tools Compared — Mem0, Letta, Zep and More</b><span>Mem0, Letta, Zep, Supermemory, claude-mem, built-in tool memory and nestwork compared on architecture, deployment, data ownership and best fit.</span></a><a href="../agent-memory-benchmarks/"><b>Agent Memory Benchmarks — LoCoMo, LongMemEval, BEAM</b><span>What LoCoMo, LongMemEval and BEAM measure, how LLM judges score them, why vendor numbers don&#x27;t compare, and which metrics matter for coding agents.</span></a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span>nestwork — AI agent memory, git-native.</span>
+    <span><a href="../../">Home</a><a href="../">Articles</a><a href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-lang-switch]').forEach(function (a) {
+  a.addEventListener('click', function () { try { localStorage.setItem('nestwork_lang', a.getAttribute('data-lang-switch')); } catch (e) {} });
+});
+</script>
+</body>
+</html>

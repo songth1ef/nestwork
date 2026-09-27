@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>I gave 16 AI agents one shared brain, using nothing but git</title>
+<meta name="description" content="How I gave 16 AI coding agents on Windows, macOS, Linux and Android one shared memory using nothing but git, and the problems it had to solve.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="songth1ef">
+<meta name="theme-color" content="#8fdcf7">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/articles/16-agents-one-brain/">
+<link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/16-agents-one-brain/">
+<link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/16-agents-one-brain/">
+<link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/16-agents-one-brain/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232ec4d6'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="nestwork">
+<meta property="og:title" content="I gave 16 AI agents one shared brain, using nothing but git">
+<meta property="og:description" content="How I gave 16 AI coding agents on Windows, macOS, Linux and Android one shared memory using nothing but git, and the problems it had to solve.">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/articles/16-agents-one-brain/">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="I gave 16 AI agents one shared brain, using nothing but git">
+<meta name="twitter:description" content="How I gave 16 AI coding agents on Windows, macOS, Linux and Android one shared memory using nothing but git, and the problems it had to solve.">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BlogPosting","@id":"https://songth1ef.github.io/nestwork/articles/16-agents-one-brain/#article","headline":"I gave 16 AI agents one shared brain, using nothing but git","description":"How I gave 16 AI coding agents on Windows, macOS, Linux and Android one shared memory using nothing but git, and the problems it had to solve.","inLanguage":"en","datePublished":"2026-09-27","dateModified":"2026-09-27","author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"publisher":{"@type":"Organization","name":"nestwork","url":"https://songth1ef.github.io/nestwork/"},"image":["https://songth1ef.github.io/nestwork/og.png"],"mainEntityOfPage":"https://songth1ef.github.io/nestwork/articles/16-agents-one-brain/","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://songth1ef.github.io/nestwork/"},{"@type":"ListItem","position":2,"name":"Articles","item":"https://songth1ef.github.io/nestwork/articles/"},{"@type":"ListItem","position":3,"name":"I gave 16 AI agents one shared brain, using nothing but git","item":"https://songth1ef.github.io/nestwork/articles/16-agents-one-brain/"}]}]}</script>
+<style>
+@font-face { font-family: "VT323"; src: url("../../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+:root {
+  --bg: #fbf8ef; --fg: #111; --muted: #5c5c5c; --teal: #2ec4d6; --teal-dark: #0a8fa0; --magenta: #ff2d8f;
+  --lime: #d6f25a; --yellow: #ffe53d; --sky: #29c6ec; --red: #ec2a33;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::selection { background: var(--yellow); }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 2px solid #111; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.badge { background: var(--teal); color: #000; font-weight: 800; letter-spacing: -0.03em; padding: 2px 10px 3px; border: 2px solid #000; outline: 2px solid var(--teal); text-decoration: none; font-size: 18px; }
+.nav { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 13px; }
+.nav a { text-decoration: none; color: #333; }
+.nav a:hover { background: var(--yellow); color: #000; }
+.nav .gh { background: #111; color: #fff; padding: 4px 10px; font-weight: 700; }
+.art-hero { background: linear-gradient(180deg, #8fdcf7 0%, #d4f3ff 60%, var(--bg) 100%); border-bottom: 2px solid #111; padding: 48px 0 44px; position: relative; overflow: hidden; }
+.art-hero::after { content: ""; position: absolute; right: -60px; top: -40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 11px 11px; -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%); mask-image: radial-gradient(circle, #000 50%, transparent 70%); pointer-events: none; }
+.crumbs { font-family: var(--pixel); font-size: 20px; letter-spacing: 0.04em; color: #0a5f6b; margin: 0 0 14px; position: relative; z-index: 1; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { background: var(--yellow); }
+.art-hero h1 { font-size: clamp(34px, 5.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 0; max-width: 880px; position: relative; z-index: 1; }
+:lang(zh) .art-hero h1 { line-height: 1.2; letter-spacing: -0.01em; }
+.art-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: #333; position: relative; z-index: 1; }
+.art-meta span { background: #fff; border: 2px solid #111; padding: 2px 8px; }
+.art-meta .kind { background: var(--magenta); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; padding-top: 48px; padding-bottom: 72px; }
+.layout.wide { grid-template-columns: 1fr; }
+.layout > * { min-width: 0; }
+.prose p code, .prose li code, .prose td code { overflow-wrap: anywhere; }
+.wide .prose { max-width: none; }
+.wide .toc { display: none; }
+.wide .prose > p:first-child { max-width: 72ch; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+.prose { max-width: 72ch; }
+.prose > p:first-child { font-size: 1.12em; }
+.prose h2 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; line-height: 1.2; margin: 2.1em 0 0.6em; padding-top: 0.2em; border-top: 2px solid #111; scroll-margin-top: 80px; }
+.prose h2::before { content: "// "; font-family: var(--pixel); color: var(--magenta); font-weight: 400; }
+.prose h3 { font-size: 21px; letter-spacing: -0.015em; margin: 1.6em 0 0.4em; scroll-margin-top: 80px; }
+.prose p, .prose li { color: #222; }
+.prose a { text-decoration-color: var(--magenta); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose a:hover { background: var(--yellow); }
+.prose code { font-family: var(--mono); font-size: 0.86em; background: #fff; border: 1.5px solid #111; padding: 0 5px; }
+.prose pre.code { background: #151515; color: #eee; border-left: 5px solid var(--teal); padding: 16px 18px; overflow-x: auto; font-size: 14.5px; line-height: 1.65; box-shadow: 6px 6px 0 #111; }
+.prose pre.code code { background: none; border: 0; padding: 0; font-size: 1em; color: inherit; }
+.prose blockquote { margin: 1.4em 0; padding: 14px 20px; background: #fff; border: 2px solid #111; border-left: 8px solid var(--magenta); box-shadow: 5px 5px 0 #111; }
+.prose blockquote p { margin: 0; font-weight: 600; }
+.prose figure { margin: 1.6em 0; }
+.prose img { width: 100%; height: auto; border: 2px solid #111; box-shadow: 6px 6px 0 #111; display: block; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin: 0.3em 0; }
+.prose li::marker { color: var(--magenta); font-weight: 700; }
+.table-wrap { overflow-x: auto; border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; margin: 1.4em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #0002; vertical-align: top; }
+thead th { background: #111; color: #fff; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.toc { position: sticky; top: 84px; align-self: start; background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 var(--teal); padding: 16px 18px; font-size: 14.5px; line-height: 1.45; }
+.toc b { display: block; font-family: var(--pixel); font-weight: 400; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 8px; }
+.toc a { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px dashed #0003; color: #222; }
+.toc a:hover { background: var(--yellow); }
+.cta { margin-top: 56px; background: var(--lime); border: 2px solid #111; box-shadow: 8px 8px 0 #111; padding: 28px 28px 30px; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; right: -40px; top: -30px; width: 200px; height: 120px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 12px, transparent 12px 24px); transform: rotate(-4deg); }
+.cta h2 { border: 0; margin: 0 0 8px; padding: 0; font-size: 30px; position: relative; z-index: 1; }
+.cta h2::before { content: none; }
+.cta p { margin: 0 0 18px; max-width: 520px; font-weight: 600; position: relative; z-index: 1; }
+.btn { display: inline-flex; gap: 8px; padding: 12px 20px; font-weight: 800; text-decoration: none; border: 2px solid #111; margin: 0 10px 10px 0; position: relative; z-index: 1; }
+.btn:hover { box-shadow: 5px 5px 0 #111; transform: translate(-2px, -2px); }
+.btn-ink { background: #111; color: #fff; }
+.btn-ghost { background: #fff; color: #111; }
+.more { border-top: 2px solid #111; background: #fff; padding: 48px 0 60px; }
+.more h2 { font-family: var(--pixel); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; margin: 0 0 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+.cards a { display: block; text-decoration: none; background: var(--bg); border: 2px solid #111; box-shadow: 5px 5px 0 #111; padding: 16px 18px; }
+.cards a:hover { background: var(--yellow); }
+.cards b { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; }
+.cards span { display: block; margin-top: 6px; font-size: 14px; color: #444; line-height: 1.5; }
+.site-footer { background: #111; color: #aaa; padding: 30px 0 40px; font-family: var(--mono); font-size: 12.5px; }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.site-footer a { color: #ddd; text-decoration: none; margin-left: 16px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="badge" href="../../">nestwork</a>
+    <nav class="nav" aria-label="Articles">
+      <a href="../">Articles</a>
+      <a href="https://songth1ef.github.io/nestwork/zh/articles/16-agents-one-brain/" hreflang="zh-CN" data-lang-switch="zh">中文</a>
+      <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="art-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="../../">Home</a> / <a href="../">Articles</a> /</p>
+      <h1>I gave 16 AI agents one shared brain, using nothing but git</h1>
+      <div class="art-meta"><span class="kind">Stories</span><span>7 min read</span><span>Updated 2026-09-27</span></div>
+    </div>
+  </div>
+  <div class="wrap layout">
+    <article class="prose">
+<figure><img src="../../articles/img/story-cover-nw.jpg" alt="Four devices arranged in a circle, a glowing brain made of circuitry at the center" width="1200" height="674" loading="eager" decoding="async"></figure>
+<p>It all started with a gripe.</p>
+<p>I'd spent time on Windows getting a project's context just right with Claude Code. Then I turned to my Mac, and Codex over there knew nothing. I had to explain the whole thing again from scratch. Switch to the little Linux box at home, and it was another blank slate. I had four or five machines and agents from several different vendors, and every single one was an amnesiac. I was the guy stuck reciting the same medical history over and over.</p>
+<p>The most ridiculous moment: on machine A, I'd had an agent write down "the deploy script for this project has a nasty gotcha." The next day, the agent on machine B went and stepped on that exact same rake, in earnest.</p>
+<p>And that's before you factor in that the tools themselves keep changing. These past couple of years there's been a new "current best" model showing up almost every month. I went from Cursor to Claude Code, then tried Codex, then Gemini. Whenever something shipped a new version, I wanted to play with it. And every switch meant re-teaching that project's background and rules all over again. New tool, new model, new computer: my agent was forever stuck on "nice to meet you."</p>
+<p>I'd even thought about worse cases. What if one day some tool became unusable because of policy or a regional restriction? What if I had to move everything over to a domestic Chinese model? I didn't want the context I'd worked so hard to build up to be chained to any one tool I didn't control. Switching tools is fine. Teaching it all again from zero is not.</p>
+<p>I tried stuffing the memory into the various built-in schemes that come with the tools, and I tried hanging a dedicated memory service off to the side. The problem was they were either locked to one vendor or one machine, or they meant standing up a service, wiring in a database, managing accounts. I just wanted a few agents to share some notes. Why should I have to run a whole backend for that?</p>
+<p>Later I sat staring at the <code>git status</code> on my screen for a while, and it suddenly clicked. The thing I use every day, the most rock-solid, cross-platform, built-from-birth-to-handle-multi-person-conflict sync tool, was right there in my hand.</p>
+<p>Memory is, at its core, a pile of text. And the best home for text is git.</p>
+<figure><img src="../../articles/img/story-drawers-nw.jpg" alt="A filing cabinet where each robot only drops notes into its own drawer, never touching anyone else&#x27;s" width="1200" height="674" loading="lazy" decoding="async"></figure>
+<h2 id="version-one-write-the-memory-as-markdown-throw-it-in-a-single-repo">Version one: write the memory as markdown, throw it in a single repo</h2>
+<p>The idea was almost embarrassingly simple. Open a git repo, fill it with plain markdown, and let that repo be the single source of truth. Every agent pulls before it works, and commits and pushes when it's done. No server, no API, no hosting. Just git.</p>
+<p>The moment it worked was genuinely a thrill. On Windows I had an agent write down a decision, switched to the Mac, ran a pull, and Codex read it instantly. Two agents from two different vendors, standing on the same context for the first time.</p>
+<p>The thrill didn't last long. A few very practical problems came crawling out.</p>
+<h2 id="problem-1-with-16-agents-all-writing-won-t-they-fight">Problem 1: with 16 agents all writing, won't they fight?</h2>
+<p>This was my biggest worry. Right now I've got Windows, macOS, several Linux machines, and even an Android phone, more than 16 agent instances all told. If they're all writing into one repo at the same time, surely git conflicts would be flying everywhere.</p>
+<p>The answer, it turns out, is physical isolation. Every machine, every agent, owns only its own directory, and writes only to its own directory.</p>
+<p>The path looks like this: <code>agents/&lt;host&gt;/&lt;agent-id&gt;/</code>, for example <code>agents/desktop-rkv5ls4/claude-i5bc/</code>. Claude on Windows writes to its cell, Codex on the Mac writes to its cell, and nobody touches anybody else's private memory. A conflict requires two people editing the same line, and this layout means they aren't even writing in the same file to begin with.</p>
+<p>And if there really is a collision? The protocol hardcodes a rule: in your own directory, conflicts take local; in someone else's directory, conflicts take remote; for the upstream-managed common parts, the rules and the shared memory, take remote. Whoever owns it decides. The machine doesn't have to guess.</p>
+<h2 id="problem-2-syncing-across-machines-won-t-things-get-lost-or-collide">Problem 2: syncing across machines, won't things get lost or collide?</h2>
+<p>Splitting up the directories isn't enough on its own. When two machines push one right after the other, that little sliver of time in between can still cause trouble.</p>
+<p>What handles this is atomic sync on every write. Each time Claude Code does a Write/Edit in its own memory directory, a hook runs <code>pull --rebase</code> first, then commits and pushes right after, retrying automatically on failure. I'm not typing any of this by hand; it just runs once the hooks are installed.</p>
+<p>The effect is that the real race window gets squeezed down to the tiny instant of a single write. I've been using it this long, and losing memory across machines or having two machines collide just hasn't happened again. Installing it is a single line:</p>
+<pre class="code"><code data-lang="bash">bash scripts/install/claude.sh</code></pre>
+<p>Codex and Gemini have install scripts too, but they don't get per-write hooks (today only Claude Code and Kimi Code do). Their installer writes the protocol into the tool's startup file, and the agent commits and pushes its own directory at the end of the session. Either way, once it's set up you barely notice the pull / commit / push happening.</p>
+<h2 id="problem-3-the-protocol-will-get-upgraded-will-my-own-stuff-get-wiped-out">Problem 3: the protocol will get upgraded, will my own stuff get wiped out?</h2>
+<p>This was a hidden risk I only realized later. The protocol itself iterates. How directories are split, how the rules are written, upstream nestwork updates all of it. If I'd forked it, every sync from upstream would mean a manual merge, and one wrong move could wipe out the strategy I'd built up over months, every agent's private memory, the team's shared memory, all of it gone.</p>
+<p>What nestwork does is inherit via GitHub's Use this template, not fork. The protocol skeleton is inherited, but your private repo is an independent branch from day one. Upstream updates the protocol through its own update script, which touches the protocol layer and never touches your <code>agents/</code>, <code>shared/</code>, <code>queen/</code> (where your rules and strategy live), or <code>projects/</code>. My own stuff sits safely in its own repo.</p>
+<p>"Clone and you're in" means the same thing. A new machine shows up, you clone it down, run the install script, and the agents on that machine automatically join the same brain.</p>
+<h2 id="an-unexpectedly-handy-thing-agents-can-leave-each-other-notes">An unexpectedly handy thing: agents can leave each other notes</h2>
+<p>I should say a word about the layering. The protocol sets a very rigid priority chain: rules &gt; strategy &gt; shared memory &gt; each agent's private memory &gt; projects &gt; methodology. When there's a conflict, you don't blend the two together; you pick the higher-priority one and drop the other. It's because of this chain that 16 agents don't all run off in their own directions. They're reading the same "constitution."</p>
+<p>What genuinely delighted me was the agent mailbox that got added later. Agents can leave each other asynchronous notes, git-native. The agent on machine A finishes a chunk of work and leaves the agent on machine B a line: "I'm done with this part, you take it from here." B reads the unread message on demand when coordinating relevant work. The whole thing has no message queue and no service. It's just writing a file into the repo and pushing it up. The first time I watched one agent reach out and read a note a colleague had left on another machine, the feeling was pretty surreal.</p>
+<figure><img src="../../articles/img/story-mailbox-nw.jpg" alt="Two robots across a phone from each other, an envelope flying along the git line between them, an unread red dot above the receiver&#x27;s head" width="1200" height="900" loading="lazy" decoding="async"></figure>
+<p>As for secrets, I'll admit I hesitated at first, since everything you feed an agent is project insider info. Then I worked it through. nestwork's memory is a private repo I built with Use this template, on my own git from start to finish, with no third party in the loop. For the deeper secrets, I layered on git-crypt on top, encrypting before anything goes into the repo, so even though the repo is hosted on GitHub, what lands there is ciphertext. The data is mine, and so are the keys. That's what made me willing to write the real stuff in.</p>
+<h2 id="you-can-start-this-way-too">You can start this way too</h2>
+<p>Looking back, the reason this thing works is precisely that it never tried to reinvent anything. Memory is markdown, sync is git, inheritance rides on templates, conflicts are handled by directory isolation. Every piece is old, long-validated stuff. It's just been assembled into a new use.</p>
+<p>It's not a storage tool, it's not a hosting service, it needs no server, and it works with markdown-configured agents like Claude Code, Codex CLI, Gemini CLI, Hermes, and OpenClaw. I really am using it every day, across four or five machines and 16 agents.</p>
+<p>If you're also sick of reciting the same thing to your agents on every machine:</p>
+<ul><li>GitHub: songth1ef/nestwork, give it a star if you find it interesting</li><li>Get in: click Use this template on GitHub to inherit the protocol, then clone it down</li><li>Install: <code>bash scripts/install/claude.sh</code> (same for codex / gemini)</li></ul>
+<p>Let your agents start taking notes in the same book, starting today.</p>
+      <section class="cta" aria-label="Give your agents a memory">
+        <h2>Give your agents a memory</h2>
+        <p>nestwork turns one private git repo into shared, persistent memory for Claude Code, Codex, Gemini, Kimi and more.</p>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">Use this template →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ Star on GitHub</a>
+      </section>
+    </article>
+    <aside class="toc" aria-label="On this page"><b>On this page</b><a href="#version-one-write-the-memory-as-markdown-throw-it-in-a-single-repo">Version one: write the memory as markdown, throw it in a single repo</a><a href="#problem-1-with-16-agents-all-writing-won-t-they-fight">Problem 1: with 16 agents all writing, won&#x27;t they fight?</a><a href="#problem-2-syncing-across-machines-won-t-things-get-lost-or-collide">Problem 2: syncing across machines, won&#x27;t things get lost or collide?</a><a href="#problem-3-the-protocol-will-get-upgraded-will-my-own-stuff-get-wiped-out">Problem 3: the protocol will get upgraded, will my own stuff get wiped out?</a><a href="#an-unexpectedly-handy-thing-agents-can-leave-each-other-notes">An unexpectedly handy thing: agents can leave each other notes</a><a href="#you-can-start-this-way-too">You can start this way too</a></aside>
+  </div>
+  <section class="more" aria-label="All articles">
+    <div class="wrap">
+      <h2>All articles →</h2>
+      <div class="cards"><a href="../ai-agent-memory/"><b>AI Agent Memory — Four Types and Their Trade-offs</b><span>AI agent memory is context an agent keeps beyond one session. Compare context windows, built-in memory, vector services and files for coding agents.</span></a><a href="../claude-code-memory-across-machines/"><b>Claude Code Memory Across Machines, Synced with Git</b><span>Claude Code&#x27;s CLAUDE.md and auto memory stay on one machine. Where they&#x27;re stored, why they don&#x27;t sync, and how to share them across machines with git.</span></a><a href="../share-memory-claude-code-codex/"><b>Share Memory Between Claude Code and Codex</b><span>Claude Code reads ~/.claude/CLAUDE.md, Codex reads ~/.codex/AGENTS.md. Point both at one git repo to share memory, each writing only its own directory.</span></a><a href="../codex-cli-persistent-memory/"><b>Codex CLI Memory, AGENTS.md and Persistent Recall</b><span>How Codex CLI remembers today (AGENTS.md and opt-in local memories), and how to give Codex persistent memory across sessions and machines with git.</span></a><a href="../agent-memory-tools-compared/"><b>Agent Memory Tools Compared — Mem0, Letta, Zep and More</b><span>Mem0, Letta, Zep, Supermemory, claude-mem, built-in tool memory and nestwork compared on architecture, deployment, data ownership and best fit.</span></a><a href="../agent-memory-benchmarks/"><b>Agent Memory Benchmarks — LoCoMo, LongMemEval, BEAM</b><span>What LoCoMo, LongMemEval and BEAM measure, how LLM judges score them, why vendor numbers don&#x27;t compare, and which metrics matter for coding agents.</span></a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span>nestwork — AI agent memory, git-native.</span>
+    <span><a href="../../">Home</a><a href="../">Articles</a><a href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-lang-switch]').forEach(function (a) {
+  a.addEventListener('click', function () { try { localStorage.setItem('nestwork_lang', a.getAttribute('data-lang-switch')); } catch (e) {} });
+});
+</script>
+</body>
+</html>

@@ -14,4 +14,298 @@
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/"/>
   </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/articles/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/zh/articles/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/articles/ai-agent-memory/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/ai-agent-memory/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/ai-agent-memory/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/ai-agent-memory/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/zh/articles/ai-agent-memory/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/ai-agent-memory/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/ai-agent-memory/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/ai-agent-memory/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/articles/claude-code-memory-across-machines/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/claude-code-memory-across-machines/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/claude-code-memory-across-machines/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/claude-code-memory-across-machines/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/zh/articles/claude-code-memory-across-machines/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/claude-code-memory-across-machines/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/claude-code-memory-across-machines/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/claude-code-memory-across-machines/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/articles/share-memory-claude-code-codex/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/share-memory-claude-code-codex/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/share-memory-claude-code-codex/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/share-memory-claude-code-codex/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/zh/articles/share-memory-claude-code-codex/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/share-memory-claude-code-codex/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/share-memory-claude-code-codex/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/share-memory-claude-code-codex/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/articles/codex-cli-persistent-memory/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/codex-cli-persistent-memory/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/codex-cli-persistent-memory/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/codex-cli-persistent-memory/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/zh/articles/codex-cli-persistent-memory/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/codex-cli-persistent-memory/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/codex-cli-persistent-memory/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/codex-cli-persistent-memory/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/articles/agent-memory-tools-compared/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/agent-memory-tools-compared/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/agent-memory-tools-compared/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/agent-memory-tools-compared/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/zh/articles/agent-memory-tools-compared/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/agent-memory-tools-compared/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/agent-memory-tools-compared/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/agent-memory-tools-compared/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/articles/agent-memory-benchmarks/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/agent-memory-benchmarks/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/agent-memory-benchmarks/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/agent-memory-benchmarks/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/zh/articles/agent-memory-benchmarks/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/agent-memory-benchmarks/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/agent-memory-benchmarks/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/agent-memory-benchmarks/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/articles/agents-md-vs-claude-md-vs-memory/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/agents-md-vs-claude-md-vs-memory/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/agents-md-vs-claude-md-vs-memory/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/agents-md-vs-claude-md-vs-memory/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/zh/articles/agents-md-vs-claude-md-vs-memory/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/agents-md-vs-claude-md-vs-memory/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/agents-md-vs-claude-md-vs-memory/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/agents-md-vs-claude-md-vs-memory/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/articles/topic-memory-on-demand-loading/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/topic-memory-on-demand-loading/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/topic-memory-on-demand-loading/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/topic-memory-on-demand-loading/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/zh/articles/topic-memory-on-demand-loading/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/topic-memory-on-demand-loading/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/topic-memory-on-demand-loading/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/topic-memory-on-demand-loading/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/articles/multi-agent-memory-without-conflicts/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/multi-agent-memory-without-conflicts/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/multi-agent-memory-without-conflicts/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/multi-agent-memory-without-conflicts/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/zh/articles/multi-agent-memory-without-conflicts/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/multi-agent-memory-without-conflicts/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/multi-agent-memory-without-conflicts/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/multi-agent-memory-without-conflicts/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/articles/git-native-agent-memory/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/git-native-agent-memory/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/git-native-agent-memory/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/git-native-agent-memory/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/zh/articles/git-native-agent-memory/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/git-native-agent-memory/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/git-native-agent-memory/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/git-native-agent-memory/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/articles/memory-distillation/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/memory-distillation/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/memory-distillation/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/memory-distillation/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/zh/articles/memory-distillation/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/memory-distillation/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/memory-distillation/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/memory-distillation/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/articles/agent-mailbox-git/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/agent-mailbox-git/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/agent-mailbox-git/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/agent-mailbox-git/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/zh/articles/agent-mailbox-git/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/agent-mailbox-git/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/agent-mailbox-git/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/agent-mailbox-git/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/articles/encrypt-agent-memory-git-crypt/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/encrypt-agent-memory-git-crypt/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/encrypt-agent-memory-git-crypt/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/encrypt-agent-memory-git-crypt/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/zh/articles/encrypt-agent-memory-git-crypt/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/encrypt-agent-memory-git-crypt/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/encrypt-agent-memory-git-crypt/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/encrypt-agent-memory-git-crypt/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/articles/rescue-tool-native-memory/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/rescue-tool-native-memory/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/rescue-tool-native-memory/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/rescue-tool-native-memory/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/zh/articles/rescue-tool-native-memory/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/rescue-tool-native-memory/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/rescue-tool-native-memory/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/rescue-tool-native-memory/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/articles/long-term-memory-in-practice/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/long-term-memory-in-practice/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/long-term-memory-in-practice/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/long-term-memory-in-practice/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/zh/articles/long-term-memory-in-practice/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/long-term-memory-in-practice/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/long-term-memory-in-practice/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/long-term-memory-in-practice/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/articles/nestwork-getting-started-faq/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/nestwork-getting-started-faq/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/nestwork-getting-started-faq/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/nestwork-getting-started-faq/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/zh/articles/nestwork-getting-started-faq/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/nestwork-getting-started-faq/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/nestwork-getting-started-faq/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/nestwork-getting-started-faq/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/articles/16-agents-one-brain/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/16-agents-one-brain/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/16-agents-one-brain/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/16-agents-one-brain/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/zh/articles/16-agents-one-brain/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/16-agents-one-brain/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/16-agents-one-brain/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/16-agents-one-brain/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/articles/agent-amnesia-cross-device/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/agent-amnesia-cross-device/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/agent-amnesia-cross-device/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/agent-amnesia-cross-device/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/zh/articles/agent-amnesia-cross-device/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/agent-amnesia-cross-device/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/agent-amnesia-cross-device/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/agent-amnesia-cross-device/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/articles/memory-is-a-protocol-problem/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/memory-is-a-protocol-problem/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/memory-is-a-protocol-problem/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/memory-is-a-protocol-problem/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/zh/articles/memory-is-a-protocol-problem/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/memory-is-a-protocol-problem/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/memory-is-a-protocol-problem/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/memory-is-a-protocol-problem/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/articles/nestwork-overview/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/nestwork-overview/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/nestwork-overview/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/nestwork-overview/"/>
+  </url>
+  <url>
+    <loc>https://songth1ef.github.io/nestwork/zh/articles/nestwork-overview/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/nestwork-overview/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/nestwork-overview/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/nestwork-overview/"/>
+  </url>
 </urlset>

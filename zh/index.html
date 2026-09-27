@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>nestwork — 用 git 让 Claude Code、Codex 等 AI 编程助手共享长期记忆</title>
-<meta name="description" content="让 Claude Code、Codex、Gemini、Kimi 跨会话、跨机器、跨工具共享同一份长期记忆。git 原生协议：不要服务器、不要插件、不被厂商锁定。">
+<title>nestwork：AI Agent 记忆，让 Claude Code、Codex 共享长期记忆</title>
+<meta name="description" content="git 原生的 AI agent 记忆：让 Claude Code、Codex、Gemini、Kimi 跨会话、跨机器、跨工具共享同一份长期记忆，无需服务器，不被厂商锁定。">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="author" content="songth1ef">
 <meta name="theme-color" content="#000000">
@@ -16,8 +16,8 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%233fb6c4'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="nestwork">
-<meta property="og:title" content="nestwork — 用 git 让 Claude Code、Codex 等 AI 编程助手共享长期记忆">
-<meta property="og:description" content="让 Claude Code、Codex、Gemini、Kimi 跨会话、跨机器、跨工具共享同一份长期记忆。git 原生协议：不要服务器、不要插件、不被厂商锁定。">
+<meta property="og:title" content="nestwork：AI Agent 记忆，让 Claude Code、Codex 共享长期记忆">
+<meta property="og:description" content="git 原生的 AI agent 记忆：让 Claude Code、Codex、Gemini、Kimi 跨会话、跨机器、跨工具共享同一份长期记忆，无需服务器，不被厂商锁定。">
 <meta property="og:url" content="https://songth1ef.github.io/nestwork/zh/">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://songth1ef.github.io/nestwork/og-zh.png">
@@ -25,10 +25,10 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="nestwork：让你的 AI agent 记得住。一个私有 git 仓库，作为所有 AI 编程 agent 的共享记忆。">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="nestwork — 用 git 让 Claude Code、Codex 等 AI 编程助手共享长期记忆">
-<meta name="twitter:description" content="让 Claude Code、Codex、Gemini、Kimi 跨会话、跨机器、跨工具共享同一份长期记忆。git 原生协议：不要服务器、不要插件、不被厂商锁定。">
+<meta name="twitter:title" content="nestwork：AI Agent 记忆，让 Claude Code、Codex 共享长期记忆">
+<meta name="twitter:description" content="git 原生的 AI agent 记忆：让 Claude Code、Codex、Gemini、Kimi 跨会话、跨机器、跨工具共享同一份长期记忆，无需服务器，不被厂商锁定。">
 <meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og-zh.png">
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://songth1ef.github.io/nestwork/#website","url":"https://songth1ef.github.io/nestwork/","name":"nestwork","inLanguage":["en","zh-CN"]},{"@type":"WebPage","@id":"https://songth1ef.github.io/nestwork/zh/#webpage","url":"https://songth1ef.github.io/nestwork/zh/","name":"nestwork — 用 git 让 Claude Code、Codex 等 AI 编程助手共享长期记忆","description":"让 Claude Code、Codex、Gemini、Kimi 跨会话、跨机器、跨工具共享同一份长期记忆。git 原生协议：不要服务器、不要插件、不被厂商锁定。","inLanguage":"zh-CN","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"},"dateModified":"2026-09-27"},{"@type":"SoftwareApplication","@id":"https://songth1ef.github.io/nestwork/#software","name":"nestwork","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux, Windows","softwareVersion":"0.6.0","description":"Give Claude Code, Codex, Gemini and Kimi one persistent memory across sessions, machines and tools. Git-native: no server, no plugin, no vendor lock-in.","url":"https://songth1ef.github.io/nestwork/","downloadUrl":"https://github.com/songth1ef/nestwork","codeRepository":"https://github.com/songth1ef/nestwork","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"keywords":"AI agent memory, persistent memory, Claude Code, Codex CLI, Gemini CLI, Kimi Code, AGENTS.md, git, shared context"},{"@type":"FAQPage","@id":"https://songth1ef.github.io/nestwork/zh/#faq","mainEntity":[{"@type":"Question","name":"nestwork 是什么？","acceptedAnswer":{"@type":"Answer","text":"nestwork 是一套面向 AI 编程 agent 的 git 原生记忆协议。一个私有 git 仓库用普通 markdown 保存你的规矩、偏好、踩坑经验和项目上下文，你用的每个 agent——Claude Code、Codex CLI、Gemini CLI、Kimi Code、Hermes、OpenClaw——都读写同一个仓库。结果就是一份跨会话、跨机器、跨厂商的长期记忆，而且带版本历史。"}},{"@type":"Question","name":"怎么让 Claude Code 和 Codex 共享记忆？","acceptedAnswer":{"@type":"Answer","text":"在每台机器上 clone 一次你的记忆仓库，然后分别运行 scripts/install/claude.sh 和 scripts/install/codex.sh。两个工具会拿到指向同一仓库的同一套启动协议：在 Claude Code 里记下的规则或教训，Codex 下个会话就能用，反之亦然。每个工具只写自己的目录，互不覆盖。"}},{"@type":"Question","name":"Claude Code 的记忆能跨机器同步吗？","acceptedAnswer":{"@type":"Answer","text":"它自己不能。截至 2026 年，Claude Code、Codex、Kimi Code 的内置记忆都只存在本机。nestwork 把其中值得长期保留的上下文放进 git，新电脑或云服务器 git clone 一下就有了。你也可以把工具的原生记忆蒸馏进仓库，这样换机器、换工具、丢账号都不会丢。"}},{"@type":"Question","name":"记忆越攒越多，会不会把上下文窗口撑爆？","acceptedAnswer":{"@type":"Answer","text":"不会，协议正是为此设计的。启动时 agent 只读很小的常驻层：核心规则加两份简短摘要，在作者的仓库上约 640 token，而全量加载要约 69,600 token。其余都按需读取：memory.md 是自动生成的主题索引，每个主题文件都有一行「什么时候该读」的描述，agent 只打开与当前任务匹配的文件。"}},{"@type":"Question","name":"nestwork 是向量数据库或 RAG 吗？","acceptedAnswer":{"@type":"Answer","text":"不是。没有 embedding，也没有检索服务。记忆就是人能直接读的 markdown，可以像 git 里其他文件一样打开、编辑、diff 和审阅。检索方式和 agent 使用 skill 一样：读一份简短的索引，挑出相关文件，再读它。"}},{"@type":"Question","name":"需要部署服务器或付费吗？","acceptedAnswer":{"@type":"Answer","text":"不需要。没有托管服务、没有常驻进程、没有数据库，只有 git 和你仓库里的几份 shell / Python 脚本。托管在 GitHub、GitLab、自建 Gitea 或任何你已有的 git 远端都行。离线照常使用，联网后自动同步。"}},{"@type":"Question","name":"很多 agent 同时写，会冲突吗？","acceptedAnswer":{"@type":"Answer","text":"每个 agent 实例独占自己的目录 agents/<host>/<agent-id>/，日常写记忆根本不会碰到同一个文件。在支持 hook 的工具上，每次写入前自动 pull --rebase，写完立即 commit + push，失败会重试。共享记忆只在明确触发、经人审核的蒸馏中才会被改写。"}},{"@type":"Question","name":"敏感的记忆能保密吗？","acceptedAnswer":{"@type":"Answer","text":"把仓库设为私有，对大多数人已经足够。如果连 git 托管方也不能看到，可以开启可选的 git-crypt 模式：agent 读写明文，提交进 git 的全是密文。无论是否加密，都不要把 API key 或密码写进记忆，它们应该放在专门的密钥管理工具里。"}},{"@type":"Question","name":"它和 AGENTS.md / CLAUDE.md 有什么区别？","acceptedAnswer":{"@type":"Answer","text":"单个仓库里的 AGENTS.md 只描述那一个代码库。nestwork 用同样的文件格式，作为一个「用户级记忆仓库」的启动协议：你的身份、偏好、跨项目的经验和在飞项目状态，会跟着你进入每一个仓库、每一个工具；各项目自己的 AGENTS.md 照常生效。"}},{"@type":"Question","name":"团队可以用吗？","acceptedAnswer":{"@type":"Answer","text":"可以，但建议从小处开始：一个私有仓库，每个 agent 实例一个目录，规则放在由人维护、agent 只读的 queen/ 里。分层的权威链决定谁的指令优先，共享规则保持稳定，每个 agent 又各自保留自己的笔记。"}}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://songth1ef.github.io/nestwork/#website","url":"https://songth1ef.github.io/nestwork/","name":"nestwork","inLanguage":["en","zh-CN"]},{"@type":"WebPage","@id":"https://songth1ef.github.io/nestwork/zh/#webpage","url":"https://songth1ef.github.io/nestwork/zh/","name":"nestwork：AI Agent 记忆，让 Claude Code、Codex 共享长期记忆","description":"git 原生的 AI agent 记忆：让 Claude Code、Codex、Gemini、Kimi 跨会话、跨机器、跨工具共享同一份长期记忆，无需服务器，不被厂商锁定。","inLanguage":"zh-CN","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"},"dateModified":"2026-09-27"},{"@type":"SoftwareApplication","@id":"https://songth1ef.github.io/nestwork/#software","name":"nestwork","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux, Windows","softwareVersion":"0.6.0","description":"Git-native AI agent memory: give Claude Code, Codex, Gemini and Kimi one persistent memory across sessions, machines and tools. No server, no lock-in.","url":"https://songth1ef.github.io/nestwork/","downloadUrl":"https://github.com/songth1ef/nestwork","codeRepository":"https://github.com/songth1ef/nestwork","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"keywords":"AI agent memory, persistent memory, Claude Code, Codex CLI, Gemini CLI, Kimi Code, AGENTS.md, git, shared context"},{"@type":"FAQPage","@id":"https://songth1ef.github.io/nestwork/zh/#faq","mainEntity":[{"@type":"Question","name":"nestwork 是什么？","acceptedAnswer":{"@type":"Answer","text":"nestwork 是一套面向 AI 编程 agent 的 git 原生记忆协议。一个私有 git 仓库用普通 markdown 保存你的规矩、偏好、踩坑经验和项目上下文，你用的每个 agent——Claude Code、Codex CLI、Gemini CLI、Kimi Code、Hermes、OpenClaw——都读写同一个仓库。结果就是一份跨会话、跨机器、跨厂商的长期记忆，而且带版本历史。"}},{"@type":"Question","name":"怎么让 Claude Code 和 Codex 共享记忆？","acceptedAnswer":{"@type":"Answer","text":"在每台机器上 clone 一次你的记忆仓库，然后分别运行 scripts/install/claude.sh 和 scripts/install/codex.sh。两个工具会拿到指向同一仓库的同一套启动协议：在 Claude Code 里记下的规则或教训，Codex 下个会话就能用，反之亦然。每个工具只写自己的目录，互不覆盖。"}},{"@type":"Question","name":"Claude Code 的记忆能跨机器同步吗？","acceptedAnswer":{"@type":"Answer","text":"它自己不能。截至 2026 年，Claude Code、Codex、Kimi Code 的内置记忆都只存在本机。nestwork 把其中值得长期保留的上下文放进 git，新电脑或云服务器 git clone 一下就有了。你也可以把工具的原生记忆蒸馏进仓库，这样换机器、换工具、丢账号都不会丢。"}},{"@type":"Question","name":"记忆越攒越多，会不会把上下文窗口撑爆？","acceptedAnswer":{"@type":"Answer","text":"不会，协议正是为此设计的。启动时 agent 只读很小的常驻层：核心规则加两份简短摘要，在作者的仓库上约 640 token，而全量加载要约 69,600 token。其余都按需读取：memory.md 是自动生成的主题索引，每个主题文件都有一行「什么时候该读」的描述，agent 只打开与当前任务匹配的文件。"}},{"@type":"Question","name":"nestwork 是向量数据库或 RAG 吗？","acceptedAnswer":{"@type":"Answer","text":"不是。没有 embedding，也没有检索服务。记忆就是人能直接读的 markdown，可以像 git 里其他文件一样打开、编辑、diff 和审阅。检索方式和 agent 使用 skill 一样：读一份简短的索引，挑出相关文件，再读它。"}},{"@type":"Question","name":"需要部署服务器或付费吗？","acceptedAnswer":{"@type":"Answer","text":"不需要。没有托管服务、没有常驻进程、没有数据库，只有 git 和你仓库里的几份 shell / Python 脚本。托管在 GitHub、GitLab、自建 Gitea 或任何你已有的 git 远端都行。断网时 agent 仍能读取记忆；在装了同步 hook 的工具上，写入记忆需要能连上远端。"}},{"@type":"Question","name":"很多 agent 同时写，会冲突吗？","acceptedAnswer":{"@type":"Answer","text":"每个 agent 实例独占自己的目录 agents/<host>/<agent-id>/，日常写记忆根本不会碰到同一个文件。在支持 hook 的工具上，每次写入前自动 pull --rebase，写完立即 commit + push，失败会重试。共享记忆只在明确触发、经人审核的蒸馏中才会被改写。"}},{"@type":"Question","name":"敏感的记忆能保密吗？","acceptedAnswer":{"@type":"Answer","text":"把仓库设为私有，对大多数人已经足够。如果连 git 托管方也不能看到，可以开启可选的 git-crypt 模式：agent 读写明文，提交进 git 的全是密文。无论是否加密，都不要把 API key 或密码写进记忆，它们应该放在专门的密钥管理工具里。"}},{"@type":"Question","name":"它和 AGENTS.md / CLAUDE.md 有什么区别？","acceptedAnswer":{"@type":"Answer","text":"单个仓库里的 AGENTS.md 只描述那一个代码库。nestwork 用同样的文件格式，作为一个「用户级记忆仓库」的启动协议：你的身份、偏好、跨项目的经验和在飞项目状态，会跟着你进入每一个仓库、每一个工具；各项目自己的 AGENTS.md 照常生效。"}},{"@type":"Question","name":"团队可以用吗？","acceptedAnswer":{"@type":"Answer","text":"可以，但建议从小处开始：一个私有仓库，每个 agent 实例一个目录，规则放在由人维护、agent 只读的 queen/ 里。分层的权威链决定谁的指令优先，共享规则保持稳定，每个 agent 又各自保留自己的笔记。"}}]}]}</script>
 <script>
 (function () {
   /* Honour an explicit language choice made on the other page. Crawlers have
@@ -40,24 +40,29 @@
 })();
 </script>
 <style>
+@font-face { font-family: "VT323"; src: url("../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../fonts/inter-tight-latin-700-normal.woff2") format("woff2"); font-weight: 700; font-display: swap; }
 :root {
-  color-scheme: dark;
-  --bg: #000;
-  --fg: #f2f2f2;
-  --muted: #9a9a9a;
-  --line: #1e1e1e;
-  --teal: #3fb6c4;
-  --teal-line: #5fd3d9;
-  --teal-dim: rgba(63, 182, 196, 0.22);
-  --red: #e0242b;
-  --lime: #d3ee6a;
+  color-scheme: light;
+  --bg: #fbf8ef;
+  --fg: #111;
+  --muted: #5c5c5c;
+  --line: rgba(0, 0, 0, 0.12);
+  --teal: #2ec4d6;
+  --teal-line: #0a8fa0;
+  --teal-dim: rgba(10, 143, 160, 0.22);
+  --red: #ec2a33;
+  --lime: #d6f25a;
   --magenta: #ff2d8f;
-  --yellow: #f4f24a;
+  --yellow: #ffe53d;
   --sky: #29c6ec;
-  --purple: #c94fe6;
-  --paper: #f4f4f0;
-  --ink: #0a0a0a;
-  --sans: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --purple: #b25cf0;
+  --paper: #fbf8ef;
+  --ink: #111;
+  --white: #fff;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
   --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
 }
 *, *::before, *::after { box-sizing: border-box; }
@@ -446,8 +451,325 @@ td.us { background: rgba(63, 182, 196, 0.08); color: #fff; font-weight: 600; }
 .site-footer a { color: #b5b5b5; text-decoration: none; margin-left: 18px; }
 .site-footer a:hover { color: var(--teal-line); }
 
+
+/* ---------- texture ---------- */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 3px);
+  mix-blend-mode: multiply;
+  opacity: 0.35;
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: -50%;
+  z-index: 201;
+  pointer-events: none;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain 1.2s steps(4) infinite;
+}
+@keyframes grain { 25% { transform: translate(-3%, 2%); } 50% { transform: translate(2%, -3%); } 75% { transform: translate(-2%, -2%); } }
+.px { display: block; shape-rendering: crispEdges; }
+
+/* ---------- hero v2 ---------- */
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 32px; align-items: center; }
+@media (max-width: 980px) { .hero-grid { grid-template-columns: 1fr; } }
+.hero .mega { font-size: clamp(56px, 9.6vw, 138px); }
+.hl-m { background: var(--magenta); color: #000; padding: 0 0.08em; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.hl-m.glitch::before { color: var(--yellow); }
+.hl-m.glitch::after { color: var(--sky); }
+.hero-art { position: relative; min-height: 520px; }
+@media (max-width: 980px) { .hero-art { min-height: 440px; margin-top: 12px; } }
+.hero-art svg.net { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.net .route { fill: none; stroke: var(--red); stroke-width: 2; stroke-dasharray: 8 7; animation: route 1.6s linear infinite; }
+.net .route.t { stroke: var(--teal-line); animation-duration: 2.3s; }
+@keyframes route { to { stroke-dashoffset: -30; } }
+.net .dev { fill: none; stroke: #f2f2f2; stroke-width: 2; stroke-linejoin: round; }
+.net .dev-fill { fill: #000; stroke: #f2f2f2; stroke-width: 2; }
+.net .lbl { font-family: var(--pixel); font-size: 17px; fill: #cfcfcf; letter-spacing: 0.04em; }
+.net .ring { fill: none; stroke: var(--teal); stroke-width: 1.5; stroke-dasharray: 3 7; transform-origin: 280px 280px; animation: spin 24s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.net .pulse { fill: none; stroke: var(--teal-line); stroke-width: 2; transform-origin: 280px 280px; animation: pulse 2.4s ease-out infinite; }
+@keyframes pulse { from { transform: scale(0.6); opacity: 0.9; } to { transform: scale(1.8); opacity: 0; } }
+.pcard {
+  position: absolute;
+  width: 214px;
+  background: var(--paper);
+  color: #000;
+  border: 2px solid #000;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.55);
+  font-family: var(--pixel);
+  font-size: 17px;
+  line-height: 1.1;
+  animation: float 6s ease-in-out infinite;
+}
+.pcard .pc-top { display: flex; justify-content: space-between; align-items: center; background: #000; color: var(--paper); padding: 3px 8px 2px; font-size: 16px; letter-spacing: 0.06em; }
+.pcard .pc-top b { background: var(--teal); color: #000; padding: 0 5px; font-weight: 400; }
+.pcard .pc-body { display: grid; grid-template-columns: 58px 1fr; gap: 9px; padding: 9px; }
+.pcard .pc-body .px { width: 58px; height: 58px; border: 2px solid #000; background: #fff; }
+.pcard .pc-rows div { display: flex; justify-content: space-between; border-bottom: 1px solid #0003; padding: 1px 0; }
+.pcard .pc-bars { display: grid; grid-template-columns: 3fr 2fr 1fr; gap: 3px; padding: 0 9px 9px; }
+.pcard .pc-bars i { height: 6px; background: var(--red); }
+.pcard .pc-bars i:nth-child(2) { background: var(--teal); }
+.pcard .pc-bars i:nth-child(3) { background: #000; }
+.pcard.a { left: -6px; top: 18px; transform: rotate(-5deg); }
+.pcard.b { right: -4px; bottom: 26px; transform: rotate(4deg); animation-delay: -3s; }
+@keyframes float { 50% { translate: 0 -10px; } }
+@media (max-width: 520px) { .pcard { width: 180px; font-size: 15px; } .pcard .pc-body { grid-template-columns: 46px 1fr; } .pcard .pc-body .px { width: 46px; height: 46px; } }
+
+/* ---------- ticker ---------- */
+.ticker { background: var(--yellow); color: #000; overflow: hidden; border-top: 2px solid #000; border-bottom: 2px solid #000; }
+.ticker-track { display: flex; width: max-content; animation: ticker 38s linear infinite; }
+.ticker span { font-family: var(--pixel); font-size: 30px; line-height: 1; padding: 12px 0; white-space: nowrap; letter-spacing: 0.04em; }
+.ticker span i { font-style: normal; color: var(--magenta); padding: 0 18px; }
+@keyframes ticker { to { transform: translateX(-50%); } }
+
+/* ---------- paper sections + glyph wall ---------- */
+.section.paper-sec { background: var(--paper); color: var(--ink); overflow: hidden; }
+.paper-sec .kicker { color: #0a7f8c; }
+.paper-sec .lede { color: #2b2b2b; }
+.paper-sec .mega { color: #000; }
+.glyphwall {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  font-family: var(--pixel);
+  font-size: 34px;
+  line-height: 1.05;
+  letter-spacing: 0.5em;
+  word-break: break-all;
+  color: #000;
+  opacity: 0.06;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(100deg, #000 10%, transparent 75%);
+  mask-image: linear-gradient(100deg, #000 10%, transparent 75%);
+}
+.paper-sec .wrap { position: relative; }
+.errcards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; margin-top: 10px; }
+@media (max-width: 1000px) { .errcards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .errcards { grid-template-columns: 1fr; } }
+.errcard { background: #fff; border: 2px solid #000; box-shadow: 7px 7px 0 #000; transition: transform 150ms, box-shadow 150ms; }
+.errcard:nth-child(odd) { transform: rotate(-1.2deg); }
+.errcard:nth-child(even) { transform: rotate(1deg); }
+.errcard:hover { transform: rotate(0) translate(-3px, -3px); box-shadow: 10px 10px 0 var(--magenta); }
+.errcard .ec-top { display: flex; justify-content: space-between; align-items: center; background: #000; color: #fff; padding: 4px 10px 3px; font-family: var(--pixel); font-size: 19px; letter-spacing: 0.06em; }
+.errcard .ec-top b { background: var(--red); color: #fff; padding: 0 6px; font-weight: 400; }
+.errcard .ec-body { padding: 16px 18px 20px; }
+.errcard .ec-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.errcard .ec-head .px { width: 44px; height: 44px; flex: none; border: 2px solid #000; }
+.errcard h3 { font-size: 20px; line-height: 1.2; letter-spacing: -0.02em; margin: 0; }
+.errcard p { margin: 0; font-size: 15px; color: #333; }
+.errcard .bars { display: grid; grid-template-columns: 4fr 1fr 2fr; gap: 3px; margin: 0 18px 16px; padding: 0; border: 0; }
+.errcard .bars i { height: 6px; background: var(--red); }
+.errcard .bars i:nth-child(2) { background: #000; }
+.errcard .bars i:nth-child(3) { background: #d6d6d0; }
+.paper-sec .quote { background: #fff; border: 2px solid #000; border-left: 10px solid var(--red); box-shadow: 7px 7px 0 #000; color: #000; }
+.paper-sec .quote footer { color: #555; }
+
+/* ---------- colored step numbers ---------- */
+.steps .card:nth-child(1) .step-num { background: var(--lime); }
+.steps .card:nth-child(2) .step-num { background: var(--magenta); }
+.steps .card:nth-child(3) .step-num { background: var(--sky); }
+.step-num { font-family: var(--pixel); font-size: 22px; padding: 2px 10px 0; }
+
+/* ---------- lime band (features) ---------- */
+.section.lime { background: var(--lime); color: #000; overflow: hidden; }
+.lime .kicker { color: #000; }
+.lime .mega { color: #000; }
+.lime .stripes { position: absolute; right: -80px; top: 60px; width: 38%; height: 220px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 14px, transparent 14px 28px); transform: rotate(-3deg); opacity: 0.9; }
+.lime .wrap { position: relative; }
+.fcard { background: #000; color: var(--fg); border: 2px solid #000; padding: 22px 22px 24px; transition: transform 150ms, box-shadow 150ms; }
+.fcard:hover { transform: translate(-4px, -4px); box-shadow: 8px 8px 0 #000; }
+.fcard .ic { width: 58px; height: 58px; display: grid; place-items: center; margin-bottom: 16px; }
+.fcard .ic .px { width: 40px; height: 40px; }
+.fcard .tag { font-family: var(--pixel); font-size: 18px; letter-spacing: 0.06em; text-transform: uppercase; color: #9a9a9a; }
+.fcard h3 { font-size: 21px; letter-spacing: -0.02em; line-height: 1.25; margin: 6px 0 10px; }
+.fcard p { margin: 0; color: #c9c9c9; font-size: 15.5px; }
+.fcard code { font-family: var(--mono); font-size: 0.86em; background: #1a1a1a; border: 1px solid #333; padding: 0 5px; }
+.c-lime { background: var(--lime); } .c-mag { background: var(--magenta); } .c-sky { background: var(--sky); }
+.c-yel { background: var(--yellow); } .c-pur { background: var(--purple); } .c-teal { background: var(--teal); }
+.c-red { background: var(--red); } .c-paper { background: var(--paper); }
+
+/* ---------- colored stats ---------- */
+.stats.color { border: 0; gap: 14px; }
+.stats.color .stat { border: 2px solid #000; color: #000; box-shadow: 6px 6px 0 rgba(255, 255, 255, 0.12); }
+.stats.color .stat::after { background-image: radial-gradient(rgba(0, 0, 0, 0.12) 1px, transparent 1.4px); }
+.stats.color .stat .n { color: #000 !important; }
+.stats.color .stat .l { color: #111; font-family: var(--pixel); font-size: 19px; letter-spacing: 0.04em; }
+
+.stats.color .stat:nth-child(1) { background: var(--teal); }
+.stats.color .stat:nth-child(2) { background: var(--magenta); }
+.stats.color .stat:nth-child(3) { background: var(--lime); }
+.stats.color .stat:nth-child(4) { background: var(--yellow); }
+
+/* ---------- stickers ---------- */
+.sticker { position: absolute; font-family: var(--pixel); font-size: 26px; line-height: 1; color: #000; background: var(--yellow); border: 2px solid #000; padding: 8px 12px 6px; box-shadow: 4px 4px 0 #000; transform: rotate(6deg); pointer-events: none; }
+.execute, .kicker { font-family: var(--pixel); }
+.kicker { font-size: 20px; letter-spacing: 0.08em; }
+.execute { font-weight: 400; font-size: clamp(44px, 6vw, 76px); }
+
+/* ---------- collage extras ---------- */
+.collage .eye { position: absolute; border-radius: 50%; background: #fff; border: 3px solid #000; box-shadow: inset -6px -8px 0 rgba(0, 0, 0, 0.12); }
+.collage .eye::after { content: ""; position: absolute; width: 38%; height: 38%; left: 34%; top: 30%; border-radius: 50%; background: #000; box-shadow: inset 3px 3px 0 #444; animation: look 5s ease-in-out infinite; }
+@keyframes look { 0%, 40% { transform: translate(0, 0); } 50%, 70% { transform: translate(55%, -20%); } 80%, 100% { transform: translate(-40%, 10%); } }
+.collage .pxsign { position: absolute; right: 7%; top: 12%; transform: rotate(-6deg); font-family: var(--pixel); font-size: clamp(54px, 7vw, 96px); line-height: 0.9; color: #000; background: #fff; border: 3px solid #000; padding: 10px 18px 4px; box-shadow: 8px 8px 0 #000; }
+@media (max-width: 760px) { .collage .pxsign, .collage .eye { display: none; } }
+
+
+/* ---------- sunny theme: colour overrides (layout unchanged) ---------- */
+body { background: var(--bg); color: var(--fg); }
+::selection { background: var(--yellow); color: #000; }
+body::before { opacity: 0.18; }
+body::after { opacity: 0.05; }
+
+.site-header { background: rgba(255, 255, 255, 0.86); border-bottom: 2px solid #111; }
+.nav a { color: #333; }
+.nav a:hover { color: #000; background: var(--yellow); }
+.nav .nav-gh { background: #111; color: #fff; }
+.nav .nav-gh:hover { background: var(--magenta); color: #000; }
+
+.kicker { color: var(--teal-line); }
+.hl { background: var(--teal); color: #000; }
+.caption { color: #1c1c1c; font-weight: 700; }
+.lede { color: #2c2c2c; }
+
+/* hero: daylight sky + halftone sun */
+.hero { background: linear-gradient(180deg, #8fdcf7 0%, #c9efff 42%, #f3fbff 72%, var(--bg) 100%); border-bottom: 2px solid #111; }
+.hero::before {
+  content: "";
+  position: absolute;
+  right: 6%;
+  top: 60px;
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 12px 12px;
+  -webkit-mask-image: radial-gradient(circle, #000 52%, transparent 71%);
+  mask-image: radial-gradient(circle, #000 52%, transparent 71%);
+  opacity: 0.95;
+}
+.hero-floor {
+  background-image: linear-gradient(rgba(10, 143, 160, 0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(10, 143, 160, 0.35) 1px, transparent 1px);
+}
+.hero-dots { background-image: radial-gradient(rgba(0, 0, 0, 0.12) 1px, transparent 1.4px); }
+.hero .mega { color: #0d0d0d; }
+.meta-row { color: #3a3a3a; }
+.meta-row b { color: var(--teal-line); }
+.btn { border-color: #111; }
+.btn:hover { box-shadow: 5px 5px 0 #111; }
+.btn-primary { background: var(--magenta); border-color: #111; color: #000; }
+.btn-ghost { background: #fff; color: #111; }
+.btn-ink { background: #111; color: #fff; }
+.net .dev { stroke: #111; }
+.net .dev-fill { fill: #fff; stroke: #111; }
+.net .lbl { fill: #111; }
+.net .ring { stroke: var(--teal-line); }
+.net .pulse { stroke: var(--teal); }
+.pcard { background: #fff; box-shadow: 6px 6px 0 #111; }
+
+/* section rhythm */
+.section { border-bottom: 2px solid #111; }
+#problem { background: #fff; }
+#how { background: var(--bg); }
+#loading { background: #e4f7fc; }
+#features.lime { background: var(--sky); }
+#features .stripes { background: repeating-linear-gradient(-45deg, var(--yellow) 0 14px, transparent 14px 28px); }
+#proof { background: #fff; }
+#compare { background: #fff4f9; }
+#quickstart { background: #fffbe0; }
+#faq { background: var(--bg); }
+#read { background: #fff; }
+
+/* cards on light */
+.card { background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 #111; }
+.card h3 { color: #111; }
+.card p { color: #333; }
+.card .tag { color: var(--teal-line); }
+.corners::before, .corners::after { border-color: var(--magenta); }
+.faq code, .card code, .lede code, .ticks code { background: #fff; border-color: #111; color: #111; }
+
+.tree { background: linear-gradient(rgba(10, 143, 160, 0.14) 1px, transparent 1px) 0 0 / 100% 32px, #fff; border: 2px solid #111; color: #222; box-shadow: 6px 6px 0 var(--teal); }
+.tree .c { color: var(--teal-line); font-weight: 700; }
+.tree .m { color: #777; }
+.chain span { background: #fff; border: 2px solid #111; color: #111; }
+.chain span:first-child { background: var(--teal); border-color: #111; }
+.chain-note { color: #555; }
+
+.ticks li { color: #2a2a2a; }
+.ticks b { color: #000; }
+.index-card { background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 #111; }
+.index-card .bar { background: #111; color: #eee; border-bottom: 0; }
+.index-card pre { color: #222; }
+.index-card .dim { color: #999; }
+.index-card .hit { background: var(--yellow); color: #000; }
+.bars { border-top: 2px solid #111; }
+.bar-row { color: #222; }
+.bar-row b { color: #000; }
+.bt { background: #fff; border: 2px solid #111; height: 16px; }
+.bars-note { color: #555; }
+
+.fcard { border-color: #111; box-shadow: 6px 6px 0 #111; }
+.fcard:hover { box-shadow: 10px 10px 0 #111; }
+
+.stat .l { color: #444; }
+.stats.color .stat { box-shadow: 6px 6px 0 #111; }
+.source-note { color: #666; }
+
+.table-wrap { border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; }
+th, td { border-bottom: 1px solid rgba(0, 0, 0, 0.1); color: #222; }
+thead th { background: #111; color: #eee; }
+thead th.us { background: var(--magenta); color: #000; }
+tbody th { color: #000; }
+td.us { background: #ffe3f0; color: #000; }
+.ok { color: #0a8f4a; }
+.bad { color: var(--red); }
+
+.paper::before { color: #b9b39b; }
+.code-block { background: #151515; }
+
+.faq details { border-top: 2px solid #111; }
+.faq details:last-child { border-bottom: 2px solid #111; }
+.faq summary { color: #111; }
+.faq summary:hover { background: #fff; }
+.faq summary::after { color: var(--magenta); }
+.faq details[open] summary::after { color: var(--teal-line); }
+.faq .answer { color: #2c2c2c; }
+
+.reads a { border-bottom: 2px solid #111; color: #111; }
+.reads a:hover { color: #000; background: var(--yellow); }
+.reads a span.t { color: #555; }
+
+.site-footer { background: #111; color: #aaa; }
+.site-footer a { color: #ddd; }
+
+
+#features { background: var(--sky); }
+#features .card { border-top-width: 10px; }
+#features .card:nth-child(6n+1) { border-top-color: var(--magenta); }
+#features .card:nth-child(6n+2) { border-top-color: var(--yellow); }
+#features .card:nth-child(6n+3) { border-top-color: var(--lime); }
+#features .card:nth-child(6n+4) { border-top-color: var(--purple); }
+#features .card:nth-child(6n+5) { border-top-color: var(--red); }
+#features .card:nth-child(6n+6) { border-top-color: var(--teal); }
+#features .kicker { color: #003d45; }
+.card.alert { border-color: #111; }
+.card.alert .tag { color: var(--red); }
+.hero .mega { font-size: clamp(52px, 7.4vw, 112px); }
+.hero-art { min-height: 680px; }
+.hero-art svg.net { inset: 100px 0 100px 0; height: auto; }
+.pcard.a { left: 0; top: 0; }
+.pcard.b { right: 0; bottom: 0; top: auto; }
+@media (max-width: 980px) { .hero-art { min-height: 620px; } .hero-art svg.net { inset: 90px 0; } }
+
+@media (max-width: 980px) { .hero::before { width: 280px; height: 280px; right: -70px; top: auto; bottom: 380px; } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
+  .ticker-track { transform: none; }
   html { scroll-behavior: auto; }
 }
 </style>
@@ -457,6 +779,7 @@ td.us { background: rgba(63, 182, 196, 0.08); color: #fff; font-weight: 600; }
   <div class="wrap header-inner">
     <a class="badge" href="https://songth1ef.github.io/nestwork/zh/" aria-label="nestwork home">nestwork</a>
     <nav class="nav" aria-label="主导航">
+      <a href="articles/">文章</a>
       <a class="nav-hide" href="#how">原理</a>
       <a class="nav-hide" href="#compare">对比</a>
       <a class="nav-hide" href="#quickstart">安装</a>
@@ -471,35 +794,70 @@ td.us { background: rgba(63, 182, 196, 0.08); color: #fff; font-weight: 600; }
   <section class="hero" aria-labelledby="hero-title">
     <div class="hero-floor" aria-hidden="true"></div>
     <div class="hero-dots" aria-hidden="true"></div>
-    <svg class="hero-track" aria-hidden="true" viewBox="0 0 1200 700" preserveAspectRatio="none">
-      <path d="M640 720 L820 610 L990 640 L1220 420" fill="none" stroke="#e0242b" stroke-width="2" stroke-dasharray="10 9" opacity=".7" vector-effect="non-scaling-stroke"/>
-      <path d="M1040 120 L1220 60" fill="none" stroke="#5fd3d9" stroke-width="1" opacity=".5" vector-effect="non-scaling-stroke"/>
-    </svg>
-    <div class="wrap hero-inner">
-      <p class="kicker">AI 编程 agent 的 git 原生记忆协议</p>
-      
-      <h1 class="mega" id="hero-title">你的 agent<br><span class="glitch" data-text="记得住了。">记得住了。</span></h1>
-      
-      <p class="caption">一个私有 git 仓库，成为 Claude Code、Codex、Gemini、Kimi 等所有 agent 共享的长期记忆——跨会话、跨机器、跨厂商。不要服务器，不要插件，不被任何一家锁死。</p>
-      <div class="cta-row">
-        <a class="btn btn-primary" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">用模板创建我的记忆仓库 →</a>
-        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ 去 GitHub 点个 Star</a>
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="kicker">AI agent 记忆 · git 原生协议</p>
+        
+        <h1 class="mega" id="hero-title">你的 agent<br><span class="glitch hl-m" data-text="记得住了。">记得住了。</span></h1>
+        
+        <p class="caption">一个私有 git 仓库，成为 Claude Code、Codex、Gemini、Kimi 等所有 agent 共享的 AI agent 长期记忆——跨会话、跨机器、跨厂商。不要服务器，不要插件，不被任何一家锁死。</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">用模板创建我的记忆仓库 →</a>
+          <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ 去 GitHub 点个 Star</a>
+        </div>
+        <div class="meta-row">
+          <span><b>Protocol 3.1</b></span><span>v0.6.0</span>纯 markdown + git
+        </div>
       </div>
-      <div class="meta-row">
-        <span><b>Protocol 3.1</b></span><span>v0.6.0</span><span>Claude Code · Codex · Gemini · Kimi · Hermes · OpenClaw</span>纯 markdown + git
-      </div>
-      <div class="hero-term" role="img" aria-label="会话启动示例：agent 只加载两个常驻文件，其余列为按需读取。">
-<span class="t-dim">$ claude</span><br>
-nestwork context bundle for <span class="t-teal">laptop/claude-a7k2</span><br>
-<span class="t-dim">=== READ-ON-START (resident only) ===</span><br>
-- queen/agent-rules.md<br>
-- shared/resident.md<br>
-<span class="t-dim">=== READ-ON-DEMAND ===</span><br>
-- shared/memory.md <span class="t-teal">← topic index</span><br>
-- projects/ &nbsp;workflow/ <span class="t-red">(select by task)</span>
+      <div class="hero-art" role="img" aria-label="示意图：笔记本、台式机、云服务器和手机上各有一个 agent，都同步到同一个私有 git 仓库。">
+        <svg class="net" viewBox="0 0 560 560" aria-hidden="true">
+          <circle class="ring" cx="280" cy="280" r="128"/>
+          <circle class="pulse" cx="280" cy="280" r="70"/>
+          <path class="route" d="M140 168 V250 H206"/>
+          <path class="route t" d="M420 168 V250 H354"/>
+          <path class="route t" d="M150 402 H186 V312 H206"/>
+          <path class="route" d="M410 402 H374 V312 H354"/>
+          <rect x="135" y="245" width="10" height="10" fill="none" stroke="#e0242b" stroke-width="2"/>
+          <rect x="415" y="245" width="10" height="10" fill="none" stroke="#5fd3d9" stroke-width="2"/>
+          <rect x="181" y="397" width="10" height="10" fill="none" stroke="#5fd3d9" stroke-width="2"/>
+          <rect x="369" y="397" width="10" height="10" fill="none" stroke="#e0242b" stroke-width="2"/>
+          <!-- laptop -->
+          <rect class="dev-fill" x="92" y="92" width="96" height="62" rx="3"/>
+          <path class="dev" d="M100 100 H180 V146 H100 Z M80 154 H200 L190 166 H90 Z"/>
+          <text class="lbl" x="86" y="190">laptop / claude</text>
+          <!-- desktop -->
+          <rect class="dev-fill" x="368" y="88" width="104" height="68" rx="2"/>
+          <path class="dev" d="M376 96 H464 V148 H376 Z M420 156 V170 M402 172 H438"/>
+          <text class="lbl" x="376" y="196">desk / codex</text>
+          <!-- server -->
+          <path class="dev" d="M96 380 H200 V402 H96 Z M96 406 H200 V428 H96 Z M96 432 H200 V454 H96 Z"/>
+          <circle cx="108" cy="391" r="3" fill="#d3ee6a"/><circle cx="108" cy="417" r="3" fill="#d3ee6a"/><circle cx="108" cy="443" r="3" fill="#e0242b"/>
+          <path class="dev" d="M150 391 H188 M150 417 H188 M150 443 H188"/>
+          <text class="lbl" x="92" y="480">cloud / hermes</text>
+          <!-- phone -->
+          <rect class="dev-fill" x="412" y="366" width="48" height="84" rx="8"/>
+          <path class="dev" d="M428 438 H444 M420 378 H452 V430 H420 Z"/>
+          <text class="lbl" x="392" y="480">phone / kimi</text>
+          <!-- nest -->
+          <rect x="206" y="236" width="148" height="88" fill="#3fb6c4" stroke="#000" stroke-width="3"/>
+          <rect x="200" y="230" width="160" height="100" fill="none" stroke="#3fb6c4" stroke-width="2"/>
+          <text x="280" y="276" text-anchor="middle" style="font-family:var(--pixel);font-size:26px;fill:#000">your-nest.git</text>
+          <text x="280" y="302" text-anchor="middle" style="font-family:var(--pixel);font-size:18px;fill:#000">SHARED BRAIN</text>
+        </svg>
+        <div class="pcard a" aria-hidden="true">
+          <div class="pc-top"><span>AGENT</span><b>SYNCED</b></div>
+          <div class="pc-body"><svg class="px" viewBox="-1 -1 12 12" aria-hidden="true"><rect x="-1" y="-1" width="12" height="12" fill="#d3ee6a"/><g fill="#000"><rect x="4" y="0" width="1" height="1"/><rect x="5" y="0" width="1" height="1"/><rect x="4" y="1" width="1" height="1"/><rect x="5" y="1" width="1" height="1"/><rect x="1" y="2" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect x="3" y="2" width="1" height="1"/><rect x="4" y="2" width="1" height="1"/><rect x="5" y="2" width="1" height="1"/><rect x="6" y="2" width="1" height="1"/><rect x="7" y="2" width="1" height="1"/><rect x="8" y="2" width="1" height="1"/><rect x="1" y="3" width="1" height="1"/><rect x="8" y="3" width="1" height="1"/><rect x="1" y="4" width="1" height="1"/><rect x="3" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/><rect x="6" y="4" width="1" height="1"/><rect x="8" y="4" width="1" height="1"/><rect x="1" y="5" width="1" height="1"/><rect x="8" y="5" width="1" height="1"/><rect x="1" y="6" width="1" height="1"/><rect x="3" y="6" width="1" height="1"/><rect x="4" y="6" width="1" height="1"/><rect x="5" y="6" width="1" height="1"/><rect x="6" y="6" width="1" height="1"/><rect x="8" y="6" width="1" height="1"/><rect x="1" y="7" width="1" height="1"/><rect x="2" y="7" width="1" height="1"/><rect x="3" y="7" width="1" height="1"/><rect x="4" y="7" width="1" height="1"/><rect x="5" y="7" width="1" height="1"/><rect x="6" y="7" width="1" height="1"/><rect x="7" y="7" width="1" height="1"/><rect x="8" y="7" width="1" height="1"/><rect x="2" y="8" width="1" height="1"/><rect x="7" y="8" width="1" height="1"/><rect x="1" y="9" width="1" height="1"/><rect x="2" y="9" width="1" height="1"/><rect x="7" y="9" width="1" height="1"/><rect x="8" y="9" width="1" height="1"/></g></svg><div class="pc-rows"><div><span>ID</span><span>claude-a7k2</span></div><div><span>HOST</span><span>laptop</span></div><div><span>MEM</span><span>18 topics</span></div></div></div>
+          <div class="pc-bars"><i></i><i></i><i></i></div>
+        </div>
+        <div class="pcard b" aria-hidden="true">
+          <div class="pc-top"><span>AGENT</span><b>1 NEW MSG</b></div>
+          <div class="pc-body"><svg class="px" viewBox="-1 -1 12 12" aria-hidden="true"><rect x="-1" y="-1" width="12" height="12" fill="#ff2d8f"/><g fill="#000"><rect x="2" y="0" width="1" height="1"/><rect x="3" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="5" y="0" width="1" height="1"/><rect x="6" y="0" width="1" height="1"/><rect x="7" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="8" y="1" width="1" height="1"/><rect x="0" y="2" width="1" height="1"/><rect x="3" y="2" width="1" height="1"/><rect x="6" y="2" width="1" height="1"/><rect x="9" y="2" width="1" height="1"/><rect x="0" y="3" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="6" y="3" width="1" height="1"/><rect x="9" y="3" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="9" y="4" width="1" height="1"/><rect x="0" y="5" width="1" height="1"/><rect x="2" y="5" width="1" height="1"/><rect x="3" y="5" width="1" height="1"/><rect x="4" y="5" width="1" height="1"/><rect x="5" y="5" width="1" height="1"/><rect x="6" y="5" width="1" height="1"/><rect x="7" y="5" width="1" height="1"/><rect x="9" y="5" width="1" height="1"/><rect x="1" y="6" width="1" height="1"/><rect x="8" y="6" width="1" height="1"/><rect x="2" y="7" width="1" height="1"/><rect x="3" y="7" width="1" height="1"/><rect x="4" y="7" width="1" height="1"/><rect x="5" y="7" width="1" height="1"/><rect x="6" y="7" width="1" height="1"/><rect x="7" y="7" width="1" height="1"/><rect x="3" y="8" width="1" height="1"/><rect x="6" y="8" width="1" height="1"/><rect x="2" y="9" width="1" height="1"/><rect x="3" y="9" width="1" height="1"/><rect x="6" y="9" width="1" height="1"/><rect x="7" y="9" width="1" height="1"/></g></svg><div class="pc-rows"><div><span>ID</span><span>codex</span></div><div><span>HOST</span><span>desk</span></div><div><span>LOAD</span><span>~640 tok</span></div></div></div>
+          <div class="pc-bars"><i></i><i></i><i></i></div>
+        </div>
       </div>
     </div>
   </section>
+  <div class="ticker" aria-hidden="true"><div class="ticker-track"><span>CLAUDE CODE<i>//</i>CODEX<i>//</i>GEMINI<i>//</i>KIMI<i>//</i>HERMES<i>//</i>OPENCLAW<i>//</i>NO SERVER<i>//</i>NO PLUGIN<i>//</i>PLAIN MARKDOWN<i>//</i>GIT-NATIVE<i>//</i>YOUR AGENTS REMEMBER<i>//</i></span><span>CLAUDE CODE<i>//</i>CODEX<i>//</i>GEMINI<i>//</i>KIMI<i>//</i>HERMES<i>//</i>OPENCLAW<i>//</i>NO SERVER<i>//</i>NO PLUGIN<i>//</i>PLAIN MARKDOWN<i>//</i>GIT-NATIVE<i>//</i>YOUR AGENTS REMEMBER<i>//</i></span></div></div>
 
   <section class="section" id="problem" aria-labelledby="problem-title">
     <div class="wrap">
@@ -634,7 +992,7 @@ nestwork context bundle for <span class="t-teal">laptop/claude-a7k2</span><br>
         <div class="card"><span class="tag">git-only</span>
           <h3>永远不需要服务器</h3>
           
-          <p>没有数据库、没有常驻进程、没有托管 API。存储、历史、冲突 git 早就解决了，nestwork 直接复用。离线也能用。</p></div>
+          <p>没有数据库、没有常驻进程、没有托管 API。存储、历史、冲突 git 早就解决了，nestwork 直接复用。记忆就是普通文件，随处可读。</p></div>
         <div class="card"><span class="tag">cross-tool</span>
           <h3>六种工具，一个大脑</h3>
           
@@ -672,7 +1030,7 @@ nestwork context bundle for <span class="t-teal">laptop/claude-a7k2</span><br>
       <p class="kicker">05 / 每天都在真实使用</p>
       
       <h2 class="mega" id="proof-title" style="font-size:clamp(38px,5.6vw,72px)">作者自己的<br>「机队」天天在用。</h2>
-      <div class="stats">
+      <div class="stats color">
         <div class="stat"><div class="n">10</div><div class="l">台机器</div></div>
         <div class="stat"><div class="n">30+</div><div class="l">个 agent 实例</div></div>
         <div class="stat"><div class="n">4</div><div class="l">种系统：Win · macOS · Linux · Android</div></div>
@@ -704,19 +1062,19 @@ nestwork context bundle for <span class="t-teal">laptop/claude-a7k2</span><br>
           </thead>
           <tbody>
             <tr><th scope="row">基础设施</th>
-              <td class="us">一个 git 仓库</td><td>各工具的本机文件</td><td>常驻服务</td><td>worker 进程</td><td>各仓库里的文件</td></tr>
+              <td class="us">一个 git 仓库</td><td>各工具的本机文件</td><td>常驻服务</td><td>本机 worker + SQLite/Chroma</td><td>各仓库里的文件</td></tr>
             <tr><th scope="row">跨机器</th>
-              <td class="us"><span class="ok">✓</span> git pull</td><td><span class="bad">✗</span> 只在本机</td><td>每台都要部署</td><td>依赖 worker</td><td>仅限该仓库</td></tr>
+              <td class="us"><span class="ok">✓</span> git pull</td><td><span class="bad">✗</span> 只在本机</td><td>每台都要部署</td><td><span class="bad">✗</span> 本机数据库</td><td>仅限该仓库</td></tr>
             <tr><th scope="row">跨工具 / 厂商</th>
-              <td class="us"><span class="ok">✓</span> 任何 markdown 配置的 agent</td><td><span class="bad">✗</span> 只服务一个工具</td><td>仅 MCP 客户端</td><td><span class="bad">✗</span> Claude</td><td>部分</td></tr>
+              <td class="us"><span class="ok">✓</span> 任何 markdown 配置的 agent</td><td><span class="bad">✗</span> 只服务一个工具</td><td>仅 MCP 客户端</td><td>多个（见其 README）</td><td>部分</td></tr>
             <tr><th scope="row">用户级记忆</th>
               <td class="us"><span class="ok">✓</span></td><td><span class="ok">✓</span></td><td><span class="ok">✓</span></td><td><span class="ok">✓</span></td><td><span class="bad">✗</span> 只管项目</td></tr>
             <tr><th scope="row">多 agent 协作</th>
-              <td class="us"><span class="ok">✓</span> 协议级</td><td><span class="bad">✗</span></td><td>需自行协调</td><td><span class="bad">✗</span> 单 agent</td><td><span class="bad">✗</span></td></tr>
+              <td class="us"><span class="ok">✓</span> 协议级</td><td><span class="bad">✗</span></td><td>需自行协调</td><td><span class="bad">✗</span> 按机器隔离</td><td><span class="bad">✗</span></td></tr>
             <tr><th scope="row">版本历史与审阅</th>
-              <td class="us"><span class="ok">✓</span> git log / diff</td><td><span class="bad">✗</span></td><td>看实现</td><td>有限</td><td><span class="ok">✓</span></td></tr>
+              <td class="us"><span class="ok">✓</span> git log / diff</td><td><span class="bad">✗</span></td><td>看实现</td><td>数据库，非 git</td><td><span class="ok">✓</span></td></tr>
             <tr><th scope="row">数据归属</th>
-              <td class="us">100% 在你的仓库</td><td>本机，由工具管理</td><td>你</td><td>第三方 worker</td><td>你</td></tr>
+              <td class="us">100% 在你的仓库</td><td>本机，由工具管理</td><td>你</td><td>本机数据库</td><td>你</td></tr>
             <tr><th scope="row">上手成本</th>
               <td class="us">低——你本来就会 git</td><td>零，但绑死在工具上</td><td>中</td><td>中</td><td>低</td></tr>
           </tbody>
@@ -772,7 +1130,7 @@ bash ~/nestwork/scripts/install/kimi.sh</code></pre>
       <details><summary>Claude Code 的记忆能跨机器同步吗？</summary><div class="answer"><p>它自己不能。截至 2026 年，Claude Code、Codex、Kimi Code 的内置记忆都只存在本机。nestwork 把其中值得长期保留的上下文放进 git，新电脑或云服务器 <code>git clone</code> 一下就有了。你也可以把工具的原生记忆蒸馏进仓库，这样换机器、换工具、丢账号都不会丢。</p></div></details>
       <details><summary>记忆越攒越多，会不会把上下文窗口撑爆？</summary><div class="answer"><p>不会，协议正是为此设计的。启动时 agent 只读很小的常驻层：核心规则加两份简短摘要，在作者的仓库上约 640 token，而全量加载要约 69,600 token。其余都按需读取：<code>memory.md</code> 是自动生成的主题索引，每个主题文件都有一行「什么时候该读」的描述，agent 只打开与当前任务匹配的文件。</p></div></details>
       <details><summary>nestwork 是向量数据库或 RAG 吗？</summary><div class="answer"><p>不是。没有 embedding，也没有检索服务。记忆就是人能直接读的 markdown，可以像 git 里其他文件一样打开、编辑、diff 和审阅。检索方式和 agent 使用 skill 一样：读一份简短的索引，挑出相关文件，再读它。</p></div></details>
-      <details><summary>需要部署服务器或付费吗？</summary><div class="answer"><p>不需要。没有托管服务、没有常驻进程、没有数据库，只有 git 和你仓库里的几份 shell / Python 脚本。托管在 GitHub、GitLab、自建 Gitea 或任何你已有的 git 远端都行。离线照常使用，联网后自动同步。</p></div></details>
+      <details><summary>需要部署服务器或付费吗？</summary><div class="answer"><p>不需要。没有托管服务、没有常驻进程、没有数据库，只有 git 和你仓库里的几份 shell / Python 脚本。托管在 GitHub、GitLab、自建 Gitea 或任何你已有的 git 远端都行。断网时 agent 仍能读取记忆；在装了同步 hook 的工具上，写入记忆需要能连上远端。</p></div></details>
       <details><summary>很多 agent 同时写，会冲突吗？</summary><div class="answer"><p>每个 agent 实例独占自己的目录 <code>agents/&lt;host&gt;/&lt;agent-id&gt;/</code>，日常写记忆根本不会碰到同一个文件。在支持 hook 的工具上，每次写入前自动 <code>pull --rebase</code>，写完立即 commit + push，失败会重试。共享记忆只在明确触发、经人审核的蒸馏中才会被改写。</p></div></details>
       <details><summary>敏感的记忆能保密吗？</summary><div class="answer"><p>把仓库设为私有，对大多数人已经足够。如果连 git 托管方也不能看到，可以开启可选的 git-crypt 模式：agent 读写明文，提交进 git 的全是密文。无论是否加密，都不要把 API key 或密码写进记忆，它们应该放在专门的密钥管理工具里。</p></div></details>
       <details><summary>它和 AGENTS.md / CLAUDE.md 有什么区别？</summary><div class="answer"><p>单个仓库里的 <code>AGENTS.md</code> 只描述那一个代码库。nestwork 用同样的文件格式，作为一个「用户级记忆仓库」的启动协议：你的身份、偏好、跨项目的经验和在飞项目状态，会跟着你进入每一个仓库、每一个工具；各项目自己的 <code>AGENTS.md</code> 照常生效。</p></div></details>
@@ -785,16 +1143,19 @@ bash ~/nestwork/scripts/install/kimi.sh</code></pre>
       <p class="kicker">09 / 延伸阅读</p>
       <h2 class="sr-only" id="read-title">文章与文档</h2>
       <ul class="reads">
-        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/blog/16-agents-one-brain.zh.md" rel="noopener">我用 git 给 16 个 AI agent 装了同一个大脑<span class="t">故事</span></a></li>
-        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/blog/agent-amnesia-cross-device.zh.md" rel="noopener">换台设备，你的 AI agent 就失忆了<span class="t">随笔</span></a></li>
-        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/blog/memory-is-a-protocol-problem.zh.md" rel="noopener">AI agent 记忆不是数据库问题，而是协议问题<span class="t">随笔</span></a></li>
-        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/claude-code-memory.md" rel="noopener">Claude Code 跨机器记忆（英文）<span class="t">指南</span></a></li>
-        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/codex-persistent-memory.md" rel="noopener">Codex CLI 长期记忆（英文）<span class="t">指南</span></a></li>
-        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/shared-context-for-ai-coding-agents.md" rel="noopener">AI 编程 agent 的共享上下文（英文）<span class="t">指南</span></a></li>
-        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/comparisons/agent-memory-landscape.md" rel="noopener">AI agent 记忆方案全景（英文）<span class="t">对比</span></a></li>
-        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/comparisons/claude-mem.md" rel="noopener">nestwork 与 claude-mem 对比（英文）<span class="t">对比</span></a></li>
-        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/context-loading.md" rel="noopener">常驻与按需的上下文加载（英文）<span class="t">协议</span></a></li>
-        <li><a href="https://github.com/songth1ef/nestwork/blob/main/AGENTS.md" rel="noopener">协议全文：AGENTS.md（英文）<span class="t">协议</span></a></li>
+        <li><a href="articles/ai-agent-memory/">AI agent 记忆：四种类型与取舍<span class="t">指南</span></a></li>
+        <li><a href="articles/claude-code-memory-across-machines/">Claude Code 记忆跨设备同步：用 git 实现<span class="t">指南</span></a></li>
+        <li><a href="articles/share-memory-claude-code-codex/">Claude Code 和 Codex 共享记忆的做法<span class="t">指南</span></a></li>
+        <li><a href="articles/codex-cli-persistent-memory/">Codex 记忆与 AGENTS.md：Codex 长期记忆<span class="t">指南</span></a></li>
+        <li><a href="articles/agent-memory-tools-compared/">agent 记忆工具对比：Mem0、Letta、Zep 等<span class="t">指南</span></a></li>
+        <li><a href="articles/agent-memory-benchmarks/">记忆基准测试：LoCoMo、LongMemEval、BEAM<span class="t">指南</span></a></li>
+        <li><a href="articles/agents-md-vs-claude-md-vs-memory/">AGENTS.md 和 CLAUDE.md 区别，记忆该放哪<span class="t">指南</span></a></li>
+        <li><a href="articles/topic-memory-on-demand-loading/">上下文窗口有限，AI 记忆该怎么按需加载<span class="t">指南</span></a></li>
+        <li><a href="articles/multi-agent-memory-without-conflicts/">多 agent 共享记忆，怎样避免写冲突<span class="t">指南</span></a></li>
+        <li><a href="articles/git-native-agent-memory/">用 git 管理 AI 记忆，为什么不需要服务器<span class="t">指南</span></a></li>
+        <li><a href="articles/memory-distillation/">记忆蒸馏，怎样合并多个 agent 的记忆<span class="t">指南</span></a></li>
+        <li><a href="articles/agent-mailbox-git/">多 agent 协作怎么留言：用 git 做 agent 邮箱<span class="t">指南</span></a></li>
+        <li><a href="articles/"><b>全部文章 →</b><span class="t">20</span></a></li>
       </ul>
     </div>
   </section>

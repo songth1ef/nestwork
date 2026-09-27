@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>多 agent 共享记忆，怎样避免写冲突 — nestwork</title>
+<meta name="description" content="多个 AI agent 共用一份记忆，靠的是每个 agent 只写自己的目录、每次写入原子同步、冲突时按归属规则取舍，而不是更复杂的合并算法。">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="songth1ef">
+<meta name="theme-color" content="#8fdcf7">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/zh/articles/multi-agent-memory-without-conflicts/">
+<link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/multi-agent-memory-without-conflicts/">
+<link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/multi-agent-memory-without-conflicts/">
+<link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/multi-agent-memory-without-conflicts/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232ec4d6'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="nestwork">
+<meta property="og:title" content="多 agent 共享记忆，怎样避免写冲突">
+<meta property="og:description" content="多个 AI agent 共用一份记忆，靠的是每个 agent 只写自己的目录、每次写入原子同步、冲突时按归属规则取舍，而不是更复杂的合并算法。">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/zh/articles/multi-agent-memory-without-conflicts/">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og-zh.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="多 agent 共享记忆，怎样避免写冲突">
+<meta name="twitter:description" content="多个 AI agent 共用一份记忆，靠的是每个 agent 只写自己的目录、每次写入原子同步、冲突时按归属规则取舍，而不是更复杂的合并算法。">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og-zh.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://songth1ef.github.io/nestwork/zh/articles/multi-agent-memory-without-conflicts/#article","headline":"多 agent 共享记忆，怎样避免写冲突","description":"多个 AI agent 共用一份记忆，靠的是每个 agent 只写自己的目录、每次写入原子同步、冲突时按归属规则取舍，而不是更复杂的合并算法。","inLanguage":"zh-CN","datePublished":"2026-09-27","dateModified":"2026-09-27","author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"publisher":{"@type":"Organization","name":"nestwork","url":"https://songth1ef.github.io/nestwork/"},"image":["https://songth1ef.github.io/nestwork/og-zh.png"],"mainEntityOfPage":"https://songth1ef.github.io/nestwork/zh/articles/multi-agent-memory-without-conflicts/","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://songth1ef.github.io/nestwork/zh/"},{"@type":"ListItem","position":2,"name":"文章","item":"https://songth1ef.github.io/nestwork/zh/articles/"},{"@type":"ListItem","position":3,"name":"多 agent 共享记忆，怎样避免写冲突","item":"https://songth1ef.github.io/nestwork/zh/articles/multi-agent-memory-without-conflicts/"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"两个 agent 改同一个项目文件怎么办？","acceptedAnswer":{"@type":"Answer","text":"projects/ 和 workflow/ 是唯一可能出现多个 agent 改同一文件的地方。写入前的 pull --rebase 把窗口压到一次写入；真冲突了，写入会被拦下，由你手动合并。项目状态文件写短、一个项目一个文件，能进一步降低概率。"}},{"@type":"Question","name":"同一台机器开两个 Claude Code 会话，会分到两个目录吗？","acceptedAnswer":{"@type":"Answer","text":"不会。身份按「机器 × 工具」生成：安装脚本生成一次 claude-a7k2 这样的 id，之后一直从 ~/.nestwork_id_claude 复用。同机的两个会话写的是同一个本地克隆里的同一个目录，git 层面不存在冲突，只要别在同一瞬间改写同一个记忆文件。不同工具、不同机器一定是不同目录。"}},{"@type":"Question","name":"为什么不用锁或数据库事务？","acceptedAnswer":{"@type":"Answer","text":"那需要一个常驻服务，而 nestwork 刻意不要服务器。记忆写入小而稀疏，归属规则加「rebase 后重试」已经足够，不需要任何后端。"}},{"@type":"Question","name":"断网时 hook 会怎样？","acceptedAnswer":{"@type":"Answer","text":"写入前的 pull 会失败，hook 把它当作冲突处理：在 Claude Code 上，这次记忆写入会被拦下，直到远端恢复可达。读记忆不受影响，本地克隆照常可用。"}}]}]}</script>
+<style>
+@font-face { font-family: "VT323"; src: url("../../../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../../../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+:root {
+  --bg: #fbf8ef; --fg: #111; --muted: #5c5c5c; --teal: #2ec4d6; --teal-dark: #0a8fa0; --magenta: #ff2d8f;
+  --lime: #d6f25a; --yellow: #ffe53d; --sky: #29c6ec; --red: #ec2a33;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::selection { background: var(--yellow); }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 2px solid #111; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.badge { background: var(--teal); color: #000; font-weight: 800; letter-spacing: -0.03em; padding: 2px 10px 3px; border: 2px solid #000; outline: 2px solid var(--teal); text-decoration: none; font-size: 18px; }
+.nav { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 13px; }
+.nav a { text-decoration: none; color: #333; }
+.nav a:hover { background: var(--yellow); color: #000; }
+.nav .gh { background: #111; color: #fff; padding: 4px 10px; font-weight: 700; }
+.art-hero { background: linear-gradient(180deg, #8fdcf7 0%, #d4f3ff 60%, var(--bg) 100%); border-bottom: 2px solid #111; padding: 48px 0 44px; position: relative; overflow: hidden; }
+.art-hero::after { content: ""; position: absolute; right: -60px; top: -40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 11px 11px; -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%); mask-image: radial-gradient(circle, #000 50%, transparent 70%); pointer-events: none; }
+.crumbs { font-family: var(--pixel); font-size: 20px; letter-spacing: 0.04em; color: #0a5f6b; margin: 0 0 14px; position: relative; z-index: 1; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { background: var(--yellow); }
+.art-hero h1 { font-size: clamp(34px, 5.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 0; max-width: 880px; position: relative; z-index: 1; }
+:lang(zh) .art-hero h1 { line-height: 1.2; letter-spacing: -0.01em; }
+.art-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: #333; position: relative; z-index: 1; }
+.art-meta span { background: #fff; border: 2px solid #111; padding: 2px 8px; }
+.art-meta .kind { background: var(--magenta); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; padding-top: 48px; padding-bottom: 72px; }
+.layout.wide { grid-template-columns: 1fr; }
+.layout > * { min-width: 0; }
+.prose p code, .prose li code, .prose td code { overflow-wrap: anywhere; }
+.wide .prose { max-width: none; }
+.wide .toc { display: none; }
+.wide .prose > p:first-child { max-width: 72ch; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+.prose { max-width: 72ch; }
+.prose > p:first-child { font-size: 1.12em; }
+.prose h2 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; line-height: 1.2; margin: 2.1em 0 0.6em; padding-top: 0.2em; border-top: 2px solid #111; scroll-margin-top: 80px; }
+.prose h2::before { content: "// "; font-family: var(--pixel); color: var(--magenta); font-weight: 400; }
+.prose h3 { font-size: 21px; letter-spacing: -0.015em; margin: 1.6em 0 0.4em; scroll-margin-top: 80px; }
+.prose p, .prose li { color: #222; }
+.prose a { text-decoration-color: var(--magenta); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose a:hover { background: var(--yellow); }
+.prose code { font-family: var(--mono); font-size: 0.86em; background: #fff; border: 1.5px solid #111; padding: 0 5px; }
+.prose pre.code { background: #151515; color: #eee; border-left: 5px solid var(--teal); padding: 16px 18px; overflow-x: auto; font-size: 14.5px; line-height: 1.65; box-shadow: 6px 6px 0 #111; }
+.prose pre.code code { background: none; border: 0; padding: 0; font-size: 1em; color: inherit; }
+.prose blockquote { margin: 1.4em 0; padding: 14px 20px; background: #fff; border: 2px solid #111; border-left: 8px solid var(--magenta); box-shadow: 5px 5px 0 #111; }
+.prose blockquote p { margin: 0; font-weight: 600; }
+.prose figure { margin: 1.6em 0; }
+.prose img { width: 100%; height: auto; border: 2px solid #111; box-shadow: 6px 6px 0 #111; display: block; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin: 0.3em 0; }
+.prose li::marker { color: var(--magenta); font-weight: 700; }
+.table-wrap { overflow-x: auto; border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; margin: 1.4em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #0002; vertical-align: top; }
+thead th { background: #111; color: #fff; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.toc { position: sticky; top: 84px; align-self: start; background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 var(--teal); padding: 16px 18px; font-size: 14.5px; line-height: 1.45; }
+.toc b { display: block; font-family: var(--pixel); font-weight: 400; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 8px; }
+.toc a { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px dashed #0003; color: #222; }
+.toc a:hover { background: var(--yellow); }
+.cta { margin-top: 56px; background: var(--lime); border: 2px solid #111; box-shadow: 8px 8px 0 #111; padding: 28px 28px 30px; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; right: -40px; top: -30px; width: 200px; height: 120px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 12px, transparent 12px 24px); transform: rotate(-4deg); }
+.cta h2 { border: 0; margin: 0 0 8px; padding: 0; font-size: 30px; position: relative; z-index: 1; }
+.cta h2::before { content: none; }
+.cta p { margin: 0 0 18px; max-width: 520px; font-weight: 600; position: relative; z-index: 1; }
+.btn { display: inline-flex; gap: 8px; padding: 12px 20px; font-weight: 800; text-decoration: none; border: 2px solid #111; margin: 0 10px 10px 0; position: relative; z-index: 1; }
+.btn:hover { box-shadow: 5px 5px 0 #111; transform: translate(-2px, -2px); }
+.btn-ink { background: #111; color: #fff; }
+.btn-ghost { background: #fff; color: #111; }
+.more { border-top: 2px solid #111; background: #fff; padding: 48px 0 60px; }
+.more h2 { font-family: var(--pixel); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; margin: 0 0 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+.cards a { display: block; text-decoration: none; background: var(--bg); border: 2px solid #111; box-shadow: 5px 5px 0 #111; padding: 16px 18px; }
+.cards a:hover { background: var(--yellow); }
+.cards b { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; }
+.cards span { display: block; margin-top: 6px; font-size: 14px; color: #444; line-height: 1.5; }
+.site-footer { background: #111; color: #aaa; padding: 30px 0 40px; font-family: var(--mono); font-size: 12.5px; }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.site-footer a { color: #ddd; text-decoration: none; margin-left: 16px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="badge" href="../../../zh/">nestwork</a>
+    <nav class="nav" aria-label="文章">
+      <a href="../">文章</a>
+      <a href="https://songth1ef.github.io/nestwork/articles/multi-agent-memory-without-conflicts/" hreflang="en" data-lang-switch="en">EN</a>
+      <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="art-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="../../../zh/">首页</a> / <a href="../">文章</a> /</p>
+      <h1>多 agent 共享记忆，怎样避免写冲突</h1>
+      <div class="art-meta"><span class="kind">指南</span><span>4 分钟阅读</span><span>更新于 2026-09-27</span></div>
+    </div>
+  </div>
+  <div class="wrap layout">
+    <article class="prose">
+<p>多个 AI agent 怎样共用同一份记忆又不互相覆盖？做法是三件事：每个 agent 只写属于自己的目录；每次写记忆都走「pull、写入、commit、push」一整套；pull 冲突时谁说了算，事先定死。nestwork 在 git 仓库上就是这么做的，结果是不同机器、不同厂商的 agent 读同一份记忆，写入却几乎不会撞车。</p>
+<p>下面按四块展开：写隔离、逐次写入的 hook、冲突归属规则、优先级链。</p>
+<h2 id="多智能体共享记忆-难在哪">多智能体共享记忆，难在哪</h2>
+<p>只有一个 agent 在写的时候，共享记忆很简单；好几个一起写，麻烦才开始。nestwork 作者动手之前就撞上过：A 机器上的 agent 记下了「这个项目的部署脚本有个坑」，第二天 B 机器上的 agent 原样又踩了一遍（<a href="../16-agents-one-brain/">博客原文</a>）。为了不再踩坑而共享记忆之后，新问题接着冒出来：</p>
+<ul><li><strong>并发。</strong> 两台机器几乎同时写记忆，谁的留下？</li><li><strong>权威。</strong> 这个 agent 的笔记和那个 agent 的说法相反，该听谁的？</li><li><strong>边界。</strong> 某个 agent 随手记的一条调试笔记，要不要让所有 agent 都看到？</li></ul>
+<p>这些都不是「存在哪」的问题，而是协作规则的问题。这也是 nestwork 把记忆当协议而不是当数据库来做的原因。</p>
+<h2 id="一-写隔离-按主机-按-agent-分目录">一、写隔离：按主机、按 agent 分目录</h2>
+<p>每个 agent 实例只拥有一个目录：</p>
+<pre class="code"><code data-lang="text">agents/&lt;host&gt;/&lt;agent-id&gt;/
+agents/desktop-rkv5ls4/claude-a7k2/
+agents/macbook/codex/</code></pre>
+<p>host 是小写的短主机名；agent-id 对需要区分实例的工具是 <code>&lt;工具名&gt;-&lt;4 位随机后缀&gt;</code>，否则就是工具名本身。安装脚本把它们存在 <code>~/.nestwork_host</code> 和 <code>~/.nestwork_id_&lt;tool&gt;</code> 里，所以同一台机器上装 Codex 不会改掉 Claude Code 的身份。</p>
+<p><a href="https://github.com/songth1ef/nestwork/blob/main/AGENTS.md" rel="noopener">AGENTS.md 第 2 节</a>的写入规则由此而来：</p>
+<div class="table-wrap"><table><thead><tr><th>路径</th><th>谁写</th><th>agent 之间会撞吗</th></tr></thead><tbody><tr><td><code>agents/&lt;host&gt;/&lt;agent-id&gt;/</code></td><td>只有这个 agent</td><td>日常记忆写入不会</td></tr><tr><td><code>agents/&lt;别的 host&gt;/...</code></td><td>本 agent 永远不写</td><td>不会</td></tr><tr><td><code>queen/</code></td><td>你手工维护</td><td>不会，agent 从不写</td></tr><tr><td><code>shared/</code></td><td>只在显式触发的蒸馏里写</td><td>日常工作中不会</td></tr><tr><td><code>projects/</code>、<code>workflow/</code></td><td>agent 或你</td><td>可能，写前 pull 让它很少发生</td></tr></tbody></table></div>
+<p>git 冲突的前提是两个人改同一处。按这个布局，两个 agent 通常连同一个文件都不碰。</p>
+<h2 id="二-逐次写入的原子同步">二、逐次写入的原子同步</h2>
+<p>目录隔离消掉了大部分冲突，但所有机器还是往同一个分支推。如果 agent 只在一段长会话结束时才同步，push 被拒的窗口就是整个会话。在 Claude Code 和 Kimi Code 上，nestwork 用 hook 包住 agent 对自己目录的每一次 Write/Edit，逻辑在 <a href="https://github.com/songth1ef/nestwork/blob/main/scripts/hooks/nestwork.sh" rel="noopener"><code>scripts/hooks/nestwork.sh</code></a>：</p>
+<pre class="code"><code data-lang="text">PreToolUse   目标路径在 agents/&lt;host&gt;/&lt;agent-id&gt;/ 下吗？
+             git pull --rebase --autostash
+             冲突（或 autostash 残留）-&gt; exit 2，拦下这次写入
+（写入）     agent 修改自己的记忆文件
+PostToolUse  git add + commit，只限自己的目录
+             git push；被拒就退避（约 0.5s、1s、2s，加随机抖动），
+             撤掉本地 commit，pull --rebase，重新 commit，再推
+             三次 push 都失败，commit 留在本地，等下一次 hook 再推
+Stop         每轮对话结束再做一次 commit + push 兜底</code></pre>
+<p>有几处细节值得一提：</p>
+<ul><li>commit 带显式路径限定，提交信息是 <code>memory: update &lt;host&gt;/&lt;agent-id&gt;</code>，不会顺手把别处暂存的文件一起提交。</li><li>检查 autostash 残留，是因为 git 可能把未提交的改动停在 stash 里却照样返回 0，下一次写入就会悄悄覆盖它。hook 数 stash 条目，多出来就按冲突处理。</li><li>写入后的 hook 永远不拦 agent，只打印警告，把 commit 留给下一次。</li></ul>
+<p>效果是竞争窗口从「整个会话」缩到「一次写入」。Codex、Gemini CLI、OpenClaw、Hermes 没有逐次写入 hook，按引导协议在会话结束时提交自己的目录，窗口大一些，但因为各自只写自己的目录，实际很少出问题。</p>
+<h2 id="三-冲突时按归属取舍">三、冲突时按归属取舍</h2>
+<p>pull 真碰上冲突，不该靠人猜。<a href="https://github.com/songth1ef/nestwork/blob/main/AGENTS.md" rel="noopener">AGENTS.md 第 5 节</a>按归属定规则：</p>
+<div class="table-wrap"><table><thead><tr><th>冲突路径</th><th>取哪边</th><th>理由</th></tr></thead><tbody><tr><td><code>queen/</code>、<code>shared/</code></td><td>远端</td><td>由你或蒸馏在上游统一管理</td></tr><tr><td><code>agents/&lt;host&gt;/&lt;agent-id&gt;/</code>（自己的）</td><td>本地</td><td>这个实例拥有自己的目录</td></tr><tr><td><code>agents/&lt;别的 host&gt;/...</code></td><td>远端</td><td>归另一台机器所有</td></tr></tbody></table></div>
+<p>谁拥有谁说了算。所有 agent 用同一条规则，两台机器解决同一个冲突会得到同一个结果。</p>
+<h2 id="四-内容矛盾走优先级链">四、内容矛盾走优先级链</h2>
+<p>git 冲突是字节层面的，指令互相矛盾是语义层面的，需要另一条规则。nestwork 定了固定的权威顺序：</p>
+<pre class="code"><code data-lang="text">queen/agent-rules.md &gt; queen/strategy.md &gt; shared/memory.md &gt; agents/*/*/memory.md &gt; projects/*.md &gt; workflow/*.md</code></pre>
+<p>两个来源说法不一，就听高的那个，不做合并。把两条指令揉成一条「折中版」，往往比任何一条原文都糟。注意这是权威顺序，不是加载顺序：从协议 3.0 起，启动时只读几份很小的常驻文件，其余按需查找；常驻摘要继承它所摘要的那个来源的优先级。</p>
+<h2 id="不互相写-知识怎么流动">不互相写，知识怎么流动</h2>
+<p>既然谁都只写自己的目录，知识怎么在 agent 之间传开？</p>
+<ul><li><strong>读是开放的。</strong> pull 之后每个 agent 都能读所有目录。台式机上的 agent 能读到笔记本上的 agent 早上记下的东西。</li><li><strong>蒸馏负责合并。</strong> 各 agent 的稳定事实只在你触发时合并进 <code>shared/</code>，先由子 agent 审核、再经你确认（见<a href="../memory-distillation/">记忆蒸馏</a>）。</li><li><strong>信箱负责点对点。</strong> 要给某个 agent 留话，就往自己的 <code>outbox/</code> 写一个带 <code>to:</code> 的文件，收件方扫描所有人的 outbox。没有公共收件箱，单写者规则依然成立（见<a href="../agent-mailbox-git/">基于 git 的 agent 信箱</a>）。</li></ul>
+<p>作者自己在 10 台机器、30 多个 agent 实例上这样跑，覆盖 Windows、macOS、Linux 和 Android。</p>
+<h2 id="常见问题">常见问题</h2>
+<h3 id="两个-agent-改同一个项目文件怎么办">两个 agent 改同一个项目文件怎么办？</h3>
+<p><code>projects/</code> 和 <code>workflow/</code> 是唯一可能出现多个 agent 改同一文件的地方。写入前的 <code>pull --rebase</code> 把窗口压到一次写入；真冲突了，写入会被拦下，由你手动合并。项目状态文件写短、一个项目一个文件，能进一步降低概率。</p>
+<h3 id="同一台机器开两个-claude-code-会话-会分到两个目录吗">同一台机器开两个 Claude Code 会话，会分到两个目录吗？</h3>
+<p>不会。身份按「机器 × 工具」生成：安装脚本生成一次 <code>claude-a7k2</code> 这样的 id，之后一直从 <code>~/.nestwork_id_claude</code> 复用。同机的两个会话写的是同一个本地克隆里的同一个目录，git 层面不存在冲突，只要别在同一瞬间改写同一个记忆文件。不同工具、不同机器一定是不同目录。</p>
+<h3 id="为什么不用锁或数据库事务">为什么不用锁或数据库事务？</h3>
+<p>那需要一个常驻服务，而 nestwork 刻意不要服务器。记忆写入小而稀疏，归属规则加「rebase 后重试」已经足够，不需要任何后端。</p>
+<h3 id="断网时-hook-会怎样">断网时 hook 会怎样？</h3>
+<p>写入前的 pull 会失败，hook 把它当作冲突处理：在 Claude Code 上，这次记忆写入会被拦下，直到远端恢复可达。读记忆不受影响，本地克隆照常可用。</p>
+<h2 id="相关阅读">相关阅读</h2>
+<ul><li><a href="../git-native-agent-memory/">用 git 管理 AI 记忆，为什么不需要服务器</a></li><li><a href="../memory-distillation/">记忆蒸馏：怎样合并多个 agent 的记忆</a></li><li><a href="../agent-mailbox-git/">基于 git 的 agent 信箱</a></li><li><a href="../share-memory-claude-code-codex/">Claude Code 和 Codex 共享记忆</a></li><li><a href="../16-agents-one-brain/">16 个 agent，一个大脑</a></li></ul>
+      <section class="cta" aria-label="给你的 agent 一份记忆">
+        <h2>给你的 agent 一份记忆</h2>
+        <p>nestwork 把一个私有 git 仓库变成 Claude Code、Codex、Gemini、Kimi 等 agent 共享的长期记忆。</p>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">用模板创建我的记忆仓库 →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ 去 GitHub 点个 Star</a>
+      </section>
+    </article>
+    <aside class="toc" aria-label="本文目录"><b>本文目录</b><a href="#多智能体共享记忆-难在哪">多智能体共享记忆，难在哪</a><a href="#一-写隔离-按主机-按-agent-分目录">一、写隔离：按主机、按 agent 分目录</a><a href="#二-逐次写入的原子同步">二、逐次写入的原子同步</a><a href="#三-冲突时按归属取舍">三、冲突时按归属取舍</a><a href="#四-内容矛盾走优先级链">四、内容矛盾走优先级链</a><a href="#不互相写-知识怎么流动">不互相写，知识怎么流动</a><a href="#常见问题">常见问题</a><a href="#相关阅读">相关阅读</a></aside>
+  </div>
+  <section class="more" aria-label="全部文章">
+    <div class="wrap">
+      <h2>全部文章 →</h2>
+      <div class="cards"><a href="../ai-agent-memory/"><b>AI agent 记忆：四种类型与取舍</b><span>AI agent 记忆是智能体在单次会话之外还能依赖的上下文。对比上下文窗口、工具内置记忆、向量检索服务和文件式记忆，以及编码 agent 的特殊需求。</span></a><a href="../claude-code-memory-across-machines/"><b>Claude Code 记忆跨设备同步：用 git 实现</b><span>Claude Code 的 CLAUDE.md 和 auto memory 都只在本机。本文讲清它们存在哪、为什么换电脑就没了，以及怎样用 git 跨设备同步。</span></a><a href="../share-memory-claude-code-codex/"><b>Claude Code 和 Codex 共享记忆的做法</b><span>Claude Code 读 CLAUDE.md，Codex 读 AGENTS.md。让两者指向同一个私有 git 仓库，就能共享记忆，且各写各的目录。</span></a><a href="../codex-cli-persistent-memory/"><b>Codex 记忆与 AGENTS.md：Codex 长期记忆</b><span>Codex CLI 现有的记忆方式（AGENTS.md 与默认关闭的本地 memories），以及如何用 git 给 Codex 加跨会话、跨机器的长期记忆。</span></a><a href="../agent-memory-tools-compared/"><b>agent 记忆工具对比：Mem0、Letta、Zep 等</b><span>从架构、部署方式、数据归属和适用场景，对比 Mem0、Letta、Zep、Supermemory、claude-mem、工具内置记忆和 nestwork。</span></a><a href="../agent-memory-benchmarks/"><b>记忆基准测试：LoCoMo、LongMemEval、BEAM</b><span>LoCoMo、LongMemEval、BEAM 各测什么、LLM 裁判怎么打分、厂商分数为何不能横比，以及编码 agent 该看哪些指标。</span></a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span>nestwork — AI agent memory, git-native.</span>
+    <span><a href="../../../zh/">首页</a><a href="../">文章</a><a href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-lang-switch]').forEach(function (a) {
+  a.addEventListener('click', function () { try { localStorage.setItem('nestwork_lang', a.getAttribute('data-lang-switch')); } catch (e) {} });
+});
+</script>
+</body>
+</html>

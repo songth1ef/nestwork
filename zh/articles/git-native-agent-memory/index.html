@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用 git 管理 AI 记忆，为什么不需要服务器 — nestwork</title>
+<meta name="description" content="不用记忆服务器也能让 AI 编码 agent 拥有长期记忆，把记忆写成 markdown 放进私有 git 仓库即可。git 能解决什么、不能解决什么。">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="songth1ef">
+<meta name="theme-color" content="#8fdcf7">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/zh/articles/git-native-agent-memory/">
+<link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/git-native-agent-memory/">
+<link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/git-native-agent-memory/">
+<link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/git-native-agent-memory/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232ec4d6'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="nestwork">
+<meta property="og:title" content="用 git 管理 AI 记忆，为什么不需要服务器">
+<meta property="og:description" content="不用记忆服务器也能让 AI 编码 agent 拥有长期记忆，把记忆写成 markdown 放进私有 git 仓库即可。git 能解决什么、不能解决什么。">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/zh/articles/git-native-agent-memory/">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og-zh.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="用 git 管理 AI 记忆，为什么不需要服务器">
+<meta name="twitter:description" content="不用记忆服务器也能让 AI 编码 agent 拥有长期记忆，把记忆写成 markdown 放进私有 git 仓库即可。git 能解决什么、不能解决什么。">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og-zh.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://songth1ef.github.io/nestwork/zh/articles/git-native-agent-memory/#article","headline":"用 git 管理 AI 记忆，为什么不需要服务器","description":"不用记忆服务器也能让 AI 编码 agent 拥有长期记忆，把记忆写成 markdown 放进私有 git 仓库即可。git 能解决什么、不能解决什么。","inLanguage":"zh-CN","datePublished":"2026-09-27","dateModified":"2026-09-27","author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"publisher":{"@type":"Organization","name":"nestwork","url":"https://songth1ef.github.io/nestwork/"},"image":["https://songth1ef.github.io/nestwork/og-zh.png"],"mainEntityOfPage":"https://songth1ef.github.io/nestwork/zh/articles/git-native-agent-memory/","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://songth1ef.github.io/nestwork/zh/"},{"@type":"ListItem","position":2,"name":"文章","item":"https://songth1ef.github.io/nestwork/zh/articles/"},{"@type":"ListItem","position":3,"name":"用 git 管理 AI 记忆，为什么不需要服务器","item":"https://songth1ef.github.io/nestwork/zh/articles/git-native-agent-memory/"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"一定要用 GitHub 吗？","acceptedAnswer":{"@type":"Answer","text":"不用。任何 git 远端都可以，包括自建的 git 服务；README 里也写了完全不加 remote、只在本地用的方式。GitHub 只在「Use this template」按钮和可选的上游同步工作流上用得到。"}},{"@type":"Question","name":"nestwork 是向量数据库吗？","acceptedAnswer":{"@type":"Answer","text":"不是。它在 git 里存可读的 markdown，agent 靠索引、标题和关键词导航。确实需要语义检索的话，可以另外挂一个检索工具，两者不冲突。"}},{"@type":"Question","name":"两台机器同一时刻写记忆会怎样？","acceptedAnswer":{"@type":"Answer","text":"每个 agent 只写自己的目录，很少碰到同一个文件。有 hook 的工具在每次写入前先 pull --rebase，写完立即 commit、push 并在失败时重试，竞争窗口被压到单次写入那一瞬间。真冲突了，写入会被拦下，提示手动合并。"}},{"@type":"Question","name":"从 Claude Code 换到 Codex，记忆会丢吗？","acceptedAnswer":{"@type":"Answer","text":"不会。记忆在你的仓库里，不在任何一个工具里。在同一个克隆上跑一下 Codex 的安装脚本，下一个 Codex 会话读的就是同一批文件。"}}]}]}</script>
+<style>
+@font-face { font-family: "VT323"; src: url("../../../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../../../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+:root {
+  --bg: #fbf8ef; --fg: #111; --muted: #5c5c5c; --teal: #2ec4d6; --teal-dark: #0a8fa0; --magenta: #ff2d8f;
+  --lime: #d6f25a; --yellow: #ffe53d; --sky: #29c6ec; --red: #ec2a33;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::selection { background: var(--yellow); }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 2px solid #111; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.badge { background: var(--teal); color: #000; font-weight: 800; letter-spacing: -0.03em; padding: 2px 10px 3px; border: 2px solid #000; outline: 2px solid var(--teal); text-decoration: none; font-size: 18px; }
+.nav { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 13px; }
+.nav a { text-decoration: none; color: #333; }
+.nav a:hover { background: var(--yellow); color: #000; }
+.nav .gh { background: #111; color: #fff; padding: 4px 10px; font-weight: 700; }
+.art-hero { background: linear-gradient(180deg, #8fdcf7 0%, #d4f3ff 60%, var(--bg) 100%); border-bottom: 2px solid #111; padding: 48px 0 44px; position: relative; overflow: hidden; }
+.art-hero::after { content: ""; position: absolute; right: -60px; top: -40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 11px 11px; -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%); mask-image: radial-gradient(circle, #000 50%, transparent 70%); pointer-events: none; }
+.crumbs { font-family: var(--pixel); font-size: 20px; letter-spacing: 0.04em; color: #0a5f6b; margin: 0 0 14px; position: relative; z-index: 1; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { background: var(--yellow); }
+.art-hero h1 { font-size: clamp(34px, 5.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 0; max-width: 880px; position: relative; z-index: 1; }
+:lang(zh) .art-hero h1 { line-height: 1.2; letter-spacing: -0.01em; }
+.art-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: #333; position: relative; z-index: 1; }
+.art-meta span { background: #fff; border: 2px solid #111; padding: 2px 8px; }
+.art-meta .kind { background: var(--magenta); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; padding-top: 48px; padding-bottom: 72px; }
+.layout.wide { grid-template-columns: 1fr; }
+.layout > * { min-width: 0; }
+.prose p code, .prose li code, .prose td code { overflow-wrap: anywhere; }
+.wide .prose { max-width: none; }
+.wide .toc { display: none; }
+.wide .prose > p:first-child { max-width: 72ch; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+.prose { max-width: 72ch; }
+.prose > p:first-child { font-size: 1.12em; }
+.prose h2 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; line-height: 1.2; margin: 2.1em 0 0.6em; padding-top: 0.2em; border-top: 2px solid #111; scroll-margin-top: 80px; }
+.prose h2::before { content: "// "; font-family: var(--pixel); color: var(--magenta); font-weight: 400; }
+.prose h3 { font-size: 21px; letter-spacing: -0.015em; margin: 1.6em 0 0.4em; scroll-margin-top: 80px; }
+.prose p, .prose li { color: #222; }
+.prose a { text-decoration-color: var(--magenta); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose a:hover { background: var(--yellow); }
+.prose code { font-family: var(--mono); font-size: 0.86em; background: #fff; border: 1.5px solid #111; padding: 0 5px; }
+.prose pre.code { background: #151515; color: #eee; border-left: 5px solid var(--teal); padding: 16px 18px; overflow-x: auto; font-size: 14.5px; line-height: 1.65; box-shadow: 6px 6px 0 #111; }
+.prose pre.code code { background: none; border: 0; padding: 0; font-size: 1em; color: inherit; }
+.prose blockquote { margin: 1.4em 0; padding: 14px 20px; background: #fff; border: 2px solid #111; border-left: 8px solid var(--magenta); box-shadow: 5px 5px 0 #111; }
+.prose blockquote p { margin: 0; font-weight: 600; }
+.prose figure { margin: 1.6em 0; }
+.prose img { width: 100%; height: auto; border: 2px solid #111; box-shadow: 6px 6px 0 #111; display: block; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin: 0.3em 0; }
+.prose li::marker { color: var(--magenta); font-weight: 700; }
+.table-wrap { overflow-x: auto; border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; margin: 1.4em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #0002; vertical-align: top; }
+thead th { background: #111; color: #fff; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.toc { position: sticky; top: 84px; align-self: start; background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 var(--teal); padding: 16px 18px; font-size: 14.5px; line-height: 1.45; }
+.toc b { display: block; font-family: var(--pixel); font-weight: 400; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 8px; }
+.toc a { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px dashed #0003; color: #222; }
+.toc a:hover { background: var(--yellow); }
+.cta { margin-top: 56px; background: var(--lime); border: 2px solid #111; box-shadow: 8px 8px 0 #111; padding: 28px 28px 30px; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; right: -40px; top: -30px; width: 200px; height: 120px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 12px, transparent 12px 24px); transform: rotate(-4deg); }
+.cta h2 { border: 0; margin: 0 0 8px; padding: 0; font-size: 30px; position: relative; z-index: 1; }
+.cta h2::before { content: none; }
+.cta p { margin: 0 0 18px; max-width: 520px; font-weight: 600; position: relative; z-index: 1; }
+.btn { display: inline-flex; gap: 8px; padding: 12px 20px; font-weight: 800; text-decoration: none; border: 2px solid #111; margin: 0 10px 10px 0; position: relative; z-index: 1; }
+.btn:hover { box-shadow: 5px 5px 0 #111; transform: translate(-2px, -2px); }
+.btn-ink { background: #111; color: #fff; }
+.btn-ghost { background: #fff; color: #111; }
+.more { border-top: 2px solid #111; background: #fff; padding: 48px 0 60px; }
+.more h2 { font-family: var(--pixel); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; margin: 0 0 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+.cards a { display: block; text-decoration: none; background: var(--bg); border: 2px solid #111; box-shadow: 5px 5px 0 #111; padding: 16px 18px; }
+.cards a:hover { background: var(--yellow); }
+.cards b { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; }
+.cards span { display: block; margin-top: 6px; font-size: 14px; color: #444; line-height: 1.5; }
+.site-footer { background: #111; color: #aaa; padding: 30px 0 40px; font-family: var(--mono); font-size: 12.5px; }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.site-footer a { color: #ddd; text-decoration: none; margin-left: 16px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="badge" href="../../../zh/">nestwork</a>
+    <nav class="nav" aria-label="文章">
+      <a href="../">文章</a>
+      <a href="https://songth1ef.github.io/nestwork/articles/git-native-agent-memory/" hreflang="en" data-lang-switch="en">EN</a>
+      <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="art-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="../../../zh/">首页</a> / <a href="../">文章</a> /</p>
+      <h1>用 git 管理 AI 记忆，为什么不需要服务器</h1>
+      <div class="art-meta"><span class="kind">指南</span><span>4 分钟阅读</span><span>更新于 2026-09-27</span></div>
+    </div>
+  </div>
+  <div class="wrap layout">
+    <article class="prose">
+<p>不搭记忆服务器、不接数据库，AI 编码 agent 能不能有长期记忆？能。把记忆写成普通 markdown，放进一个私有 git 仓库；agent 干活前 <code>git pull</code>，写完记忆就 commit、push。存储、历史、冲突处理、离线副本和数据所有权，git 本来就都有。它给不了的是语义检索，而且要求你会用 git。</p>
+<p>下面说清楚：为什么对大多数编码 agent 场景来说 git 已经够用，它在哪里不够，以及 nestwork 是怎样把这个想法做成一套协议的。</p>
+<h2 id="先想清楚你要的-记忆-是什么">先想清楚你要的「记忆」是什么</h2>
+<p>市面上的 AI agent 记忆方案，大多在回答「记忆存哪、怎么取回来」：向量库、知识图谱、托管记忆服务。单机单 agent 的时候，这个问法没毛病。</p>
+<p>可一旦你同时用好几个 agent、跨好几台机器，问题就变了。Claude Code 官方文档写得很直白：auto memory 是 machine-local 的，文件不会在机器之间或云环境之间共享（<a href="https://code.claude.com/docs/en/memory" rel="noopener">Claude Code 文档</a>）。Codex、Kimi Code 的记忆也都放在本机的用户目录里（见 <a href="https://github.com/songth1ef/nestwork/blob/main/AGENTS.md" rel="noopener">AGENTS.md 第 13 节</a>）。结果就是：你在笔记本上教会 Claude Code 的东西，台式机上的 Codex 一无所知。</p>
+<p>真正需要的，是一个能共享、有版本、跨工具、并且归你自己所有的存储。这几个条件放在一起，就是一个 git 仓库。</p>
+<h2 id="git-本来就解决了哪些事">git 本来就解决了哪些事</h2>
+<p>编码 agent 的记忆基本都是文本：规则、偏好、决策、项目进度、踩过的坑。git 生来就是为了在多人、多机、多版本之间同步文本。逐项对照：</p>
+<div class="table-wrap"><table><thead><tr><th>需求</th><th>git 给你的</th></tr></thead><tbody><tr><td>存储</td><td>你自己控制的仓库里的普通文件，托管在哪都行，也可以不托管</td></tr><tr><td>历史</td><td>每次改动都是一个 commit，<code>git log</code>、<code>git blame</code> 看得到谁在什么时候改了什么</td></tr><tr><td>撤销</td><td>记错了就 <code>git revert</code>，不用指望某个服务支持回滚</td></tr><tr><td>跨机器同步</td><td>用你本来就在用的远端 <code>git pull</code> / <code>git push</code></td></tr><tr><td>多方同时写</td><td>rebase、merge，再加上清晰的归属规则（后文）</td></tr><tr><td>离线</td><td>每台机器都有完整本地克隆，agent 直接读磁盘</td></tr><tr><td>所有权</td><td>仓库是你的，换托管平台只是改一下 remote</td></tr><tr><td>不绑工具</td><td>能读 markdown 的 agent 都能读</td></tr></tbody></table></div>
+<p>nestwork 作者在项目博客里写过想通这件事的瞬间：记忆说到底就是一堆文本，而文本最好的归宿就是 git（<a href="../16-agents-one-brain/">博客原文</a>）。</p>
+<h2 id="nestwork-怎么把一个仓库变成记忆">nestwork 怎么把一个仓库变成记忆</h2>
+<p>nestwork 是协议，不是服务。你用<a href="https://github.com/songth1ef/nestwork/generate" rel="noopener">模板</a>建一个私有仓库，克隆到每台机器，再按工具跑一次安装脚本。安装脚本会把一段引导写进该工具的启动文件，告诉 agent 该读什么、能往哪里写。</p>
+<p>仓库是分层的：</p>
+<div class="table-wrap"><table><thead><tr><th>层</th><th>路径</th><th>放什么</th></tr></thead><tbody><tr><td>规则</td><td><code>queen/agent-rules.md</code></td><td>你写的行为规则，agent 只读</td></tr><tr><td>策略</td><td><code>queen/strategy.md</code></td><td>当前阶段的方向</td></tr><tr><td>共享记忆</td><td><code>shared/</code></td><td>从所有 agent 蒸馏出来的共识</td></tr><tr><td>私有记忆</td><td><code>agents/&lt;host&gt;/&lt;agent-id&gt;/</code></td><td>单个 agent 实例自己的笔记</td></tr><tr><td>项目</td><td><code>projects/&lt;name&gt;.md</code></td><td>项目快照</td></tr><tr><td>方法论</td><td><code>workflow/&lt;topic&gt;.md</code></td><td>可跨项目带走的方法</td></tr></tbody></table></div>
+<p>每次会话走同一个生命周期：</p>
+<pre class="code"><code data-lang="text">会话开始   git pull --rebase，读几份很小的常驻文件
+工作中     任务需要时才去查历史或项目文件
+写记忆     pull --rebase -&gt; 写入 -&gt; commit -&gt; push（有 hook 的工具）
+会话结束   提交并推送自己的目录（没有逐次写入 hook 的工具）</code></pre>
+<p>Claude Code 和 Kimi Code 上，逐次写入同步由 <a href="https://github.com/songth1ef/nestwork/blob/main/scripts/hooks/nestwork.sh" rel="noopener"><code>scripts/hooks/nestwork.sh</code></a> 通过 hook 完成；Codex、Gemini CLI、OpenClaw、Hermes 按引导协议在会话结束时提交自己的目录。作者日常主力是 Claude Code 和 Codex，其余工具的安装脚本存在，但实战验证少一些。</p>
+<p>以 Claude Code 为例，每台机器一条命令：</p>
+<pre class="code"><code data-lang="bash">git clone git@github.com:&lt;you&gt;/nestwork.git ~/nestwork
+bash ~/nestwork/scripts/install/claude.sh</code></pre>
+<h2 id="冲突靠归属-不靠聪明的合并">冲突靠归属，不靠聪明的合并</h2>
+<p>git 能合并文本，但判断不了谁的记忆是对的。nestwork 用归属规则而不是算法来回答这个问题：每个 agent 只写 <code>agents/&lt;host&gt;/&lt;agent-id&gt;/</code>，两个 agent 正常情况下根本碰不到同一个文件。真遇到 pull 冲突，<a href="https://github.com/songth1ef/nestwork/blob/main/AGENTS.md" rel="noopener">AGENTS.md 第 5 节</a>规定得很死：自己的目录取本地，<code>queen/</code>、<code>shared/</code> 和别的机器的目录取远端。</p>
+<p>指令之间打架时，按固定优先级链走：规则 &gt; 策略 &gt; 共享记忆 &gt; 私有记忆 &gt; 项目 &gt; 方法论，高的赢，不做折中合并。展开讲见<a href="../multi-agent-memory-without-conflicts/">多 agent 共享记忆怎么避免冲突</a>。</p>
+<h2 id="代价要说在前面">代价要说在前面</h2>
+<p>git 对这件事够用，但不是万能。</p>
+<ul><li><strong>没有语义检索。</strong> nestwork 靠读索引、搜标题和关键词找记忆，不做向量相似度。如果你要在十万条笔记里「找点意思差不多的」，向量库更合适。</li><li><strong>得会 git。</strong> rebase 冲突时，总得有人看 <code>git status</code> 自己解决。README 说得很直接：不会 git，nestwork 不适合你。</li><li><strong>异步，不是实时。</strong> 另一台机器要等下一次 pull 才看得到新写入，没有实时通知。</li><li><strong>离线有边界。</strong> 读记忆完全可以离线，没有 hook 的工具也能先本地提交、联网后再推。但在 Claude Code 的逐次写入 hook 下，写入前的 <code>pull --rebase</code> 必须成功；hook 把 pull 失败当作冲突处理，会拦下这次记忆写入，直到远端重新可达。</li><li><strong>默认是明文。</strong> 私有仓库的安全取决于你的 git 托管方。真正机密的记忆可以开可选的 git-crypt 模式；API key 之类的密钥无论加不加密都不该进仓库（见<a href="../encrypt-agent-memory-git-crypt/">用 git-crypt 加密 agent 记忆</a>）。</li><li><strong>历史会一直长。</strong> 留下的东西都在，所以加载必须有选择。常驻层和主题记忆就是为这个设计的（见<a href="../topic-memory-on-demand-loading/">记忆按需加载</a>）。</li></ul>
+<h2 id="真的撑得住吗">真的撑得住吗</h2>
+<p>作者自己的 nest 跨 10 台机器、30 多个 agent 实例，覆盖 Windows、macOS、Linux 和 Android。整个 nest 有 180 个记忆文件，合计约 36.9 万 token；但一次会话启动只读大约 640 token 的常驻内容。git 负责把所有东西存好，协议决定每次读哪一小部分。</p>
+<h2 id="常见问题">常见问题</h2>
+<h3 id="一定要用-github-吗">一定要用 GitHub 吗？</h3>
+<p>不用。任何 git 远端都可以，包括自建的 git 服务；README 里也写了完全不加 remote、只在本地用的方式。GitHub 只在「Use this template」按钮和可选的上游同步工作流上用得到。</p>
+<h3 id="nestwork-是向量数据库吗">nestwork 是向量数据库吗？</h3>
+<p>不是。它在 git 里存可读的 markdown，agent 靠索引、标题和关键词导航。确实需要语义检索的话，可以另外挂一个检索工具，两者不冲突。</p>
+<h3 id="两台机器同一时刻写记忆会怎样">两台机器同一时刻写记忆会怎样？</h3>
+<p>每个 agent 只写自己的目录，很少碰到同一个文件。有 hook 的工具在每次写入前先 <code>pull --rebase</code>，写完立即 commit、push 并在失败时重试，竞争窗口被压到单次写入那一瞬间。真冲突了，写入会被拦下，提示手动合并。</p>
+<h3 id="从-claude-code-换到-codex-记忆会丢吗">从 Claude Code 换到 Codex，记忆会丢吗？</h3>
+<p>不会。记忆在你的仓库里，不在任何一个工具里。在同一个克隆上跑一下 Codex 的安装脚本，下一个 Codex 会话读的就是同一批文件。</p>
+<h2 id="相关阅读">相关阅读</h2>
+<ul><li><a href="../ai-agent-memory/">AI agent 记忆是什么，为什么换台机器就失忆</a></li><li><a href="../multi-agent-memory-without-conflicts/">多 agent 共享记忆怎么避免冲突</a></li><li><a href="../topic-memory-on-demand-loading/">上下文窗口有限，记忆该怎么按需加载</a></li><li><a href="../agent-memory-tools-compared/">主流 agent 记忆工具对比</a></li><li><a href="../nestwork-getting-started-faq/">nestwork 上手常见问题</a></li></ul>
+      <section class="cta" aria-label="给你的 agent 一份记忆">
+        <h2>给你的 agent 一份记忆</h2>
+        <p>nestwork 把一个私有 git 仓库变成 Claude Code、Codex、Gemini、Kimi 等 agent 共享的长期记忆。</p>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">用模板创建我的记忆仓库 →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ 去 GitHub 点个 Star</a>
+      </section>
+    </article>
+    <aside class="toc" aria-label="本文目录"><b>本文目录</b><a href="#先想清楚你要的-记忆-是什么">先想清楚你要的「记忆」是什么</a><a href="#git-本来就解决了哪些事">git 本来就解决了哪些事</a><a href="#nestwork-怎么把一个仓库变成记忆">nestwork 怎么把一个仓库变成记忆</a><a href="#冲突靠归属-不靠聪明的合并">冲突靠归属，不靠聪明的合并</a><a href="#代价要说在前面">代价要说在前面</a><a href="#真的撑得住吗">真的撑得住吗</a><a href="#常见问题">常见问题</a><a href="#相关阅读">相关阅读</a></aside>
+  </div>
+  <section class="more" aria-label="全部文章">
+    <div class="wrap">
+      <h2>全部文章 →</h2>
+      <div class="cards"><a href="../ai-agent-memory/"><b>AI agent 记忆：四种类型与取舍</b><span>AI agent 记忆是智能体在单次会话之外还能依赖的上下文。对比上下文窗口、工具内置记忆、向量检索服务和文件式记忆，以及编码 agent 的特殊需求。</span></a><a href="../claude-code-memory-across-machines/"><b>Claude Code 记忆跨设备同步：用 git 实现</b><span>Claude Code 的 CLAUDE.md 和 auto memory 都只在本机。本文讲清它们存在哪、为什么换电脑就没了，以及怎样用 git 跨设备同步。</span></a><a href="../share-memory-claude-code-codex/"><b>Claude Code 和 Codex 共享记忆的做法</b><span>Claude Code 读 CLAUDE.md，Codex 读 AGENTS.md。让两者指向同一个私有 git 仓库，就能共享记忆，且各写各的目录。</span></a><a href="../codex-cli-persistent-memory/"><b>Codex 记忆与 AGENTS.md：Codex 长期记忆</b><span>Codex CLI 现有的记忆方式（AGENTS.md 与默认关闭的本地 memories），以及如何用 git 给 Codex 加跨会话、跨机器的长期记忆。</span></a><a href="../agent-memory-tools-compared/"><b>agent 记忆工具对比：Mem0、Letta、Zep 等</b><span>从架构、部署方式、数据归属和适用场景，对比 Mem0、Letta、Zep、Supermemory、claude-mem、工具内置记忆和 nestwork。</span></a><a href="../agent-memory-benchmarks/"><b>记忆基准测试：LoCoMo、LongMemEval、BEAM</b><span>LoCoMo、LongMemEval、BEAM 各测什么、LLM 裁判怎么打分、厂商分数为何不能横比，以及编码 agent 该看哪些指标。</span></a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span>nestwork — AI agent memory, git-native.</span>
+    <span><a href="../../../zh/">首页</a><a href="../">文章</a><a href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-lang-switch]').forEach(function (a) {
+  a.addEventListener('click', function () { try { localStorage.setItem('nestwork_lang', a.getAttribute('data-lang-switch')); } catch (e) {} });
+});
+</script>
+</body>
+</html>

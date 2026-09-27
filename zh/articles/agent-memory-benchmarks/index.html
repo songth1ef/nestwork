@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>记忆基准测试：LoCoMo、LongMemEval、BEAM — nestwork</title>
+<meta name="description" content="LoCoMo、LongMemEval、BEAM 各测什么、LLM 裁判怎么打分、厂商分数为何不能横比，以及编码 agent 该看哪些指标。">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="songth1ef">
+<meta name="theme-color" content="#8fdcf7">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/zh/articles/agent-memory-benchmarks/">
+<link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/agent-memory-benchmarks/">
+<link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/agent-memory-benchmarks/">
+<link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/agent-memory-benchmarks/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232ec4d6'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="nestwork">
+<meta property="og:title" content="记忆基准测试：LoCoMo、LongMemEval、BEAM">
+<meta property="og:description" content="LoCoMo、LongMemEval、BEAM 各测什么、LLM 裁判怎么打分、厂商分数为何不能横比，以及编码 agent 该看哪些指标。">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/zh/articles/agent-memory-benchmarks/">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og-zh.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="记忆基准测试：LoCoMo、LongMemEval、BEAM">
+<meta name="twitter:description" content="LoCoMo、LongMemEval、BEAM 各测什么、LLM 裁判怎么打分、厂商分数为何不能横比，以及编码 agent 该看哪些指标。">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og-zh.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://songth1ef.github.io/nestwork/zh/articles/agent-memory-benchmarks/#article","headline":"记忆基准测试：LoCoMo、LongMemEval、BEAM","description":"LoCoMo、LongMemEval、BEAM 各测什么、LLM 裁判怎么打分、厂商分数为何不能横比，以及编码 agent 该看哪些指标。","inLanguage":"zh-CN","datePublished":"2026-09-27","dateModified":"2026-09-27","author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"publisher":{"@type":"Organization","name":"nestwork","url":"https://songth1ef.github.io/nestwork/"},"image":["https://songth1ef.github.io/nestwork/og-zh.png"],"mainEntityOfPage":"https://songth1ef.github.io/nestwork/zh/articles/agent-memory-benchmarks/","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://songth1ef.github.io/nestwork/zh/"},{"@type":"ListItem","position":2,"name":"文章","item":"https://songth1ef.github.io/nestwork/zh/articles/"},{"@type":"ListItem","position":3,"name":"记忆基准测试：LoCoMo、LongMemEval、BEAM","item":"https://songth1ef.github.io/nestwork/zh/articles/agent-memory-benchmarks/"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"哪个 agent 记忆基准最可靠？","acceptedAnswer":{"@type":"Answer","text":"单独看哪个都不可靠，因为裁判和回答模型对结果影响最大。LongMemEval 的评测流程最固定（公开脚本，GPT-4o 当裁判）；BEAM 测的上下文最长，而且分十项能力报告。最可靠的对比，是你自己把所有系统放在同一套模型栈上跑一遍。"}},{"@type":"Question","name":"为什么在 LoCoMo 上全量上下文反而赢过记忆系统？","acceptedAnswer":{"@type":"Answer","text":"在 Mem0 论文的设置里，LoCoMo 一段对话约 26,000 token，现代上下文窗口装得下。全部装得下时，就不存在检索丢失。记忆系统赢在 token 和延迟上；等历史再也装不下时它才成为必需——这正是 BEAM 的 1M 和 10M 档在测的。"}},{"@type":"Question","name":"Letta 的 74.0% 说明文件比向量记忆好吗？","acceptedAnswer":{"@type":"Answer","text":"它说明：一个能干的 agent 搜纯文件，在一个基准、一个模型上表现有竞争力。它不能证明文件处处都赢，但确实说明检索工具和 agent 行为至少和存储引擎一样重要。"}},{"@type":"Question","name":"有没有针对编码 agent 记忆的基准？","acceptedAnswer":{"@type":"Answer","text":"我们没能核实到被广泛采用的。在那之前，就在自己的仓库和工具上测交接、启动开销、任务期加载和路由准确率。"}}]}]}</script>
+<style>
+@font-face { font-family: "VT323"; src: url("../../../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../../../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+:root {
+  --bg: #fbf8ef; --fg: #111; --muted: #5c5c5c; --teal: #2ec4d6; --teal-dark: #0a8fa0; --magenta: #ff2d8f;
+  --lime: #d6f25a; --yellow: #ffe53d; --sky: #29c6ec; --red: #ec2a33;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::selection { background: var(--yellow); }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 2px solid #111; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.badge { background: var(--teal); color: #000; font-weight: 800; letter-spacing: -0.03em; padding: 2px 10px 3px; border: 2px solid #000; outline: 2px solid var(--teal); text-decoration: none; font-size: 18px; }
+.nav { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 13px; }
+.nav a { text-decoration: none; color: #333; }
+.nav a:hover { background: var(--yellow); color: #000; }
+.nav .gh { background: #111; color: #fff; padding: 4px 10px; font-weight: 700; }
+.art-hero { background: linear-gradient(180deg, #8fdcf7 0%, #d4f3ff 60%, var(--bg) 100%); border-bottom: 2px solid #111; padding: 48px 0 44px; position: relative; overflow: hidden; }
+.art-hero::after { content: ""; position: absolute; right: -60px; top: -40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 11px 11px; -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%); mask-image: radial-gradient(circle, #000 50%, transparent 70%); pointer-events: none; }
+.crumbs { font-family: var(--pixel); font-size: 20px; letter-spacing: 0.04em; color: #0a5f6b; margin: 0 0 14px; position: relative; z-index: 1; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { background: var(--yellow); }
+.art-hero h1 { font-size: clamp(34px, 5.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 0; max-width: 880px; position: relative; z-index: 1; }
+:lang(zh) .art-hero h1 { line-height: 1.2; letter-spacing: -0.01em; }
+.art-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: #333; position: relative; z-index: 1; }
+.art-meta span { background: #fff; border: 2px solid #111; padding: 2px 8px; }
+.art-meta .kind { background: var(--magenta); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; padding-top: 48px; padding-bottom: 72px; }
+.layout.wide { grid-template-columns: 1fr; }
+.layout > * { min-width: 0; }
+.prose p code, .prose li code, .prose td code { overflow-wrap: anywhere; }
+.wide .prose { max-width: none; }
+.wide .toc { display: none; }
+.wide .prose > p:first-child { max-width: 72ch; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+.prose { max-width: 72ch; }
+.prose > p:first-child { font-size: 1.12em; }
+.prose h2 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; line-height: 1.2; margin: 2.1em 0 0.6em; padding-top: 0.2em; border-top: 2px solid #111; scroll-margin-top: 80px; }
+.prose h2::before { content: "// "; font-family: var(--pixel); color: var(--magenta); font-weight: 400; }
+.prose h3 { font-size: 21px; letter-spacing: -0.015em; margin: 1.6em 0 0.4em; scroll-margin-top: 80px; }
+.prose p, .prose li { color: #222; }
+.prose a { text-decoration-color: var(--magenta); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose a:hover { background: var(--yellow); }
+.prose code { font-family: var(--mono); font-size: 0.86em; background: #fff; border: 1.5px solid #111; padding: 0 5px; }
+.prose pre.code { background: #151515; color: #eee; border-left: 5px solid var(--teal); padding: 16px 18px; overflow-x: auto; font-size: 14.5px; line-height: 1.65; box-shadow: 6px 6px 0 #111; }
+.prose pre.code code { background: none; border: 0; padding: 0; font-size: 1em; color: inherit; }
+.prose blockquote { margin: 1.4em 0; padding: 14px 20px; background: #fff; border: 2px solid #111; border-left: 8px solid var(--magenta); box-shadow: 5px 5px 0 #111; }
+.prose blockquote p { margin: 0; font-weight: 600; }
+.prose figure { margin: 1.6em 0; }
+.prose img { width: 100%; height: auto; border: 2px solid #111; box-shadow: 6px 6px 0 #111; display: block; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin: 0.3em 0; }
+.prose li::marker { color: var(--magenta); font-weight: 700; }
+.table-wrap { overflow-x: auto; border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; margin: 1.4em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #0002; vertical-align: top; }
+thead th { background: #111; color: #fff; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.toc { position: sticky; top: 84px; align-self: start; background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 var(--teal); padding: 16px 18px; font-size: 14.5px; line-height: 1.45; }
+.toc b { display: block; font-family: var(--pixel); font-weight: 400; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 8px; }
+.toc a { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px dashed #0003; color: #222; }
+.toc a:hover { background: var(--yellow); }
+.cta { margin-top: 56px; background: var(--lime); border: 2px solid #111; box-shadow: 8px 8px 0 #111; padding: 28px 28px 30px; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; right: -40px; top: -30px; width: 200px; height: 120px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 12px, transparent 12px 24px); transform: rotate(-4deg); }
+.cta h2 { border: 0; margin: 0 0 8px; padding: 0; font-size: 30px; position: relative; z-index: 1; }
+.cta h2::before { content: none; }
+.cta p { margin: 0 0 18px; max-width: 520px; font-weight: 600; position: relative; z-index: 1; }
+.btn { display: inline-flex; gap: 8px; padding: 12px 20px; font-weight: 800; text-decoration: none; border: 2px solid #111; margin: 0 10px 10px 0; position: relative; z-index: 1; }
+.btn:hover { box-shadow: 5px 5px 0 #111; transform: translate(-2px, -2px); }
+.btn-ink { background: #111; color: #fff; }
+.btn-ghost { background: #fff; color: #111; }
+.more { border-top: 2px solid #111; background: #fff; padding: 48px 0 60px; }
+.more h2 { font-family: var(--pixel); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; margin: 0 0 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+.cards a { display: block; text-decoration: none; background: var(--bg); border: 2px solid #111; box-shadow: 5px 5px 0 #111; padding: 16px 18px; }
+.cards a:hover { background: var(--yellow); }
+.cards b { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; }
+.cards span { display: block; margin-top: 6px; font-size: 14px; color: #444; line-height: 1.5; }
+.site-footer { background: #111; color: #aaa; padding: 30px 0 40px; font-family: var(--mono); font-size: 12.5px; }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.site-footer a { color: #ddd; text-decoration: none; margin-left: 16px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="badge" href="../../../zh/">nestwork</a>
+    <nav class="nav" aria-label="文章">
+      <a href="../">文章</a>
+      <a href="https://songth1ef.github.io/nestwork/articles/agent-memory-benchmarks/" hreflang="en" data-lang-switch="en">EN</a>
+      <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="art-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="../../../zh/">首页</a> / <a href="../">文章</a> /</p>
+      <h1>记忆基准测试：LoCoMo、LongMemEval、BEAM</h1>
+      <div class="art-meta"><span class="kind">指南</span><span>5 分钟阅读</span><span>更新于 2026-09-27</span></div>
+    </div>
+  </div>
+  <div class="wrap layout">
+    <article class="prose">
+<p>最常被引用的三个 agent 记忆基准测试是 LoCoMo、LongMemEval 和 BEAM。它们测的都是"系统能否回答关于一段超长聊天记录的问题"，而且都由 LLM 裁判打分，所以厂商报出来的分数，很大程度上取决于用了哪个裁判模型、哪个回答模型、哪套检索流程。在同一套配置下，它们适合用来比较聊天记忆系统；但对编码 agent 真正关心的东西——跨工具交接、启动开销、能不能打开正确的记忆文件——几乎没有覆盖。</p>
+<h2 id="三个基准一览">三个基准一览</h2>
+<div class="table-wrap"><table><thead><tr><th>基准</th><th>出处</th><th>数据</th><th>考什么</th></tr></thead><tbody><tr><td>LoCoMo</td><td><a href="https://arxiv.org/abs/2402.17753" rel="noopener">Maharana 等，2024</a></td><td>超长对话，平均约 300 轮、约 9K token，最多 35 个会话</td><td>问答、事件摘要、多模态对话生成</td></tr><tr><td>LongMemEval</td><td><a href="https://github.com/xiaowu0162/longmemeval" rel="noopener">Wu 等，ICLR 2025</a></td><td>500 道题；S 版约 115K token（约 40 个会话），M 版约 500 个会话</td><td>信息抽取、跨会话推理、时间推理、知识更新、拒答</td></tr><tr><td>BEAM</td><td><a href="https://github.com/mohammadtavakoli78/BEAM" rel="noopener">BEAM，ICLR 2026</a></td><td>100 段对话，长度从 128K 到 10M token，2,000 道经过校验的题</td><td>十项能力，包括矛盾消解、事件排序、指令遵循、偏好遵循</td></tr></tbody></table></div>
+<h3 id="locomo">LoCoMo</h3>
+<p>LoCoMo 用带人设的 agent 和时间事件图生成超长的双人对话。多数记忆厂商只报它的问答部分。比如 Mem0 的论文用了 10 段对话、每段平均约 200 道题，并排除了对抗类问题，理由是"没有标准答案"（<a href="https://arxiv.org/html/2504.19413" rel="noopener">arXiv:2504.19413</a>）。连数据规模的描述都不一致：原论文说每段对话平均约 9K token，Mem0 论文则说它评测用的对话每段约 26,000 token。看到 LoCoMo 分数时，先问清楚保留了哪些题型、用的是哪版数据。</p>
+<h3 id="longmemeval">LongMemEval</h3>
+<p>LongMemEval 把 500 道精选题嵌进带时间戳的用户—助手对话历史里。题型包括单会话里用户/助手说过的事实、偏好、时间推理、知识更新、跨会话推理，还有"应当拒答"的题。作者报告：商用助手和长上下文模型在持续交互中记忆信息时，准确率下降约 30%。</p>
+<h3 id="beam">BEAM</h3>
+<p>BEAM（"Beyond a Million Tokens"）把长度推得更远：128K、500K、1M、10M token 四档。论文的结论是，即使是 1M 窗口的模型，无论加不加检索，对话越长表现越差。它按十项能力分别打分，而不是给一个总分。</p>
+<h2 id="怎么打分-以及分数为什么会漂">怎么打分，以及分数为什么会漂</h2>
+<p>开放式问题没法做字符串匹配，所以三者都靠 <strong>LLM 裁判（LLM-as-a-judge）</strong>：让一个模型读题目、参考答案和系统答案，判定对错。LongMemEval 的评测脚本用 GPT-4o 当裁判。Mem0 论文里，答案由 GPT-4o-mini 生成，再由另一个裁判模型打分。</p>
+<p>这就产生了三个"不改记忆系统也能改分数"的旋钮：</p>
+<ol><li><strong>裁判模型。</strong> 严一点或松一点的裁判，对同一个输出会打出不同的分。</li><li><strong>回答模型。</strong> 同样的检索结果，交给更强的模型去回答，答对的题就更多。</li><li><strong>后处理。</strong> 在检索和回答之间加一步重排序或其他 LLM 处理，分数能明显上去。</li></ol>
+<p>Mem0 自己的 <a href="https://mem0.ai/blog/ai-memory-benchmarks-in-2026" rel="noopener">2026 基准综述</a> 对此说得很坦白："这些数字没有一个是在相同的模型栈、裁判模型或检索配置下得出的。"同一篇文章列出：Zep 自称 LoCoMo 94.7%，第三方测试只有 75.1%；ByteRover 测出 Mem0 为 66.9%，对应的是 Mem0 旧版算法，而 Mem0 现在自报 92.5%。任何跨厂商排行榜都只能当阅读清单，不能当排名——包括上榜厂商自己发布的表。</p>
+<h2 id="mem0-论文到底说明了什么">Mem0 论文到底说明了什么</h2>
+<p>很多 LoCoMo 对比都出自 Mem0 论文，这张表值得完整看一遍。在 LLM 裁判指标上，Mem0 得 66.88%，图记忆变体 68.44%，领先其他被测的记忆系统——Zep 65.99%、LangMem 58.10%、OpenAI 记忆 52.90%。但<strong>全量上下文基线</strong>（直接把整段对话塞进提示词）得了 72.90%，是全表最高，论文自己也写明了这一点。</p>
+<p>记忆换来的是成本和速度：每次查询约 1,764 token，对比全量上下文的 26,031；p95 延迟 1.44 秒，对比 17.12 秒。这才是聊天记忆的真实取舍——准确率略低，换来少一个数量级的上下文。读任何记忆基准时都应该带着这个框架。</p>
+<h2 id="letta-的纯文件方案-74-0">Letta 的纯文件方案：74.0%</h2>
+<p>2025 年 8 月，Letta <a href="https://www.letta.com/blog/benchmarking-ai-agent-memory/" rel="noopener">在完全不用记忆服务的情况下跑了 LoCoMo</a>。对话被放进一个文件，挂给一个跑 GPT-4o mini 的 agent，它只能用 <code>grep</code>、<code>search_files</code>、<code>open</code>、<code>close</code> 和 <code>answer_question</code> 这几个工具，并通过工具规则强制"先搜再答"。结果是 <strong>74.0%</strong>，高于 Letta 引用的 Mem0 最佳图变体 68.5%。</p>
+<p>Letta 的结论才是重点："agent 记忆的质量，往往更取决于底层 agent 系统管理上下文和调用工具的能力，而不是记忆工具本身。"这个数字同样只是一次实验、一个模型、一套裁判配置，但它说明：纯文件加一个会搜索的 agent，是一个有竞争力的基线，而不是玩具。</p>
+<h2 id="这些基准没测什么">这些基准没测什么</h2>
+<p>LoCoMo、LongMemEval、BEAM 测的是<strong>聊天记忆</strong>：系统能不能想起某人说过什么、什么时候说的、后来有没有变。编码 agent 的记忆问题不一样：它主要承载规则、项目状态和过往决定；要跨工具、跨机器工作；而且很大一部分成本在启动时就付出了，那时还没有人提问。三个基准里都没有"Claude Code 里定下的规则，在另一台笔记本的 Codex 里被遵守了吗"这一项。</p>
+<h2 id="编码-agent-该看的指标">编码 agent 该看的指标</h2>
+<p>如果你在为编码 agent 挑记忆方案，建议在自己的环境里测这些：</p>
+<div class="table-wrap"><table><thead><tr><th>指标</th><th>回答的问题</th><th>怎么测</th></tr></thead><tbody><tr><td>跨工具交接</td><td>工具 A 里记下的事实，能到达另一台机器上的工具 B 吗？</td><td>在一个工具里记一条不敏感的规则，换台机器开另一个工具，让它复述</td></tr><tr><td>启动开销</td><td>第一个任务开始前加载了多少 token？</td><td>统计会话启动时读取的文件数和 token 数</td></tr><tr><td>任务期加载</td><td>一个典型任务额外拉进多少上下文？</td><td>统计启动加上任务检索的 token 数</td></tr><tr><td>路由准确率</td><td>agent 有没有为任务打开正确的记忆文件？</td><td>准备一组任务，记录它打开了哪些文件、本该打开哪些</td></tr><tr><td>规则优先级</td><td>两个来源冲突时，权威的那个赢了吗？</td><td>人为制造一条规则与旧笔记的冲突，看结果</td></tr><tr><td>可审阅性</td><td>人能看到并纠正存了什么吗？</td><td>以 diff 形式查看最近一周的记忆变更</td></tr></tbody></table></div>
+<p>作为参考，nestwork 的 <code>scripts/maintenance/measure-context.py</code> 在作者自己的 nest 上（10 台机器、30 多个 agent 实例，用 <code>o200k_base</code> 计 token）给出了前三项：2.x 式全量启动读 37 个文件，约 69,600 token；3.x 协议的常驻启动约 640 token；一次读取常驻层、主题索引和一个主题文件的 git 任务约 3,600 token；整个 nest 共 180 个记忆文件，约 369,000 token。这是一个人的实测，不是基准。nestwork 没有公布路由准确率数据；如果你启用了主题记忆，这正是你该自己追踪的指标。</p>
+<h2 id="常见问题">常见问题</h2>
+<h3 id="哪个-agent-记忆基准最可靠">哪个 agent 记忆基准最可靠？</h3>
+<p>单独看哪个都不可靠，因为裁判和回答模型对结果影响最大。LongMemEval 的评测流程最固定（公开脚本，GPT-4o 当裁判）；BEAM 测的上下文最长，而且分十项能力报告。最可靠的对比，是你自己把所有系统放在同一套模型栈上跑一遍。</p>
+<h3 id="为什么在-locomo-上全量上下文反而赢过记忆系统">为什么在 LoCoMo 上全量上下文反而赢过记忆系统？</h3>
+<p>在 Mem0 论文的设置里，LoCoMo 一段对话约 26,000 token，现代上下文窗口装得下。全部装得下时，就不存在检索丢失。记忆系统赢在 token 和延迟上；等历史再也装不下时它才成为必需——这正是 BEAM 的 1M 和 10M 档在测的。</p>
+<h3 id="letta-的-74-0-说明文件比向量记忆好吗">Letta 的 74.0% 说明文件比向量记忆好吗？</h3>
+<p>它说明：一个能干的 agent 搜纯文件，在一个基准、一个模型上表现有竞争力。它不能证明文件处处都赢，但确实说明检索工具和 agent 行为至少和存储引擎一样重要。</p>
+<h3 id="有没有针对编码-agent-记忆的基准">有没有针对编码 agent 记忆的基准？</h3>
+<p>我们没能核实到被广泛采用的。在那之前，就在自己的仓库和工具上测交接、启动开销、任务期加载和路由准确率。</p>
+<h2 id="相关阅读">相关阅读</h2>
+<ul><li><a href="../ai-agent-memory/">AI agent 记忆：四种类型与取舍</a></li><li><a href="../agent-memory-tools-compared/">agent 记忆工具对比</a></li><li><a href="../topic-memory-on-demand-loading/">主题记忆与按需加载</a></li><li><a href="../long-term-memory-in-practice/">长期记忆的实践</a></li></ul>
+      <section class="cta" aria-label="给你的 agent 一份记忆">
+        <h2>给你的 agent 一份记忆</h2>
+        <p>nestwork 把一个私有 git 仓库变成 Claude Code、Codex、Gemini、Kimi 等 agent 共享的长期记忆。</p>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">用模板创建我的记忆仓库 →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ 去 GitHub 点个 Star</a>
+      </section>
+    </article>
+    <aside class="toc" aria-label="本文目录"><b>本文目录</b><a href="#三个基准一览">三个基准一览</a><a href="#怎么打分-以及分数为什么会漂">怎么打分，以及分数为什么会漂</a><a href="#mem0-论文到底说明了什么">Mem0 论文到底说明了什么</a><a href="#letta-的纯文件方案-74-0">Letta 的纯文件方案：74.0%</a><a href="#这些基准没测什么">这些基准没测什么</a><a href="#编码-agent-该看的指标">编码 agent 该看的指标</a><a href="#常见问题">常见问题</a><a href="#相关阅读">相关阅读</a></aside>
+  </div>
+  <section class="more" aria-label="全部文章">
+    <div class="wrap">
+      <h2>全部文章 →</h2>
+      <div class="cards"><a href="../ai-agent-memory/"><b>AI agent 记忆：四种类型与取舍</b><span>AI agent 记忆是智能体在单次会话之外还能依赖的上下文。对比上下文窗口、工具内置记忆、向量检索服务和文件式记忆，以及编码 agent 的特殊需求。</span></a><a href="../claude-code-memory-across-machines/"><b>Claude Code 记忆跨设备同步：用 git 实现</b><span>Claude Code 的 CLAUDE.md 和 auto memory 都只在本机。本文讲清它们存在哪、为什么换电脑就没了，以及怎样用 git 跨设备同步。</span></a><a href="../share-memory-claude-code-codex/"><b>Claude Code 和 Codex 共享记忆的做法</b><span>Claude Code 读 CLAUDE.md，Codex 读 AGENTS.md。让两者指向同一个私有 git 仓库，就能共享记忆，且各写各的目录。</span></a><a href="../codex-cli-persistent-memory/"><b>Codex 记忆与 AGENTS.md：Codex 长期记忆</b><span>Codex CLI 现有的记忆方式（AGENTS.md 与默认关闭的本地 memories），以及如何用 git 给 Codex 加跨会话、跨机器的长期记忆。</span></a><a href="../agent-memory-tools-compared/"><b>agent 记忆工具对比：Mem0、Letta、Zep 等</b><span>从架构、部署方式、数据归属和适用场景，对比 Mem0、Letta、Zep、Supermemory、claude-mem、工具内置记忆和 nestwork。</span></a><a href="../agents-md-vs-claude-md-vs-memory/"><b>AGENTS.md 和 CLAUDE.md 区别，记忆该放哪</b><span>AGENTS.md 是跨工具的指令文件，CLAUDE.md 是 Claude Code 专用的，记忆是 agent 自己写的笔记。各工具读哪个、怎么组合。</span></a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span>nestwork — AI agent memory, git-native.</span>
+    <span><a href="../../../zh/">首页</a><a href="../">文章</a><a href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-lang-switch]').forEach(function (a) {
+  a.addEventListener('click', function () { try { localStorage.setItem('nestwork_lang', a.getAttribute('data-lang-switch')); } catch (e) {} });
+});
+</script>
+</body>
+</html>

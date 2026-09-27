@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 记忆加密：用 git-crypt 保护 agent 记忆 — nestwork</title>
+<meta name="description" content="用 git-crypt 加密放在 git 里的 AI agent 记忆：本机读写明文，托管平台只存密文。附实测步骤、主题记忆规则和局限。">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="songth1ef">
+<meta name="theme-color" content="#8fdcf7">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/zh/articles/encrypt-agent-memory-git-crypt/">
+<link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/encrypt-agent-memory-git-crypt/">
+<link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/encrypt-agent-memory-git-crypt/">
+<link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/encrypt-agent-memory-git-crypt/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232ec4d6'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="nestwork">
+<meta property="og:title" content="AI 记忆加密：用 git-crypt 保护 agent 记忆">
+<meta property="og:description" content="用 git-crypt 加密放在 git 里的 AI agent 记忆：本机读写明文，托管平台只存密文。附实测步骤、主题记忆规则和局限。">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/zh/articles/encrypt-agent-memory-git-crypt/">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og-zh.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AI 记忆加密：用 git-crypt 保护 agent 记忆">
+<meta name="twitter:description" content="用 git-crypt 加密放在 git 里的 AI agent 记忆：本机读写明文，托管平台只存密文。附实测步骤、主题记忆规则和局限。">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og-zh.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://songth1ef.github.io/nestwork/zh/articles/encrypt-agent-memory-git-crypt/#article","headline":"AI 记忆加密：用 git-crypt 保护 agent 记忆","description":"用 git-crypt 加密放在 git 里的 AI agent 记忆：本机读写明文，托管平台只存密文。附实测步骤、主题记忆规则和局限。","inLanguage":"zh-CN","datePublished":"2026-09-27","dateModified":"2026-09-27","author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"publisher":{"@type":"Organization","name":"nestwork","url":"https://songth1ef.github.io/nestwork/"},"image":["https://songth1ef.github.io/nestwork/og-zh.png"],"mainEntityOfPage":"https://songth1ef.github.io/nestwork/zh/articles/encrypt-agent-memory-git-crypt/","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://songth1ef.github.io/nestwork/zh/"},{"@type":"ListItem","position":2,"name":"文章","item":"https://songth1ef.github.io/nestwork/zh/articles/"},{"@type":"ListItem","position":3,"name":"AI 记忆加密：用 git-crypt 保护 agent 记忆","item":"https://songth1ef.github.io/nestwork/zh/articles/encrypt-agent-memory-git-crypt/"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"git-crypt 会让 nestwork 变慢吗？","acceptedAnswer":{"@type":"Answer","text":"文档说明加密对 hook 是透明的，clean filter 是确定性的，但没有公布耗时数据，这里也不给数字。"}},{"@type":"Question","name":"能只加密某一个 agent 的记忆吗？","acceptedAnswer":{"@type":"Answer","text":"能。这些都是普通的 .gitattributes 规则，可以只覆盖一个作用域，比如某个 agent 目录。文档本来就建议加密范围越小越好。"}},{"@type":"Question","name":"加密后 `update.sh` 还能用吗？","acceptedAnswer":{"@type":"Answer","text":"用当前版本的更新脚本就行：它不经过你的 smudge filter 解出上游文件，再经过你的 clean filter 暂存。更新前先 commit 或 stash 本地改动，更新后检查 VERSION 不为空、加密文件仍是密文。"}},{"@type":"Question","name":"安装脚本会自动开启加密吗？","acceptedAnswer":{"@type":"Answer","text":"不会。这是手动、自愿开启的流程，协议刻意不内置加密。"}}]}]}</script>
+<style>
+@font-face { font-family: "VT323"; src: url("../../../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../../../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+:root {
+  --bg: #fbf8ef; --fg: #111; --muted: #5c5c5c; --teal: #2ec4d6; --teal-dark: #0a8fa0; --magenta: #ff2d8f;
+  --lime: #d6f25a; --yellow: #ffe53d; --sky: #29c6ec; --red: #ec2a33;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::selection { background: var(--yellow); }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 2px solid #111; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.badge { background: var(--teal); color: #000; font-weight: 800; letter-spacing: -0.03em; padding: 2px 10px 3px; border: 2px solid #000; outline: 2px solid var(--teal); text-decoration: none; font-size: 18px; }
+.nav { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 13px; }
+.nav a { text-decoration: none; color: #333; }
+.nav a:hover { background: var(--yellow); color: #000; }
+.nav .gh { background: #111; color: #fff; padding: 4px 10px; font-weight: 700; }
+.art-hero { background: linear-gradient(180deg, #8fdcf7 0%, #d4f3ff 60%, var(--bg) 100%); border-bottom: 2px solid #111; padding: 48px 0 44px; position: relative; overflow: hidden; }
+.art-hero::after { content: ""; position: absolute; right: -60px; top: -40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 11px 11px; -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%); mask-image: radial-gradient(circle, #000 50%, transparent 70%); pointer-events: none; }
+.crumbs { font-family: var(--pixel); font-size: 20px; letter-spacing: 0.04em; color: #0a5f6b; margin: 0 0 14px; position: relative; z-index: 1; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { background: var(--yellow); }
+.art-hero h1 { font-size: clamp(34px, 5.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 0; max-width: 880px; position: relative; z-index: 1; }
+:lang(zh) .art-hero h1 { line-height: 1.2; letter-spacing: -0.01em; }
+.art-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: #333; position: relative; z-index: 1; }
+.art-meta span { background: #fff; border: 2px solid #111; padding: 2px 8px; }
+.art-meta .kind { background: var(--magenta); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; padding-top: 48px; padding-bottom: 72px; }
+.layout.wide { grid-template-columns: 1fr; }
+.layout > * { min-width: 0; }
+.prose p code, .prose li code, .prose td code { overflow-wrap: anywhere; }
+.wide .prose { max-width: none; }
+.wide .toc { display: none; }
+.wide .prose > p:first-child { max-width: 72ch; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+.prose { max-width: 72ch; }
+.prose > p:first-child { font-size: 1.12em; }
+.prose h2 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; line-height: 1.2; margin: 2.1em 0 0.6em; padding-top: 0.2em; border-top: 2px solid #111; scroll-margin-top: 80px; }
+.prose h2::before { content: "// "; font-family: var(--pixel); color: var(--magenta); font-weight: 400; }
+.prose h3 { font-size: 21px; letter-spacing: -0.015em; margin: 1.6em 0 0.4em; scroll-margin-top: 80px; }
+.prose p, .prose li { color: #222; }
+.prose a { text-decoration-color: var(--magenta); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose a:hover { background: var(--yellow); }
+.prose code { font-family: var(--mono); font-size: 0.86em; background: #fff; border: 1.5px solid #111; padding: 0 5px; }
+.prose pre.code { background: #151515; color: #eee; border-left: 5px solid var(--teal); padding: 16px 18px; overflow-x: auto; font-size: 14.5px; line-height: 1.65; box-shadow: 6px 6px 0 #111; }
+.prose pre.code code { background: none; border: 0; padding: 0; font-size: 1em; color: inherit; }
+.prose blockquote { margin: 1.4em 0; padding: 14px 20px; background: #fff; border: 2px solid #111; border-left: 8px solid var(--magenta); box-shadow: 5px 5px 0 #111; }
+.prose blockquote p { margin: 0; font-weight: 600; }
+.prose figure { margin: 1.6em 0; }
+.prose img { width: 100%; height: auto; border: 2px solid #111; box-shadow: 6px 6px 0 #111; display: block; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin: 0.3em 0; }
+.prose li::marker { color: var(--magenta); font-weight: 700; }
+.table-wrap { overflow-x: auto; border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; margin: 1.4em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #0002; vertical-align: top; }
+thead th { background: #111; color: #fff; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.toc { position: sticky; top: 84px; align-self: start; background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 var(--teal); padding: 16px 18px; font-size: 14.5px; line-height: 1.45; }
+.toc b { display: block; font-family: var(--pixel); font-weight: 400; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 8px; }
+.toc a { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px dashed #0003; color: #222; }
+.toc a:hover { background: var(--yellow); }
+.cta { margin-top: 56px; background: var(--lime); border: 2px solid #111; box-shadow: 8px 8px 0 #111; padding: 28px 28px 30px; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; right: -40px; top: -30px; width: 200px; height: 120px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 12px, transparent 12px 24px); transform: rotate(-4deg); }
+.cta h2 { border: 0; margin: 0 0 8px; padding: 0; font-size: 30px; position: relative; z-index: 1; }
+.cta h2::before { content: none; }
+.cta p { margin: 0 0 18px; max-width: 520px; font-weight: 600; position: relative; z-index: 1; }
+.btn { display: inline-flex; gap: 8px; padding: 12px 20px; font-weight: 800; text-decoration: none; border: 2px solid #111; margin: 0 10px 10px 0; position: relative; z-index: 1; }
+.btn:hover { box-shadow: 5px 5px 0 #111; transform: translate(-2px, -2px); }
+.btn-ink { background: #111; color: #fff; }
+.btn-ghost { background: #fff; color: #111; }
+.more { border-top: 2px solid #111; background: #fff; padding: 48px 0 60px; }
+.more h2 { font-family: var(--pixel); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; margin: 0 0 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+.cards a { display: block; text-decoration: none; background: var(--bg); border: 2px solid #111; box-shadow: 5px 5px 0 #111; padding: 16px 18px; }
+.cards a:hover { background: var(--yellow); }
+.cards b { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; }
+.cards span { display: block; margin-top: 6px; font-size: 14px; color: #444; line-height: 1.5; }
+.site-footer { background: #111; color: #aaa; padding: 30px 0 40px; font-family: var(--mono); font-size: 12.5px; }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.site-footer a { color: #ddd; text-decoration: none; margin-left: 16px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="badge" href="../../../zh/">nestwork</a>
+    <nav class="nav" aria-label="文章">
+      <a href="../">文章</a>
+      <a href="https://songth1ef.github.io/nestwork/articles/encrypt-agent-memory-git-crypt/" hreflang="en" data-lang-switch="en">EN</a>
+      <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="art-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="../../../zh/">首页</a> / <a href="../">文章</a> /</p>
+      <h1>AI 记忆加密：用 git-crypt 保护 agent 记忆</h1>
+      <div class="art-meta"><span class="kind">指南</span><span>4 分钟阅读</span><span>更新于 2026-09-27</span></div>
+    </div>
+  </div>
+  <div class="wrap layout">
+    <article class="prose">
+<p><strong>AI agent 的记忆放在 GitHub 的 git 仓库里，怎么保证别人读不到？</strong> 只对记忆文件启用 git-crypt。agent 在你的机器上照常读写明文，文件在 commit 时被自动加密，托管平台上存的是密文。nestwork 把它写成一个可选、默认关闭的模式，步骤已在 git-crypt 0.8.0 上实测过。</p>
+<p>动手之前要先知道它管不到什么：提交信息和文件名仍是明文；钥匙丢了记忆就没了；已经 push 过的明文会留在历史里，除非改写历史；模型服务商照样看得到明文。下面一条条说。</p>
+<h2 id="先判断-你真的需要加密吗">先判断：你真的需要加密吗？</h2>
+<p>nestwork 默认把记忆作为 Markdown 存在私有仓库里，对大多数人已经够了。<a href="https://github.com/songth1ef/nestwork/blob/main/docs/encrypted-memory.md" rel="noopener">加密记忆文档</a>对「什么时候不该用」说得很直接：</p>
+<div class="table-wrap"><table><thead><tr><th>你担心的是</th><th>正确做法</th></tr></thead><tbody><tr><td>记忆里有私密内容，既要多机同步，又不能让托管方读到</td><td>git-crypt，只加密少量文件</td></tr><tr><td>私密内容不需要同步</td><td>干脆不提交，放在本地不同步的目录</td></tr><tr><td>仓库丢失、账号被封</td><td>备份和镜像；加密对可用性毫无帮助</td></tr><tr><td>没有真正的隐私顾虑</td><td>保持关闭，别凭空多出一把钥匙这个单点</td></tr></tbody></table></div>
+<p>nestwork 作者自己就是这么用的：仓库是自己建的私有仓库，「更深的秘密再叠一层 git-crypt」，落到 GitHub 上的是密文（见<a href="../16-agents-one-brain/">《16 个 agent 共用一个大脑》</a>）。</p>
+<h2 id="git-crypt-使用步骤-给-nest-开启加密">git-crypt 使用步骤：给 nest 开启加密</h2>
+<p>在仓库根目录执行。第一步是备份，因为后面几步出错时往往悄无声息。</p>
+<pre class="code"><code data-lang="bash"># 0. 完整备份（回滚用）
+git bundle create ~/repo-pre-crypt.bundle --all
+cp -a . ~/repo-dir-backup
+
+# 1. 安装 git-crypt
+brew install git-crypt          # Debian/Ubuntu: apt-get install -y git-crypt
+
+# 2. 用默认 key 初始化（不要加 -k &lt;name&gt;）
+git-crypt init
+
+# 3. 把 key 导出到仓库之外，永远不要提交它
+git-crypt export-key ~/myrepo-gitcrypt.key
+
+# 4. 声明哪些文件加密（单文件记忆的写法）
+printf &#x27;shared/memory.md filter=git-crypt diff=git-crypt\nagents/**/memory.md filter=git-crypt diff=git-crypt\n&#x27; &gt; .gitattributes
+
+# 5. 重新 add 触发加密，然后提交
+git add .gitattributes shared/memory.md $(find agents -name memory.md)
+git commit -m &quot;security: encrypt memory files with git-crypt&quot;
+
+# 6. 确认存进去的是密文
+git cat-file -p HEAD:shared/memory.md | head -c 12 | od -c   # 应看到 \0 G I T C R Y P T \0</code></pre>
+<p><code>.gitattributes</code> 本身必须是明文，git 要读它。git-crypt 官方也提醒：这些规则要在添加敏感文件<strong>之前</strong>就位（<a href="https://github.com/AGWA/git-crypt" rel="noopener">git-crypt README</a>）。</p>
+<p>其他机器 clone 之后，执行一次：</p>
+<pre class="code"><code data-lang="bash">git-crypt unlock /path/to/myrepo-gitcrypt.key</code></pre>
+<p>之后完全透明：nestwork 的 hook 照常 pull、commit、push；clean filter 是确定性的，同样的明文得到同样的密文，不会冒出无意义的 diff。</p>
+<h2 id="主题记忆-加密整个目录-而不只是索引">主题记忆：加密整个目录，而不只是索引</h2>
+<p>上面的规则假设每个作用域只有一个 <code>memory.md</code>。协议 3.1 允许作用域改用主题记忆：<code>memory.md</code> 只是一份生成的索引，事实写在 <code>shared/&lt;topic&gt;.md</code> 这类文件里，而这些文件按上面的规则会留在明文。改成覆盖整个目录：</p>
+<pre class="code"><code data-lang="gitattributes">shared/** filter=git-crypt diff=git-crypt
+agents/** filter=git-crypt diff=git-crypt</code></pre>
+<p><code>**</code> 匹配任意层级，所以主题子目录、每个 agent 邮箱的 <code>outbox/</code> 也都在内。这一点用 git-crypt 0.8.0 验证过：两个目录下的每个文件都以 <code>GITCRYPT</code> 密文存储，目录外的文件保持明文。改完之后，对任一主题文件再跑一遍第 6 步的检查。</p>
+<p>两个实际后果：</p>
+<ul><li><code>scripts/maintenance/memory-index.py</code> 和 <code>distill.py</code> 读的是工作区，只能在已解锁的 clone 上跑；没解锁时它们读到的是密文。</li><li><code>agents/**</code> 加密后，会话启动时加载的每个 agent 的 <code>resident.md</code> 也被加密了。所以每台跑 agent 的机器都必须解锁，否则 agent 一启动拿到的就是读不懂的上下文。</li></ul>
+<h2 id="文档里点名的三个坑">文档里点名的三个坑</h2>
+<ol><li><strong>命名 key 会静默失效。</strong> <code>git-crypt init -k &lt;name&gt;</code> 配置的 filter 叫 <code>git-crypt-&lt;name&gt;</code>，和 <code>.gitattributes</code> 里的 <code>filter=git-crypt</code> 对不上。看起来一切正常，存进去的仍是明文。单 key 场景必须用不带参数的 <code>git-crypt init</code>。</li><li><strong><code>git show</code> 会骗人。</strong> 在已解锁的 clone 上，<code>git show</code>、<code>git diff</code> 会经过 filter 显示明文。验证密文只能用 <code>git cat-file -p</code> 看原始 blob。</li><li><strong>改写历史后丢失 upstream。</strong> 改写历史（见下一节）后分支失去 upstream 跟踪，nestwork 写入前的 <code>git pull --rebase</code> 失败，所有记忆写入都会被拦下。在执行改写的那台机器上跑 <code>git branch --set-upstream-to=origin/main main</code> 即可。</li></ol>
+<h2 id="明文已经-push-了-只能改写历史">明文已经 push 了？只能改写历史</h2>
+<p><code>git-crypt init</code> 只保护之后的提交。之前提交的内容，在托管方的历史里依然可读。要清掉就得改写历史，比如用 <a href="https://github.com/newren/git-filter-repo" rel="noopener">git-filter-repo</a>：</p>
+<pre class="code"><code data-lang="bash">git-filter-repo --force --invert-paths --path shared/memory.md --path-glob &#x27;agents/*/*/memory.md&#x27;
+git remote add origin &lt;url&gt;                      # filter-repo 会删掉 remote
+git push --force origin main
+git branch --set-upstream-to=origin/main main</code></pre>
+<p>路径要按你实际加密的范围调整；用了主题记忆的话，记忆不只在 <code>memory.md</code> 里。被移除的路径连当前提交里也会被改写掉，所以先检查工作区，必要时从第 0 步的目录备份里把文件拷回来，再从第 2 步重新做一遍。</p>
+<p>代价是实打实的：其他所有 clone 的历史都分叉了，每台机器都要 <code>git fetch &amp;&amp; git reset --hard origin/main &amp;&amp; git-crypt unlock &lt;key&gt;</code>。</p>
+<h2 id="加密藏不住的东西">加密藏不住的东西</h2>
+<ul><li><strong>提交信息。</strong> git-crypt 不加密文件名、提交信息和其他元数据，也不隐藏文件大小和修改时间（<a href="https://github.com/AGWA/git-crypt" rel="noopener">git-crypt README</a>）。nestwork 自己的提交信息是固定格式，比如 <code>memory: update &lt;host&gt;/&lt;agent-id&gt;</code>、<code>comms: task to &lt;host&gt;/&lt;agent-id&gt; (&lt;id&gt;)</code>，会暴露机器名、agent id 和活动时间，但不暴露内容。你手写的提交信息，托管方都看得到。</li><li><strong>文件名。</strong> 一个叫 <code>health.md</code> 的主题文件本身就说明了主题；复制进未加密索引的主题描述也一样可读。高敏感场景，文档建议用无意义的文件名加统一的提交信息。</li><li><strong>模型服务商。</strong> agent 要读就得解密，明文会进入 API 请求。加密防的是托管平台和拿到 clone 的人，不防运行 agent 的那一方。</li><li><strong>被偷的电脑。</strong> key 和已解锁的 clone 在同一台设备上且没有口令保护，小偷两样都拿到了。</li></ul>
+<h2 id="密钥备份-以及为什么凭证不能写进记忆">密钥备份，以及为什么凭证不能写进记忆</h2>
+<p>导出的 key 才是真正要守的资产。文档给的规矩：一个加密仓库一把 key，复制到每台机器；key 永远不进仓库，也不进任何镜像；至少两处离线备份，比如密码管理器附件加离线介质；不要通过聊天或邮件传。所有副本都丢了，密文就永远打不开，仓库的所有备份也随之作废。</p>
+<p>另外，git-crypt 不支持撤销访问：它的 README 写明，曾经拿到 key 的人，即使之后轮换了 key，也仍能读旧的历史。</p>
+<p>不管加不加密，API key、token、密码都不应该写进 agent 记忆。nestwork 的 README 说得很直白：私有仓库也可能因平台漏洞、账号被盗、协作者权限配错而泄露；而且 agent 会把记忆以明文放进模型请求。凭证放环境变量或专门的密钥管理工具，记忆里只写「凭证从哪来」。</p>
+<h2 id="常见问题">常见问题</h2>
+<h3 id="git-crypt-会让-nestwork-变慢吗">git-crypt 会让 nestwork 变慢吗？</h3>
+<p>文档说明加密对 hook 是透明的，clean filter 是确定性的，但没有公布耗时数据，这里也不给数字。</p>
+<h3 id="能只加密某一个-agent-的记忆吗">能只加密某一个 agent 的记忆吗？</h3>
+<p>能。这些都是普通的 <code>.gitattributes</code> 规则，可以只覆盖一个作用域，比如某个 agent 目录。文档本来就建议加密范围越小越好。</p>
+<h3 id="加密后-update-sh-还能用吗">加密后 <code>update.sh</code> 还能用吗？</h3>
+<p>用当前版本的更新脚本就行：它不经过你的 smudge filter 解出上游文件，再经过你的 clean filter 暂存。更新前先 commit 或 stash 本地改动，更新后检查 <code>VERSION</code> 不为空、加密文件仍是密文。</p>
+<h3 id="安装脚本会自动开启加密吗">安装脚本会自动开启加密吗？</h3>
+<p>不会。这是手动、自愿开启的流程，协议刻意不内置加密。</p>
+<h2 id="相关阅读">相关阅读</h2>
+<ul><li><a href="../git-native-agent-memory/">git 原生的 agent 记忆</a></li><li><a href="../agent-mailbox-git/">用 git 做 agent 邮箱</a></li><li><a href="../nestwork-getting-started-faq/">nestwork 安装常见问题</a></li><li><a href="../long-term-memory-in-practice/">AI 长期记忆用起来是什么样</a></li><li><a href="../agent-amnesia-cross-device/">换台设备，AI agent 就失忆</a></li></ul>
+      <section class="cta" aria-label="给你的 agent 一份记忆">
+        <h2>给你的 agent 一份记忆</h2>
+        <p>nestwork 把一个私有 git 仓库变成 Claude Code、Codex、Gemini、Kimi 等 agent 共享的长期记忆。</p>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">用模板创建我的记忆仓库 →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ 去 GitHub 点个 Star</a>
+      </section>
+    </article>
+    <aside class="toc" aria-label="本文目录"><b>本文目录</b><a href="#先判断-你真的需要加密吗">先判断：你真的需要加密吗？</a><a href="#git-crypt-使用步骤-给-nest-开启加密">git-crypt 使用步骤：给 nest 开启加密</a><a href="#主题记忆-加密整个目录-而不只是索引">主题记忆：加密整个目录，而不只是索引</a><a href="#文档里点名的三个坑">文档里点名的三个坑</a><a href="#明文已经-push-了-只能改写历史">明文已经 push 了？只能改写历史</a><a href="#加密藏不住的东西">加密藏不住的东西</a><a href="#密钥备份-以及为什么凭证不能写进记忆">密钥备份，以及为什么凭证不能写进记忆</a><a href="#常见问题">常见问题</a><a href="#相关阅读">相关阅读</a></aside>
+  </div>
+  <section class="more" aria-label="全部文章">
+    <div class="wrap">
+      <h2>全部文章 →</h2>
+      <div class="cards"><a href="../ai-agent-memory/"><b>AI agent 记忆：四种类型与取舍</b><span>AI agent 记忆是智能体在单次会话之外还能依赖的上下文。对比上下文窗口、工具内置记忆、向量检索服务和文件式记忆，以及编码 agent 的特殊需求。</span></a><a href="../claude-code-memory-across-machines/"><b>Claude Code 记忆跨设备同步：用 git 实现</b><span>Claude Code 的 CLAUDE.md 和 auto memory 都只在本机。本文讲清它们存在哪、为什么换电脑就没了，以及怎样用 git 跨设备同步。</span></a><a href="../share-memory-claude-code-codex/"><b>Claude Code 和 Codex 共享记忆的做法</b><span>Claude Code 读 CLAUDE.md，Codex 读 AGENTS.md。让两者指向同一个私有 git 仓库，就能共享记忆，且各写各的目录。</span></a><a href="../codex-cli-persistent-memory/"><b>Codex 记忆与 AGENTS.md：Codex 长期记忆</b><span>Codex CLI 现有的记忆方式（AGENTS.md 与默认关闭的本地 memories），以及如何用 git 给 Codex 加跨会话、跨机器的长期记忆。</span></a><a href="../agent-memory-tools-compared/"><b>agent 记忆工具对比：Mem0、Letta、Zep 等</b><span>从架构、部署方式、数据归属和适用场景，对比 Mem0、Letta、Zep、Supermemory、claude-mem、工具内置记忆和 nestwork。</span></a><a href="../agent-memory-benchmarks/"><b>记忆基准测试：LoCoMo、LongMemEval、BEAM</b><span>LoCoMo、LongMemEval、BEAM 各测什么、LLM 裁判怎么打分、厂商分数为何不能横比，以及编码 agent 该看哪些指标。</span></a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span>nestwork — AI agent memory, git-native.</span>
+    <span><a href="../../../zh/">首页</a><a href="../">文章</a><a href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-lang-switch]').forEach(function (a) {
+  a.addEventListener('click', function () { try { localStorage.setItem('nestwork_lang', a.getAttribute('data-lang-switch')); } catch (e) {} });
+});
+</script>
+</body>
+</html>

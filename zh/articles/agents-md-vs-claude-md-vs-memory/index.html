@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AGENTS.md 和 CLAUDE.md 区别，记忆该放哪 — nestwork</title>
+<meta name="description" content="AGENTS.md 是跨工具的指令文件，CLAUDE.md 是 Claude Code 专用的，记忆是 agent 自己写的笔记。各工具读哪个、怎么组合。">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="songth1ef">
+<meta name="theme-color" content="#8fdcf7">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/zh/articles/agents-md-vs-claude-md-vs-memory/">
+<link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/agents-md-vs-claude-md-vs-memory/">
+<link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/agents-md-vs-claude-md-vs-memory/">
+<link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/agents-md-vs-claude-md-vs-memory/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232ec4d6'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="nestwork">
+<meta property="og:title" content="AGENTS.md 和 CLAUDE.md 区别，记忆该放哪">
+<meta property="og:description" content="AGENTS.md 是跨工具的指令文件，CLAUDE.md 是 Claude Code 专用的，记忆是 agent 自己写的笔记。各工具读哪个、怎么组合。">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/zh/articles/agents-md-vs-claude-md-vs-memory/">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og-zh.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AGENTS.md 和 CLAUDE.md 区别，记忆该放哪">
+<meta name="twitter:description" content="AGENTS.md 是跨工具的指令文件，CLAUDE.md 是 Claude Code 专用的，记忆是 agent 自己写的笔记。各工具读哪个、怎么组合。">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og-zh.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://songth1ef.github.io/nestwork/zh/articles/agents-md-vs-claude-md-vs-memory/#article","headline":"AGENTS.md 和 CLAUDE.md 区别，记忆该放哪","description":"AGENTS.md 是跨工具的指令文件，CLAUDE.md 是 Claude Code 专用的，记忆是 agent 自己写的笔记。各工具读哪个、怎么组合。","inLanguage":"zh-CN","datePublished":"2026-09-27","dateModified":"2026-09-27","author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"publisher":{"@type":"Organization","name":"nestwork","url":"https://songth1ef.github.io/nestwork/"},"image":["https://songth1ef.github.io/nestwork/og-zh.png"],"mainEntityOfPage":"https://songth1ef.github.io/nestwork/zh/articles/agents-md-vs-claude-md-vs-memory/","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://songth1ef.github.io/nestwork/zh/"},{"@type":"ListItem","position":2,"name":"文章","item":"https://songth1ef.github.io/nestwork/zh/articles/"},{"@type":"ListItem","position":3,"name":"AGENTS.md 和 CLAUDE.md 区别，记忆该放哪","item":"https://songth1ef.github.io/nestwork/zh/articles/agents-md-vs-claude-md-vs-memory/"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"该用 AGENTS.md 还是 CLAUDE.md？","acceptedAnswer":{"@type":"Answer","text":"只要仓库会被不止一个工具碰，就以 AGENTS.md 为真源；只有在需要 Claude 专属指令、或某些会话读不到 AGENTS.md 时，再加一个只写 @AGENTS.md 的 CLAUDE.md。如果只用 Claude Code，单一个 CLAUDE.md 就够了。"}},{"@type":"Question","name":"AGENTS.md 算记忆吗？","acceptedAnswer":{"@type":"Answer","text":"通常意义上不算。它是你写、你审的指令；记忆是 agent 自己记录的东西。不过 AGENTS.md 可以告诉 agent 记忆在哪、怎么加载——nestwork 正是这么用它的。"}},{"@type":"Question","name":"Claude Code 会同时读 AGENTS.md 和 CLAUDE.md 吗？","acceptedAnswer":{"@type":"Answer","text":"默认有 CLAUDE.md 就读 CLAUDE.md，没有才退回 AGENTS.md。想两个都读，在 CLAUDE.md 里导入 @AGENTS.md，或把 Project instructions 设为 claude-md-and-agents-md。"}},{"@type":"Question","name":"个人偏好该放哪？","acceptedAnswer":{"@type":"Answer","text":"别放进会提交的仓库文件。只在一台机器上用，就放 ~/.claude/CLAUDE.md 这类用户级文件；想让它跟着你跨机器、跨工具，就放进 nestwork 仓库这类会同步的存储。"}}]}]}</script>
+<style>
+@font-face { font-family: "VT323"; src: url("../../../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../../../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+:root {
+  --bg: #fbf8ef; --fg: #111; --muted: #5c5c5c; --teal: #2ec4d6; --teal-dark: #0a8fa0; --magenta: #ff2d8f;
+  --lime: #d6f25a; --yellow: #ffe53d; --sky: #29c6ec; --red: #ec2a33;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::selection { background: var(--yellow); }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 2px solid #111; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.badge { background: var(--teal); color: #000; font-weight: 800; letter-spacing: -0.03em; padding: 2px 10px 3px; border: 2px solid #000; outline: 2px solid var(--teal); text-decoration: none; font-size: 18px; }
+.nav { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 13px; }
+.nav a { text-decoration: none; color: #333; }
+.nav a:hover { background: var(--yellow); color: #000; }
+.nav .gh { background: #111; color: #fff; padding: 4px 10px; font-weight: 700; }
+.art-hero { background: linear-gradient(180deg, #8fdcf7 0%, #d4f3ff 60%, var(--bg) 100%); border-bottom: 2px solid #111; padding: 48px 0 44px; position: relative; overflow: hidden; }
+.art-hero::after { content: ""; position: absolute; right: -60px; top: -40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 11px 11px; -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%); mask-image: radial-gradient(circle, #000 50%, transparent 70%); pointer-events: none; }
+.crumbs { font-family: var(--pixel); font-size: 20px; letter-spacing: 0.04em; color: #0a5f6b; margin: 0 0 14px; position: relative; z-index: 1; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { background: var(--yellow); }
+.art-hero h1 { font-size: clamp(34px, 5.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 0; max-width: 880px; position: relative; z-index: 1; }
+:lang(zh) .art-hero h1 { line-height: 1.2; letter-spacing: -0.01em; }
+.art-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: #333; position: relative; z-index: 1; }
+.art-meta span { background: #fff; border: 2px solid #111; padding: 2px 8px; }
+.art-meta .kind { background: var(--magenta); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; padding-top: 48px; padding-bottom: 72px; }
+.layout.wide { grid-template-columns: 1fr; }
+.layout > * { min-width: 0; }
+.prose p code, .prose li code, .prose td code { overflow-wrap: anywhere; }
+.wide .prose { max-width: none; }
+.wide .toc { display: none; }
+.wide .prose > p:first-child { max-width: 72ch; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+.prose { max-width: 72ch; }
+.prose > p:first-child { font-size: 1.12em; }
+.prose h2 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; line-height: 1.2; margin: 2.1em 0 0.6em; padding-top: 0.2em; border-top: 2px solid #111; scroll-margin-top: 80px; }
+.prose h2::before { content: "// "; font-family: var(--pixel); color: var(--magenta); font-weight: 400; }
+.prose h3 { font-size: 21px; letter-spacing: -0.015em; margin: 1.6em 0 0.4em; scroll-margin-top: 80px; }
+.prose p, .prose li { color: #222; }
+.prose a { text-decoration-color: var(--magenta); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose a:hover { background: var(--yellow); }
+.prose code { font-family: var(--mono); font-size: 0.86em; background: #fff; border: 1.5px solid #111; padding: 0 5px; }
+.prose pre.code { background: #151515; color: #eee; border-left: 5px solid var(--teal); padding: 16px 18px; overflow-x: auto; font-size: 14.5px; line-height: 1.65; box-shadow: 6px 6px 0 #111; }
+.prose pre.code code { background: none; border: 0; padding: 0; font-size: 1em; color: inherit; }
+.prose blockquote { margin: 1.4em 0; padding: 14px 20px; background: #fff; border: 2px solid #111; border-left: 8px solid var(--magenta); box-shadow: 5px 5px 0 #111; }
+.prose blockquote p { margin: 0; font-weight: 600; }
+.prose figure { margin: 1.6em 0; }
+.prose img { width: 100%; height: auto; border: 2px solid #111; box-shadow: 6px 6px 0 #111; display: block; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin: 0.3em 0; }
+.prose li::marker { color: var(--magenta); font-weight: 700; }
+.table-wrap { overflow-x: auto; border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; margin: 1.4em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #0002; vertical-align: top; }
+thead th { background: #111; color: #fff; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.toc { position: sticky; top: 84px; align-self: start; background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 var(--teal); padding: 16px 18px; font-size: 14.5px; line-height: 1.45; }
+.toc b { display: block; font-family: var(--pixel); font-weight: 400; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 8px; }
+.toc a { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px dashed #0003; color: #222; }
+.toc a:hover { background: var(--yellow); }
+.cta { margin-top: 56px; background: var(--lime); border: 2px solid #111; box-shadow: 8px 8px 0 #111; padding: 28px 28px 30px; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; right: -40px; top: -30px; width: 200px; height: 120px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 12px, transparent 12px 24px); transform: rotate(-4deg); }
+.cta h2 { border: 0; margin: 0 0 8px; padding: 0; font-size: 30px; position: relative; z-index: 1; }
+.cta h2::before { content: none; }
+.cta p { margin: 0 0 18px; max-width: 520px; font-weight: 600; position: relative; z-index: 1; }
+.btn { display: inline-flex; gap: 8px; padding: 12px 20px; font-weight: 800; text-decoration: none; border: 2px solid #111; margin: 0 10px 10px 0; position: relative; z-index: 1; }
+.btn:hover { box-shadow: 5px 5px 0 #111; transform: translate(-2px, -2px); }
+.btn-ink { background: #111; color: #fff; }
+.btn-ghost { background: #fff; color: #111; }
+.more { border-top: 2px solid #111; background: #fff; padding: 48px 0 60px; }
+.more h2 { font-family: var(--pixel); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; margin: 0 0 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+.cards a { display: block; text-decoration: none; background: var(--bg); border: 2px solid #111; box-shadow: 5px 5px 0 #111; padding: 16px 18px; }
+.cards a:hover { background: var(--yellow); }
+.cards b { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; }
+.cards span { display: block; margin-top: 6px; font-size: 14px; color: #444; line-height: 1.5; }
+.site-footer { background: #111; color: #aaa; padding: 30px 0 40px; font-family: var(--mono); font-size: 12.5px; }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.site-footer a { color: #ddd; text-decoration: none; margin-left: 16px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="badge" href="../../../zh/">nestwork</a>
+    <nav class="nav" aria-label="文章">
+      <a href="../">文章</a>
+      <a href="https://songth1ef.github.io/nestwork/articles/agents-md-vs-claude-md-vs-memory/" hreflang="en" data-lang-switch="en">EN</a>
+      <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="art-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="../../../zh/">首页</a> / <a href="../">文章</a> /</p>
+      <h1>AGENTS.md 和 CLAUDE.md 区别，记忆该放哪</h1>
+      <div class="art-meta"><span class="kind">指南</span><span>4 分钟阅读</span><span>更新于 2026-09-27</span></div>
+    </div>
+  </div>
+  <div class="wrap layout">
+    <article class="prose">
+<p><code>AGENTS.md</code> 和 <code>CLAUDE.md</code> 都是"你来写、agent 在会话开始时读"的指令文件，区别在于谁读：<code>AGENTS.md</code> 是开放格式，Codex、Cursor、Jules 等众多工具都读；<code>CLAUDE.md</code> 是 Claude Code 自己的文件——而新版 Claude Code 在没有 <code>CLAUDE.md</code> 时也会读 <code>AGENTS.md</code>。记忆是第三种东西：agent 给自己记的笔记，在 Claude Code 和 Codex 里都只留在本机。规则放指令文件，agent 学到的东西交给记忆，并且只保留一个真源，免得几份文件各自漂移。</p>
+<h2 id="三类文件-三个主人">三类文件，三个主人</h2>
+<p>按"谁写、要传多远"给 agent 的上下文分个类：</p>
+<div class="table-wrap"><table><thead><tr><th>类别</th><th>例子</th><th>谁写</th><th>作用范围</th><th>靠什么传播</th></tr></thead><tbody><tr><td>仓库级指令</td><td>仓库里的 <code>AGENTS.md</code>、<code>CLAUDE.md</code></td><td>你和团队</td><td>单个项目</td><td>版本控制</td></tr><tr><td>用户级指令</td><td><code>~/.claude/CLAUDE.md</code>、<code>~/.codex/AGENTS.md</code>、<code>~/.gemini/GEMINI.md</code></td><td>你</td><td>这台机器上你的所有项目</td><td>默认不传播</td></tr><tr><td>工具记忆</td><td><code>~/.claude/projects/&lt;project&gt;/memory/</code>、<code>~/.codex/memories/</code></td><td>agent</td><td>一台机器上的一个工具</td><td>默认不传播</td></tr></tbody></table></div>
+<p>只有仓库级指令天然"走得动"：它跟代码一起提交。用户级指令和工具记忆都在你的 home 目录里，只留在有它们的那台机器上。</p>
+<h2 id="各工具读哪个文件">各工具读哪个文件</h2>
+<div class="table-wrap"><table><thead><tr><th>工具</th><th>仓库级文件</th><th>用户级文件</th><th>内置记忆</th></tr></thead><tbody><tr><td>Claude Code</td><td><code>CLAUDE.md</code>、<code>.claude/CLAUDE.md</code>、<code>CLAUDE.local.md</code>；没有 <code>CLAUDE.md</code> 时读 <code>AGENTS.md</code></td><td><code>~/.claude/CLAUDE.md</code></td><td>auto memory，位于 <code>~/.claude/projects/&lt;project&gt;/memory/</code></td></tr><tr><td>Codex CLI</td><td><code>AGENTS.override.md</code> 或 <code>AGENTS.md</code>，从 git 根目录一路到当前目录</td><td><code>~/.codex/AGENTS.md</code>（或 <code>AGENTS.override.md</code>）</td><td><code>~/.codex/memories/</code></td></tr><tr><td>Gemini CLI</td><td>默认 <code>GEMINI.md</code>；可用 <code>context.fileName</code> 加上 <code>AGENTS.md</code></td><td><code>~/.gemini/GEMINI.md</code></td><td>—</td></tr><tr><td>Cursor、Jules、Copilot coding agent 等</td><td><code>AGENTS.md</code></td><td>因工具而异</td><td>因工具而异</td></tr></tbody></table></div>
+<p>来源：<a href="https://code.claude.com/docs/en/memory" rel="noopener">Claude Code 记忆文档</a>、<a href="https://learn.chatgpt.com/docs/agent-configuration/agents-md" rel="noopener">Codex AGENTS.md 指南</a>、<a href="https://geminicli.com/docs/cli/gemini-md/" rel="noopener">Gemini CLI GEMINI.md 文档</a>、<a href="https://agents.md/" rel="noopener">agents.md</a>。</p>
+<p>实践中有几个细节要注意：</p>
+<ul><li><strong>Codex 有总大小上限。</strong> 它从根往下拼接文件，每个目录最多一个，拼到 <code>project_doc_max_bytes</code>（默认 32 KiB）就停。离当前目录越近的文件越靠后，因而优先。</li><li><strong>Claude Code 是拼接而不是覆盖。</strong> 从文件系统根到工作目录的所有 <code>CLAUDE.md</code> 都会加载，根目录的在前。Anthropic 建议每个文件控制在 200 行以内。</li><li><strong>AGENTS.md 由 Linux 基金会旗下的 Agentic AI Foundation 维护</strong>，官网称已有超过 6 万个开源项目使用。嵌套文件只有一条规则：离被编辑文件最近的 <code>AGENTS.md</code> 生效。</li></ul>
+<h2 id="claude-code-怎么在-agents-md-和-claude-md-之间取舍">Claude Code 怎么在 AGENTS.md 和 CLAUDE.md 之间取舍</h2>
+<p>从 v2.1.277 起，Claude Code 能直接读 <code>AGENTS.md</code>。默认行为（<code>claude-md-or-agents-md</code>）是：</p>
+<div class="table-wrap"><table><thead><tr><th>仓库里有</th><th>Claude 读</th></tr></thead><tbody><tr><td><code>AGENTS.md</code>，且工作目录及以上没有 <code>CLAUDE.md</code> 或 <code>CLAUDE.local.md</code></td><td><code>AGENTS.md</code></td></tr><tr><td><code>AGENTS.md</code>，同时有 <code>CLAUDE.md</code> 或 <code>CLAUDE.local.md</code></td><td>只读 <code>CLAUDE.md</code> 系列</td></tr><tr><td><code>CLAUDE.md</code> 里写了 <code>@AGENTS.md</code> 导入</td><td><code>CLAUDE.md</code>，并通过导入带上 <code>AGENTS.md</code></td></tr></tbody></table></div>
+<p>由此有两个坑。在一个依赖 <code>AGENTS.md</code> 的项目里加一个个人用的 <code>CLAUDE.local.md</code>，Claude 就会悄悄不再替你读 <code>AGENTS.md</code>。另外，用户级的 <code>~/.claude/CLAUDE.md</code> 不参与这个判断——它总是一起加载。想改默认行为，可以调 <strong>Project instructions</strong> 设置，比如设为 <code>claude-md-and-agents-md</code> 两个都读。</p>
+<h2 id="组合用法-一个真源-薄薄的包装">组合用法：一个真源，薄薄的包装</h2>
+<p>避免漂移的办法是：共享规则只在 <code>AGENTS.md</code> 里写一次，其他文件都做成薄包装。</p>
+<p>对 Claude Code，如果还需要 Claude 专属内容，官方文档推荐用导入：</p>
+<pre class="code"><code data-lang="markdown">@AGENTS.md
+
+## Claude Code
+
+Use plan mode for changes under `src/billing/`.</code></pre>
+<p>软链接（<code>ln -s AGENTS.md CLAUDE.md</code>）也行，但文档提醒：只要有人在 Windows 上 clone，就别用——除非开启 <code>core.symlinks</code>，否则 Git 会把提交的软链接检出成普通文本文件，<code>CLAUDE.md</code> 里只剩一行路径。对 Gemini CLI，在 <code>settings.json</code> 的 <code>context.fileName</code> 里加上 <code>AGENTS.md</code>。</p>
+<p>然后想清楚哪些东西根本不该进这些文件：</p>
+<ul><li><strong>临时任务笔记和聊天记录。</strong> 每次会话都得为它们付 token。</li><li><strong>agent 了解到的关于你的事实。</strong> 那是记忆，变化比规则快得多。</li><li><strong>任何机密。</strong> 指令文件会被提交和共享。</li></ul>
+<p>Codex 文档从另一侧划了同一条线："必须遵守的团队规范放在 <code>AGENTS.md</code> 或已提交的文档里。把记忆当作辅助回忆层，而不是必须始终生效的规则的唯一来源。"</p>
+<h2 id="缺口-能跟着人走的用户级上下文">缺口：能跟着人走的用户级上下文</h2>
+<p>仓库级指令只管一个项目。它管不到的，是属于"你"而不是属于某个仓库的东西——你的偏好、跨项目的教训、你在另一台机器上停下的工作进度。这些落在用户级文件和工具记忆里，而两者都只在一台机器上。Claude Code 文档写得很明白："Auto memory is machine-local … Files are not shared across machines or cloud environments."</p>
+<p>结果就是：四个 home 目录里有四份略有不同的偏好设置，你在笔记本上教给 Claude Code 的规则，台式机上的 Codex 一无所知。</p>
+<h2 id="nestwork-如何把-agents-md-用作启动协议">nestwork 如何把 AGENTS.md 用作启动协议</h2>
+<p><a href="https://github.com/songth1ef/nestwork" rel="noopener">nestwork</a> 的做法是：把用户级上下文搬进一个私有 git 仓库，指令文件只负责"指路"。</p>
+<ol><li><strong>唯一的协议真源。</strong> nest 自己的 <a href="https://github.com/songth1ef/nestwork/blob/main/AGENTS.md" rel="noopener"><code>AGENTS.md</code></a> 是唯一的启动协议来源；nest 里的 <code>CLAUDE.md</code> 是由 <code>scripts/maintenance/sync-claude-md.sh</code> 生成的镜像。之所以用真实文件而不用软链接，是因为不支持软链接的 Windows clone 曾经拿到一个只有 9 字节的坏文件。</li><li><strong>在每个工具的用户级文件里写一个带标记的区块。</strong> 安装脚本把一段简短的启动协议写进 <code>~/.claude/CLAUDE.md</code>、<code>~/.codex/AGENTS.md</code>、<code>~/.gemini/GEMINI.md</code> 等文件，包在 <code>&lt;!-- nestwork:begin --&gt;</code> 和 <code>&lt;!-- nestwork:end --&gt;</code> 之间，你在同一文件里的其他内容原样保留。重跑安装脚本只替换这个区块。</li><li><strong>区块的内容。</strong> pull nest；只读常驻层——<code>queen/agent-rules.md</code>、<code>shared/resident.md</code> 和本 agent 的 <code>resident.md</code>；历史、项目和 workflow 按需检索；记忆只写进本 agent 自己的目录。</li></ol>
+<pre class="code"><code data-lang="text">queen/agent-rules.md &gt; queen/strategy.md &gt; shared/memory.md
+  &gt; agents/*/*/memory.md &gt; projects/*.md &gt; workflow/*.md</code></pre>
+<p>这条优先级链负责裁决冲突，它和加载顺序是两回事：启动时只加载常驻文件，在作者的 nest 上约 640 token，而旧的"全量加载"启动约 69,600 token。</p>
+<p>nestwork 不取代项目自己的 <code>AGENTS.md</code>。它的经验法则是：换了雇主就会变的知识，放进那个仓库自己的文档；换了雇主依然成立的，放进 nest 的 <code>workflow/</code>；帮助 agent 接着干活的项目状态，放进 nest 的 <code>projects/&lt;name&gt;.md</code>。Claude Code 和 Codex 是作者日常主力；Gemini CLI、Kimi Code、Hermes、OpenClaw 的安装脚本也有，但实战检验较少。</p>
+<h2 id="常见问题">常见问题</h2>
+<h3 id="该用-agents-md-还是-claude-md">该用 AGENTS.md 还是 CLAUDE.md？</h3>
+<p>只要仓库会被不止一个工具碰，就以 <code>AGENTS.md</code> 为真源；只有在需要 Claude 专属指令、或某些会话读不到 <code>AGENTS.md</code> 时，再加一个只写 <code>@AGENTS.md</code> 的 <code>CLAUDE.md</code>。如果只用 Claude Code，单一个 <code>CLAUDE.md</code> 就够了。</p>
+<h3 id="agents-md-算记忆吗">AGENTS.md 算记忆吗？</h3>
+<p>通常意义上不算。它是你写、你审的指令；记忆是 agent 自己记录的东西。不过 <code>AGENTS.md</code> 可以告诉 agent 记忆在哪、怎么加载——nestwork 正是这么用它的。</p>
+<h3 id="claude-code-会同时读-agents-md-和-claude-md-吗">Claude Code 会同时读 AGENTS.md 和 CLAUDE.md 吗？</h3>
+<p>默认有 <code>CLAUDE.md</code> 就读 <code>CLAUDE.md</code>，没有才退回 <code>AGENTS.md</code>。想两个都读，在 <code>CLAUDE.md</code> 里导入 <code>@AGENTS.md</code>，或把 Project instructions 设为 <code>claude-md-and-agents-md</code>。</p>
+<h3 id="个人偏好该放哪">个人偏好该放哪？</h3>
+<p>别放进会提交的仓库文件。只在一台机器上用，就放 <code>~/.claude/CLAUDE.md</code> 这类用户级文件；想让它跟着你跨机器、跨工具，就放进 nestwork 仓库这类会同步的存储。</p>
+<h2 id="相关阅读">相关阅读</h2>
+<ul><li><a href="../ai-agent-memory/">AI agent 记忆：四种类型与取舍</a></li><li><a href="../share-memory-claude-code-codex/">在 Claude Code 和 Codex 之间共享记忆</a></li><li><a href="../claude-code-memory-across-machines/">Claude Code 记忆跨机器同步</a></li><li><a href="../codex-cli-persistent-memory/">Codex CLI 持久记忆</a></li><li><a href="../topic-memory-on-demand-loading/">主题记忆与按需加载</a></li></ul>
+      <section class="cta" aria-label="给你的 agent 一份记忆">
+        <h2>给你的 agent 一份记忆</h2>
+        <p>nestwork 把一个私有 git 仓库变成 Claude Code、Codex、Gemini、Kimi 等 agent 共享的长期记忆。</p>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">用模板创建我的记忆仓库 →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ 去 GitHub 点个 Star</a>
+      </section>
+    </article>
+    <aside class="toc" aria-label="本文目录"><b>本文目录</b><a href="#三类文件-三个主人">三类文件，三个主人</a><a href="#各工具读哪个文件">各工具读哪个文件</a><a href="#claude-code-怎么在-agents-md-和-claude-md-之间取舍">Claude Code 怎么在 AGENTS.md 和 CLAUDE.md 之间取舍</a><a href="#组合用法-一个真源-薄薄的包装">组合用法：一个真源，薄薄的包装</a><a href="#缺口-能跟着人走的用户级上下文">缺口：能跟着人走的用户级上下文</a><a href="#nestwork-如何把-agents-md-用作启动协议">nestwork 如何把 AGENTS.md 用作启动协议</a><a href="#常见问题">常见问题</a><a href="#相关阅读">相关阅读</a></aside>
+  </div>
+  <section class="more" aria-label="全部文章">
+    <div class="wrap">
+      <h2>全部文章 →</h2>
+      <div class="cards"><a href="../ai-agent-memory/"><b>AI agent 记忆：四种类型与取舍</b><span>AI agent 记忆是智能体在单次会话之外还能依赖的上下文。对比上下文窗口、工具内置记忆、向量检索服务和文件式记忆，以及编码 agent 的特殊需求。</span></a><a href="../claude-code-memory-across-machines/"><b>Claude Code 记忆跨设备同步：用 git 实现</b><span>Claude Code 的 CLAUDE.md 和 auto memory 都只在本机。本文讲清它们存在哪、为什么换电脑就没了，以及怎样用 git 跨设备同步。</span></a><a href="../share-memory-claude-code-codex/"><b>Claude Code 和 Codex 共享记忆的做法</b><span>Claude Code 读 CLAUDE.md，Codex 读 AGENTS.md。让两者指向同一个私有 git 仓库，就能共享记忆，且各写各的目录。</span></a><a href="../codex-cli-persistent-memory/"><b>Codex 记忆与 AGENTS.md：Codex 长期记忆</b><span>Codex CLI 现有的记忆方式（AGENTS.md 与默认关闭的本地 memories），以及如何用 git 给 Codex 加跨会话、跨机器的长期记忆。</span></a><a href="../agent-memory-tools-compared/"><b>agent 记忆工具对比：Mem0、Letta、Zep 等</b><span>从架构、部署方式、数据归属和适用场景，对比 Mem0、Letta、Zep、Supermemory、claude-mem、工具内置记忆和 nestwork。</span></a><a href="../agent-memory-benchmarks/"><b>记忆基准测试：LoCoMo、LongMemEval、BEAM</b><span>LoCoMo、LongMemEval、BEAM 各测什么、LLM 裁判怎么打分、厂商分数为何不能横比，以及编码 agent 该看哪些指标。</span></a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span>nestwork — AI agent memory, git-native.</span>
+    <span><a href="../../../zh/">首页</a><a href="../">文章</a><a href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-lang-switch]').forEach(function (a) {
+  a.addEventListener('click', function () { try { localStorage.setItem('nestwork_lang', a.getAttribute('data-lang-switch')); } catch (e) {} });
+});
+</script>
+</body>
+</html>

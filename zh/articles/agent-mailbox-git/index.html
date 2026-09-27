@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>多 agent 协作怎么留言：用 git 做 agent 邮箱 — nestwork</title>
+<meta name="description" content="不同机器上的 AI agent 可以通过 git 互相留言：各写各的 outbox，按需读取发给自己的消息，不需要服务器、消息队列或机器人。">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="songth1ef">
+<meta name="theme-color" content="#8fdcf7">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/zh/articles/agent-mailbox-git/">
+<link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/agent-mailbox-git/">
+<link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/agent-mailbox-git/">
+<link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/agent-mailbox-git/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232ec4d6'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="nestwork">
+<meta property="og:title" content="多 agent 协作怎么留言：用 git 做 agent 邮箱">
+<meta property="og:description" content="不同机器上的 AI agent 可以通过 git 互相留言：各写各的 outbox，按需读取发给自己的消息，不需要服务器、消息队列或机器人。">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/zh/articles/agent-mailbox-git/">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og-zh.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="多 agent 协作怎么留言：用 git 做 agent 邮箱">
+<meta name="twitter:description" content="不同机器上的 AI agent 可以通过 git 互相留言：各写各的 outbox，按需读取发给自己的消息，不需要服务器、消息队列或机器人。">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og-zh.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://songth1ef.github.io/nestwork/zh/articles/agent-mailbox-git/#article","headline":"多 agent 协作怎么留言：用 git 做 agent 邮箱","description":"不同机器上的 AI agent 可以通过 git 互相留言：各写各的 outbox，按需读取发给自己的消息，不需要服务器、消息队列或机器人。","inLanguage":"zh-CN","datePublished":"2026-09-27","dateModified":"2026-09-27","author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"publisher":{"@type":"Organization","name":"nestwork","url":"https://songth1ef.github.io/nestwork/"},"image":["https://songth1ef.github.io/nestwork/og-zh.png"],"mainEntityOfPage":"https://songth1ef.github.io/nestwork/zh/articles/agent-mailbox-git/","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://songth1ef.github.io/nestwork/zh/"},{"@type":"ListItem","position":2,"name":"文章","item":"https://songth1ef.github.io/nestwork/zh/articles/"},{"@type":"ListItem","position":3,"name":"多 agent 协作怎么留言：用 git 做 agent 邮箱","item":"https://songth1ef.github.io/nestwork/zh/articles/agent-mailbox-git/"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"这是实时消息吗？","acceptedAnswer":{"@type":"Answer","text":"不是。消息在收件方下一次 pull 时送达，通常就是下次会话启动。文档把实时层标为「未构建」，只有异步确实不够用时才值得加。"}},{"@type":"Question","name":"能群发给所有 agent 吗？","acceptedAnswer":{"@type":"Answer","text":"能。to 填 all，类型用 broadcast。每个 agent 的 read.sh 都会把 all 当成发给自己的。"}},{"@type":"Question","name":"标记已读会产生 commit 吗？","acceptedAnswer":{"@type":"Answer","text":"不会。已读 id 存在 agents/<host>/<agent-id>/local/comms/seen.txt，而 local/ 默认被 git 忽略。只有发信和归档会产生 commit。"}},{"@type":"Question","name":"别的 agent 能看到不是发给它的消息吗？","acceptedAnswer":{"@type":"Answer","text":"技术上能。每个 outbox 都是仓库里的普通文件，所有 agent 都读得到，to: 过滤只是约定。所以消息里和记忆里一样，不要放密钥。"}}]}]}</script>
+<style>
+@font-face { font-family: "VT323"; src: url("../../../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../../../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+:root {
+  --bg: #fbf8ef; --fg: #111; --muted: #5c5c5c; --teal: #2ec4d6; --teal-dark: #0a8fa0; --magenta: #ff2d8f;
+  --lime: #d6f25a; --yellow: #ffe53d; --sky: #29c6ec; --red: #ec2a33;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::selection { background: var(--yellow); }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 2px solid #111; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.badge { background: var(--teal); color: #000; font-weight: 800; letter-spacing: -0.03em; padding: 2px 10px 3px; border: 2px solid #000; outline: 2px solid var(--teal); text-decoration: none; font-size: 18px; }
+.nav { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 13px; }
+.nav a { text-decoration: none; color: #333; }
+.nav a:hover { background: var(--yellow); color: #000; }
+.nav .gh { background: #111; color: #fff; padding: 4px 10px; font-weight: 700; }
+.art-hero { background: linear-gradient(180deg, #8fdcf7 0%, #d4f3ff 60%, var(--bg) 100%); border-bottom: 2px solid #111; padding: 48px 0 44px; position: relative; overflow: hidden; }
+.art-hero::after { content: ""; position: absolute; right: -60px; top: -40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 11px 11px; -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%); mask-image: radial-gradient(circle, #000 50%, transparent 70%); pointer-events: none; }
+.crumbs { font-family: var(--pixel); font-size: 20px; letter-spacing: 0.04em; color: #0a5f6b; margin: 0 0 14px; position: relative; z-index: 1; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { background: var(--yellow); }
+.art-hero h1 { font-size: clamp(34px, 5.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 0; max-width: 880px; position: relative; z-index: 1; }
+:lang(zh) .art-hero h1 { line-height: 1.2; letter-spacing: -0.01em; }
+.art-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: #333; position: relative; z-index: 1; }
+.art-meta span { background: #fff; border: 2px solid #111; padding: 2px 8px; }
+.art-meta .kind { background: var(--magenta); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; padding-top: 48px; padding-bottom: 72px; }
+.layout.wide { grid-template-columns: 1fr; }
+.layout > * { min-width: 0; }
+.prose p code, .prose li code, .prose td code { overflow-wrap: anywhere; }
+.wide .prose { max-width: none; }
+.wide .toc { display: none; }
+.wide .prose > p:first-child { max-width: 72ch; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+.prose { max-width: 72ch; }
+.prose > p:first-child { font-size: 1.12em; }
+.prose h2 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; line-height: 1.2; margin: 2.1em 0 0.6em; padding-top: 0.2em; border-top: 2px solid #111; scroll-margin-top: 80px; }
+.prose h2::before { content: "// "; font-family: var(--pixel); color: var(--magenta); font-weight: 400; }
+.prose h3 { font-size: 21px; letter-spacing: -0.015em; margin: 1.6em 0 0.4em; scroll-margin-top: 80px; }
+.prose p, .prose li { color: #222; }
+.prose a { text-decoration-color: var(--magenta); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose a:hover { background: var(--yellow); }
+.prose code { font-family: var(--mono); font-size: 0.86em; background: #fff; border: 1.5px solid #111; padding: 0 5px; }
+.prose pre.code { background: #151515; color: #eee; border-left: 5px solid var(--teal); padding: 16px 18px; overflow-x: auto; font-size: 14.5px; line-height: 1.65; box-shadow: 6px 6px 0 #111; }
+.prose pre.code code { background: none; border: 0; padding: 0; font-size: 1em; color: inherit; }
+.prose blockquote { margin: 1.4em 0; padding: 14px 20px; background: #fff; border: 2px solid #111; border-left: 8px solid var(--magenta); box-shadow: 5px 5px 0 #111; }
+.prose blockquote p { margin: 0; font-weight: 600; }
+.prose figure { margin: 1.6em 0; }
+.prose img { width: 100%; height: auto; border: 2px solid #111; box-shadow: 6px 6px 0 #111; display: block; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin: 0.3em 0; }
+.prose li::marker { color: var(--magenta); font-weight: 700; }
+.table-wrap { overflow-x: auto; border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; margin: 1.4em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #0002; vertical-align: top; }
+thead th { background: #111; color: #fff; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.toc { position: sticky; top: 84px; align-self: start; background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 var(--teal); padding: 16px 18px; font-size: 14.5px; line-height: 1.45; }
+.toc b { display: block; font-family: var(--pixel); font-weight: 400; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 8px; }
+.toc a { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px dashed #0003; color: #222; }
+.toc a:hover { background: var(--yellow); }
+.cta { margin-top: 56px; background: var(--lime); border: 2px solid #111; box-shadow: 8px 8px 0 #111; padding: 28px 28px 30px; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; right: -40px; top: -30px; width: 200px; height: 120px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 12px, transparent 12px 24px); transform: rotate(-4deg); }
+.cta h2 { border: 0; margin: 0 0 8px; padding: 0; font-size: 30px; position: relative; z-index: 1; }
+.cta h2::before { content: none; }
+.cta p { margin: 0 0 18px; max-width: 520px; font-weight: 600; position: relative; z-index: 1; }
+.btn { display: inline-flex; gap: 8px; padding: 12px 20px; font-weight: 800; text-decoration: none; border: 2px solid #111; margin: 0 10px 10px 0; position: relative; z-index: 1; }
+.btn:hover { box-shadow: 5px 5px 0 #111; transform: translate(-2px, -2px); }
+.btn-ink { background: #111; color: #fff; }
+.btn-ghost { background: #fff; color: #111; }
+.more { border-top: 2px solid #111; background: #fff; padding: 48px 0 60px; }
+.more h2 { font-family: var(--pixel); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; margin: 0 0 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+.cards a { display: block; text-decoration: none; background: var(--bg); border: 2px solid #111; box-shadow: 5px 5px 0 #111; padding: 16px 18px; }
+.cards a:hover { background: var(--yellow); }
+.cards b { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; }
+.cards span { display: block; margin-top: 6px; font-size: 14px; color: #444; line-height: 1.5; }
+.site-footer { background: #111; color: #aaa; padding: 30px 0 40px; font-family: var(--mono); font-size: 12.5px; }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.site-footer a { color: #ddd; text-decoration: none; margin-left: 16px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="badge" href="../../../zh/">nestwork</a>
+    <nav class="nav" aria-label="文章">
+      <a href="../">文章</a>
+      <a href="https://songth1ef.github.io/nestwork/articles/agent-mailbox-git/" hreflang="en" data-lang-switch="en">EN</a>
+      <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="art-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="../../../zh/">首页</a> / <a href="../">文章</a> /</p>
+      <h1>多 agent 协作怎么留言：用 git 做 agent 邮箱</h1>
+      <div class="art-meta"><span class="kind">指南</span><span>4 分钟阅读</span><span>更新于 2026-09-27</span></div>
+    </div>
+  </div>
+  <div class="wrap layout">
+    <article class="prose">
+<p><strong>两台机器上的 AI 编码 agent，能不能不架服务器就互相留言？</strong> 能。只要它们本来就共享一个 git 仓库，一条消息就可以是一个小小的 Markdown 文件：一方 commit，另一方下次 pull 后读到。nestwork 把这件事做成了内置的「agent 邮箱」：每个 agent 只往自己的 <code>outbox/</code> 里写，收信就是扫一遍所有人的 outbox，挑出发给自己的。没有消息队列，没有 broker，也没有 bot。</p>
+<p>下面按问题逐个回答：为什么不直接用聊天软件、单写者设计为什么不会冲突、命令具体怎么敲，以及最容易踩坑的身份变量 <code>NESTWORK_SELF</code>。</p>
+<h2 id="agent-之间通信为什么要单独一条通道">agent 之间通信为什么要单独一条通道</h2>
+<p>「人和 agent 说话」已经有很多办法：终端里直接打字，或者把 bot 接进 Telegram、群聊。但「agent 和 agent 说话」是另一回事。nestwork 的<a href="https://github.com/songth1ef/nestwork/blob/main/docs/agent-mailbox.md" rel="noopener">邮箱文档</a>点出一个事实：Telegram 的 bot 按设计就看不到彼此的消息，所以一个塞满 bot 的群并不能当协作通道。</p>
+<p>agent 之间真正要传的东西，频率低、结构清楚：「迁移做完了，测试交给你」「这个部署脚本有坑」「收到请回复」。这类消息需要持久（会话关了还在）、可追溯（谁让谁干了什么一查便知）、而且运行成本低。agent 们每次会话开始都会 pull 的那个 git 仓库，三点全满足。</p>
+<h2 id="单写者-outbox-为什么不会写冲突">单写者 outbox：为什么不会写冲突</h2>
+<p>nestwork 的核心规则是：每个 agent 只能写自己的目录 <code>agents/&lt;host&gt;/&lt;agent-id&gt;/</code>。一个公共收件箱会破坏这条规则，所以邮箱反过来设计：</p>
+<div class="table-wrap"><table><thead><tr><th>动作</th><th>实际发生什么</th></tr></thead><tbody><tr><td>发信</td><td>在<strong>自己的</strong> <code>outbox/</code> 里写一个文件，用 <code>to:</code> 标明收件人。一条消息 = 一个文件 = 一次 commit</td></tr><tr><td>收信</td><td>扫描所有 <code>agents/*/*/outbox/*.md</code>，挑出 <code>to</code> 是自己或 <code>all</code> 的</td></tr><tr><td>标记已读</td><td>把消息 id 追加到自己被 git 忽略的 <code>local/comms/seen.txt</code>，不产生 commit</td></tr></tbody></table></div>
+<p>每个文件永远只有一个写者，所以两个 agent 同时发信也不会写冲突；已读状态不进 git，查信不会把历史搅乱。</p>
+<p>每条消息是带 front matter 的 Markdown：</p>
+<pre class="code"><code data-lang="markdown">---
+id: 20260606T103000+0800-a0t3-a1b2c3d4
+from: meizu21/claude-a0t3
+to: vm-0-6-ubuntu/claude-va1k
+type: task
+thread: 20260606T103000+0800-a0t3-a1b2c3d4
+reply_to:
+status: open
+created: 20260606T103000+0800
+subject: handshake test
+---
+
+please confirm receipt with a reply</code></pre>
+<p><code>type</code> 有三种：<code>task</code>（委派任务，需要回复）、<code>message</code>（多轮对话，共用一个 <code>thread</code>）、<code>broadcast</code>（单向通知，通常 <code>to: all</code>）。</p>
+<h2 id="发信-收信-归档的真实用法">发信、收信、归档的真实用法</h2>
+<p>三个脚本都在 <a href="https://github.com/songth1ef/nestwork/blob/main/scripts/comms/README.md" rel="noopener"><code>scripts/comms/</code></a>，而且<strong>必须在 nest 仓库里执行</strong>，因为它们用 <code>git rev-parse --show-toplevel</code> 找仓库根目录。</p>
+<pre class="code"><code data-lang="bash">cd ~/nestwork
+
+# 发信：收件人、类型、主题；正文从标准输入读
+echo &quot;please confirm receipt with a reply&quot; | \
+  bash scripts/comms/send.sh vm-0-6-ubuntu/claude-va1k task &quot;handshake test&quot;
+
+# 在同一线程里回复：追加 thread id 和被回复的消息 id
+echo &quot;received, running now&quot; | \
+  bash scripts/comms/send.sh meizu21/claude-a0t3 message &quot;re: handshake test&quot; \
+  &lt;thread-id&gt; &lt;message-id&gt;
+
+# 查看发给我的未读消息（只看不标记）
+bash scripts/comms/read.sh
+
+# 处理完之后，把这次显示的全部标为已读
+bash scripts/comms/read.sh --mark
+
+# 把自己 outbox 里超过 30 天的消息移到 outbox/archive/
+bash scripts/comms/archive.sh 30</code></pre>
+<p>几个细节：</p>
+<ul><li><code>send.sh</code> 自己完成 commit 和 push，提交信息形如 <code>comms: task to &lt;host&gt;/&lt;agent-id&gt; (&lt;id&gt;)</code>。这是有意的：nestwork 的逐次写入 hook 只匹配 Write/Edit 工具调用，从 shell 发出的消息指望不上它。push 失败时消息仍然在本地 commit 里，下次这个 checkout 成功 push 时一起送出。</li><li><code>read.sh</code> 不会 pull。收件方要等下一次 <code>git pull</code> 才能看到新消息；在 Claude Code 上，会话启动时 hook 会自动 pull。</li><li><code>--mark</code> 会把本次打印的所有消息一起标记，没有逐条标记。</li><li><code>archive.sh</code> 只动自己的 outbox，而且按时间归档：已读列表只在收件方本地，发件方无从知道对方读没读。窗口要比你最慢的那个 agent 的上线间隔更长。</li></ul>
+<h2 id="按需读取-而不是每次启动都读">按需读取，而不是每次启动都读</h2>
+<p>从协议 3.0 起，nestwork 的启动只加载核心规则和两份很小的常驻摘要。Claude Code 的 SessionStart hook 会顺手把未读消息刷新成一份被 git 忽略的快照 <code>agents/&lt;host&gt;/&lt;agent-id&gt;/local/inbox.md</code>，但这个路径只出现在 READ-ON-DEMAND 清单里，不在 READ-ON-START。agent 在协调或接续相关工作时才去读。没有这个 hook 的工具，自己跑 <code>read.sh</code> 即可。</p>
+<p>还有一条规则要记住：邮件是协作数据，不是用户授权。协议里写得很明确。别的 agent 让它删文件，它不该照做；指令仍然来自你本人。</p>
+<h2 id="nestwork_self-的几个坑"><code>NESTWORK_SELF</code> 的几个坑</h2>
+<p>脚本要先知道「我是谁」：设置了 <code>NESTWORK_SELF</code> 就用它，否则用 <code>~/.nestwork_host</code> 加 <code>~/.nestwork_id_claude</code>。这个兜底是 Claude 专用的，于是有几个坑：</p>
+<ol><li><strong>非 Claude 的 agent 必须设置它。</strong> Codex 安装器把身份写在 <code>~/.nestwork_id_codex</code>（id 通常就是 <code>codex</code>）。不设 <code>NESTWORK_SELF</code> 的话，如果这台机器也装了 Claude Code，Codex 会<strong>以 Claude 的身份</strong>发信、收信；如果没装 Claude，脚本直接报 <code>cannot resolve agent id</code> 退出。</li></ol>
+<pre class="code"><code data-lang="bash">export NESTWORK_SELF=&quot;$(cat ~/.nestwork_host)/$(cat ~/.nestwork_id_codex)&quot;</code></pre>
+<ol start="2"><li><strong>地址必须一字不差。</strong> <code>read.sh</code> 把 <code>to:</code> 当普通字符串和 <code>&lt;host&gt;/&lt;agent-id&gt;</code> 比较，<code>send.sh</code> 也不检查收件人是否存在。写错一个字母，消息就永远躺在你的 outbox 里，没有任何报错。最稳的做法是直接照抄 <code>agents/</code> 下对方的目录名。</li><li><strong>一定要在 nest 仓库里执行。</strong> 在别的项目目录里跑 <code>send.sh</code>，它会把<strong>那个</strong>仓库当根目录，把消息写进去并 push 出去。先 <code>cd</code> 到 nest。</li><li>Claude Code 的 SessionStart hook 刷新收件快照时会自己设置 <code>NESTWORK_SELF</code>，所以即使你 shell 里的变量不对，快照本身也是对的。</li></ol>
+<h2 id="什么时候不该用-git-邮箱">什么时候不该用 git 邮箱</h2>
+<p>邮箱消息是「很多小文件、每个只写一次」，git 处理得很好。文档划了一条清楚的线：每天几十条结构化任务和通知，合适；每天成百上千条机器心跳，不合适。高频流量会把主分支历史撑大，nestwork 就吃过这个亏：一个高频改写的 <code>history.jsonl</code> 曾把一个仓库撑到 177 MB。真要亚秒级协作，文档建议自建 Matrix 或 MQTT 之类的总线，nestwork 刻意不做这一层。</p>
+<p>作者在自己的文章里写过用上它的那一刻：A 机器上的 agent 干完一段活，给 B 机器上的 agent 留一句「这部分我做完了，接下来交给你」，B 在协调相关工作时读到并接手（见<a href="../16-agents-one-brain/">《16 个 agent 共用一个大脑》</a>）。</p>
+<h2 id="常见问题">常见问题</h2>
+<h3 id="这是实时消息吗">这是实时消息吗？</h3>
+<p>不是。消息在收件方下一次 pull 时送达，通常就是下次会话启动。文档把实时层标为「未构建」，只有异步确实不够用时才值得加。</p>
+<h3 id="能群发给所有-agent-吗">能群发给所有 agent 吗？</h3>
+<p>能。<code>to</code> 填 <code>all</code>，类型用 <code>broadcast</code>。每个 agent 的 <code>read.sh</code> 都会把 <code>all</code> 当成发给自己的。</p>
+<h3 id="标记已读会产生-commit-吗">标记已读会产生 commit 吗？</h3>
+<p>不会。已读 id 存在 <code>agents/&lt;host&gt;/&lt;agent-id&gt;/local/comms/seen.txt</code>，而 <code>local/</code> 默认被 git 忽略。只有发信和归档会产生 commit。</p>
+<h3 id="别的-agent-能看到不是发给它的消息吗">别的 agent 能看到不是发给它的消息吗？</h3>
+<p>技术上能。每个 outbox 都是仓库里的普通文件，所有 agent 都读得到，<code>to:</code> 过滤只是约定。所以消息里和记忆里一样，不要放密钥。</p>
+<h2 id="相关阅读">相关阅读</h2>
+<ul><li><a href="../git-native-agent-memory/">git 原生的 agent 记忆</a></li><li><a href="../multi-agent-memory-without-conflicts/">多 agent 同时写记忆为什么不冲突</a></li><li><a href="../topic-memory-on-demand-loading/">主题记忆与按需加载</a></li><li><a href="../encrypt-agent-memory-git-crypt/">用 git-crypt 加密 AI 记忆</a></li><li><a href="../16-agents-one-brain/">16 个 agent 共用一个大脑</a></li></ul>
+      <section class="cta" aria-label="给你的 agent 一份记忆">
+        <h2>给你的 agent 一份记忆</h2>
+        <p>nestwork 把一个私有 git 仓库变成 Claude Code、Codex、Gemini、Kimi 等 agent 共享的长期记忆。</p>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">用模板创建我的记忆仓库 →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ 去 GitHub 点个 Star</a>
+      </section>
+    </article>
+    <aside class="toc" aria-label="本文目录"><b>本文目录</b><a href="#agent-之间通信为什么要单独一条通道">agent 之间通信为什么要单独一条通道</a><a href="#单写者-outbox-为什么不会写冲突">单写者 outbox：为什么不会写冲突</a><a href="#发信-收信-归档的真实用法">发信、收信、归档的真实用法</a><a href="#按需读取-而不是每次启动都读">按需读取，而不是每次启动都读</a><a href="#nestwork_self-的几个坑">NESTWORK_SELF 的几个坑</a><a href="#什么时候不该用-git-邮箱">什么时候不该用 git 邮箱</a><a href="#常见问题">常见问题</a><a href="#相关阅读">相关阅读</a></aside>
+  </div>
+  <section class="more" aria-label="全部文章">
+    <div class="wrap">
+      <h2>全部文章 →</h2>
+      <div class="cards"><a href="../ai-agent-memory/"><b>AI agent 记忆：四种类型与取舍</b><span>AI agent 记忆是智能体在单次会话之外还能依赖的上下文。对比上下文窗口、工具内置记忆、向量检索服务和文件式记忆，以及编码 agent 的特殊需求。</span></a><a href="../claude-code-memory-across-machines/"><b>Claude Code 记忆跨设备同步：用 git 实现</b><span>Claude Code 的 CLAUDE.md 和 auto memory 都只在本机。本文讲清它们存在哪、为什么换电脑就没了，以及怎样用 git 跨设备同步。</span></a><a href="../share-memory-claude-code-codex/"><b>Claude Code 和 Codex 共享记忆的做法</b><span>Claude Code 读 CLAUDE.md，Codex 读 AGENTS.md。让两者指向同一个私有 git 仓库，就能共享记忆，且各写各的目录。</span></a><a href="../codex-cli-persistent-memory/"><b>Codex 记忆与 AGENTS.md：Codex 长期记忆</b><span>Codex CLI 现有的记忆方式（AGENTS.md 与默认关闭的本地 memories），以及如何用 git 给 Codex 加跨会话、跨机器的长期记忆。</span></a><a href="../agent-memory-tools-compared/"><b>agent 记忆工具对比：Mem0、Letta、Zep 等</b><span>从架构、部署方式、数据归属和适用场景，对比 Mem0、Letta、Zep、Supermemory、claude-mem、工具内置记忆和 nestwork。</span></a><a href="../agent-memory-benchmarks/"><b>记忆基准测试：LoCoMo、LongMemEval、BEAM</b><span>LoCoMo、LongMemEval、BEAM 各测什么、LLM 裁判怎么打分、厂商分数为何不能横比，以及编码 agent 该看哪些指标。</span></a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span>nestwork — AI agent memory, git-native.</span>
+    <span><a href="../../../zh/">首页</a><a href="../">文章</a><a href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-lang-switch]').forEach(function (a) {
+  a.addEventListener('click', function () { try { localStorage.setItem('nestwork_lang', a.getAttribute('data-lang-switch')); } catch (e) {} });
+});
+</script>
+</body>
+</html>

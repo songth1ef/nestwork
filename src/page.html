@@ -40,24 +40,29 @@
 })();
 </script>
 <style>
+@font-face { font-family: "VT323"; src: url("{{asset}}fonts/vt323-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("{{asset}}fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("{{asset}}fonts/inter-tight-latin-700-normal.woff2") format("woff2"); font-weight: 700; font-display: swap; }
 :root {
-  color-scheme: dark;
-  --bg: #000;
-  --fg: #f2f2f2;
-  --muted: #9a9a9a;
-  --line: #1e1e1e;
-  --teal: #3fb6c4;
-  --teal-line: #5fd3d9;
-  --teal-dim: rgba(63, 182, 196, 0.22);
-  --red: #e0242b;
-  --lime: #d3ee6a;
+  color-scheme: light;
+  --bg: #fbf8ef;
+  --fg: #111;
+  --muted: #5c5c5c;
+  --line: rgba(0, 0, 0, 0.12);
+  --teal: #2ec4d6;
+  --teal-line: #0a8fa0;
+  --teal-dim: rgba(10, 143, 160, 0.22);
+  --red: #ec2a33;
+  --lime: #d6f25a;
   --magenta: #ff2d8f;
-  --yellow: #f4f24a;
+  --yellow: #ffe53d;
   --sky: #29c6ec;
-  --purple: #c94fe6;
-  --paper: #f4f4f0;
-  --ink: #0a0a0a;
-  --sans: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --purple: #b25cf0;
+  --paper: #fbf8ef;
+  --ink: #111;
+  --white: #fff;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
   --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
 }
 *, *::before, *::after { box-sizing: border-box; }
@@ -446,8 +451,325 @@ td.us { background: rgba(63, 182, 196, 0.08); color: #fff; font-weight: 600; }
 .site-footer a { color: #b5b5b5; text-decoration: none; margin-left: 18px; }
 .site-footer a:hover { color: var(--teal-line); }
 
+
+/* ---------- texture ---------- */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 3px);
+  mix-blend-mode: multiply;
+  opacity: 0.35;
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: -50%;
+  z-index: 201;
+  pointer-events: none;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain 1.2s steps(4) infinite;
+}
+@keyframes grain { 25% { transform: translate(-3%, 2%); } 50% { transform: translate(2%, -3%); } 75% { transform: translate(-2%, -2%); } }
+.px { display: block; shape-rendering: crispEdges; }
+
+/* ---------- hero v2 ---------- */
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 32px; align-items: center; }
+@media (max-width: 980px) { .hero-grid { grid-template-columns: 1fr; } }
+.hero .mega { font-size: clamp(56px, 9.6vw, 138px); }
+.hl-m { background: var(--magenta); color: #000; padding: 0 0.08em; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.hl-m.glitch::before { color: var(--yellow); }
+.hl-m.glitch::after { color: var(--sky); }
+.hero-art { position: relative; min-height: 520px; }
+@media (max-width: 980px) { .hero-art { min-height: 440px; margin-top: 12px; } }
+.hero-art svg.net { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.net .route { fill: none; stroke: var(--red); stroke-width: 2; stroke-dasharray: 8 7; animation: route 1.6s linear infinite; }
+.net .route.t { stroke: var(--teal-line); animation-duration: 2.3s; }
+@keyframes route { to { stroke-dashoffset: -30; } }
+.net .dev { fill: none; stroke: #f2f2f2; stroke-width: 2; stroke-linejoin: round; }
+.net .dev-fill { fill: #000; stroke: #f2f2f2; stroke-width: 2; }
+.net .lbl { font-family: var(--pixel); font-size: 17px; fill: #cfcfcf; letter-spacing: 0.04em; }
+.net .ring { fill: none; stroke: var(--teal); stroke-width: 1.5; stroke-dasharray: 3 7; transform-origin: 280px 280px; animation: spin 24s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.net .pulse { fill: none; stroke: var(--teal-line); stroke-width: 2; transform-origin: 280px 280px; animation: pulse 2.4s ease-out infinite; }
+@keyframes pulse { from { transform: scale(0.6); opacity: 0.9; } to { transform: scale(1.8); opacity: 0; } }
+.pcard {
+  position: absolute;
+  width: 214px;
+  background: var(--paper);
+  color: #000;
+  border: 2px solid #000;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.55);
+  font-family: var(--pixel);
+  font-size: 17px;
+  line-height: 1.1;
+  animation: float 6s ease-in-out infinite;
+}
+.pcard .pc-top { display: flex; justify-content: space-between; align-items: center; background: #000; color: var(--paper); padding: 3px 8px 2px; font-size: 16px; letter-spacing: 0.06em; }
+.pcard .pc-top b { background: var(--teal); color: #000; padding: 0 5px; font-weight: 400; }
+.pcard .pc-body { display: grid; grid-template-columns: 58px 1fr; gap: 9px; padding: 9px; }
+.pcard .pc-body .px { width: 58px; height: 58px; border: 2px solid #000; background: #fff; }
+.pcard .pc-rows div { display: flex; justify-content: space-between; border-bottom: 1px solid #0003; padding: 1px 0; }
+.pcard .pc-bars { display: grid; grid-template-columns: 3fr 2fr 1fr; gap: 3px; padding: 0 9px 9px; }
+.pcard .pc-bars i { height: 6px; background: var(--red); }
+.pcard .pc-bars i:nth-child(2) { background: var(--teal); }
+.pcard .pc-bars i:nth-child(3) { background: #000; }
+.pcard.a { left: -6px; top: 18px; transform: rotate(-5deg); }
+.pcard.b { right: -4px; bottom: 26px; transform: rotate(4deg); animation-delay: -3s; }
+@keyframes float { 50% { translate: 0 -10px; } }
+@media (max-width: 520px) { .pcard { width: 180px; font-size: 15px; } .pcard .pc-body { grid-template-columns: 46px 1fr; } .pcard .pc-body .px { width: 46px; height: 46px; } }
+
+/* ---------- ticker ---------- */
+.ticker { background: var(--yellow); color: #000; overflow: hidden; border-top: 2px solid #000; border-bottom: 2px solid #000; }
+.ticker-track { display: flex; width: max-content; animation: ticker 38s linear infinite; }
+.ticker span { font-family: var(--pixel); font-size: 30px; line-height: 1; padding: 12px 0; white-space: nowrap; letter-spacing: 0.04em; }
+.ticker span i { font-style: normal; color: var(--magenta); padding: 0 18px; }
+@keyframes ticker { to { transform: translateX(-50%); } }
+
+/* ---------- paper sections + glyph wall ---------- */
+.section.paper-sec { background: var(--paper); color: var(--ink); overflow: hidden; }
+.paper-sec .kicker { color: #0a7f8c; }
+.paper-sec .lede { color: #2b2b2b; }
+.paper-sec .mega { color: #000; }
+.glyphwall {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  font-family: var(--pixel);
+  font-size: 34px;
+  line-height: 1.05;
+  letter-spacing: 0.5em;
+  word-break: break-all;
+  color: #000;
+  opacity: 0.06;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(100deg, #000 10%, transparent 75%);
+  mask-image: linear-gradient(100deg, #000 10%, transparent 75%);
+}
+.paper-sec .wrap { position: relative; }
+.errcards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; margin-top: 10px; }
+@media (max-width: 1000px) { .errcards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .errcards { grid-template-columns: 1fr; } }
+.errcard { background: #fff; border: 2px solid #000; box-shadow: 7px 7px 0 #000; transition: transform 150ms, box-shadow 150ms; }
+.errcard:nth-child(odd) { transform: rotate(-1.2deg); }
+.errcard:nth-child(even) { transform: rotate(1deg); }
+.errcard:hover { transform: rotate(0) translate(-3px, -3px); box-shadow: 10px 10px 0 var(--magenta); }
+.errcard .ec-top { display: flex; justify-content: space-between; align-items: center; background: #000; color: #fff; padding: 4px 10px 3px; font-family: var(--pixel); font-size: 19px; letter-spacing: 0.06em; }
+.errcard .ec-top b { background: var(--red); color: #fff; padding: 0 6px; font-weight: 400; }
+.errcard .ec-body { padding: 16px 18px 20px; }
+.errcard .ec-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.errcard .ec-head .px { width: 44px; height: 44px; flex: none; border: 2px solid #000; }
+.errcard h3 { font-size: 20px; line-height: 1.2; letter-spacing: -0.02em; margin: 0; }
+.errcard p { margin: 0; font-size: 15px; color: #333; }
+.errcard .bars { display: grid; grid-template-columns: 4fr 1fr 2fr; gap: 3px; margin: 0 18px 16px; padding: 0; border: 0; }
+.errcard .bars i { height: 6px; background: var(--red); }
+.errcard .bars i:nth-child(2) { background: #000; }
+.errcard .bars i:nth-child(3) { background: #d6d6d0; }
+.paper-sec .quote { background: #fff; border: 2px solid #000; border-left: 10px solid var(--red); box-shadow: 7px 7px 0 #000; color: #000; }
+.paper-sec .quote footer { color: #555; }
+
+/* ---------- colored step numbers ---------- */
+.steps .card:nth-child(1) .step-num { background: var(--lime); }
+.steps .card:nth-child(2) .step-num { background: var(--magenta); }
+.steps .card:nth-child(3) .step-num { background: var(--sky); }
+.step-num { font-family: var(--pixel); font-size: 22px; padding: 2px 10px 0; }
+
+/* ---------- lime band (features) ---------- */
+.section.lime { background: var(--lime); color: #000; overflow: hidden; }
+.lime .kicker { color: #000; }
+.lime .mega { color: #000; }
+.lime .stripes { position: absolute; right: -80px; top: 60px; width: 38%; height: 220px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 14px, transparent 14px 28px); transform: rotate(-3deg); opacity: 0.9; }
+.lime .wrap { position: relative; }
+.fcard { background: #000; color: var(--fg); border: 2px solid #000; padding: 22px 22px 24px; transition: transform 150ms, box-shadow 150ms; }
+.fcard:hover { transform: translate(-4px, -4px); box-shadow: 8px 8px 0 #000; }
+.fcard .ic { width: 58px; height: 58px; display: grid; place-items: center; margin-bottom: 16px; }
+.fcard .ic .px { width: 40px; height: 40px; }
+.fcard .tag { font-family: var(--pixel); font-size: 18px; letter-spacing: 0.06em; text-transform: uppercase; color: #9a9a9a; }
+.fcard h3 { font-size: 21px; letter-spacing: -0.02em; line-height: 1.25; margin: 6px 0 10px; }
+.fcard p { margin: 0; color: #c9c9c9; font-size: 15.5px; }
+.fcard code { font-family: var(--mono); font-size: 0.86em; background: #1a1a1a; border: 1px solid #333; padding: 0 5px; }
+.c-lime { background: var(--lime); } .c-mag { background: var(--magenta); } .c-sky { background: var(--sky); }
+.c-yel { background: var(--yellow); } .c-pur { background: var(--purple); } .c-teal { background: var(--teal); }
+.c-red { background: var(--red); } .c-paper { background: var(--paper); }
+
+/* ---------- colored stats ---------- */
+.stats.color { border: 0; gap: 14px; }
+.stats.color .stat { border: 2px solid #000; color: #000; box-shadow: 6px 6px 0 rgba(255, 255, 255, 0.12); }
+.stats.color .stat::after { background-image: radial-gradient(rgba(0, 0, 0, 0.12) 1px, transparent 1.4px); }
+.stats.color .stat .n { color: #000 !important; }
+.stats.color .stat .l { color: #111; font-family: var(--pixel); font-size: 19px; letter-spacing: 0.04em; }
+
+.stats.color .stat:nth-child(1) { background: var(--teal); }
+.stats.color .stat:nth-child(2) { background: var(--magenta); }
+.stats.color .stat:nth-child(3) { background: var(--lime); }
+.stats.color .stat:nth-child(4) { background: var(--yellow); }
+
+/* ---------- stickers ---------- */
+.sticker { position: absolute; font-family: var(--pixel); font-size: 26px; line-height: 1; color: #000; background: var(--yellow); border: 2px solid #000; padding: 8px 12px 6px; box-shadow: 4px 4px 0 #000; transform: rotate(6deg); pointer-events: none; }
+.execute, .kicker { font-family: var(--pixel); }
+.kicker { font-size: 20px; letter-spacing: 0.08em; }
+.execute { font-weight: 400; font-size: clamp(44px, 6vw, 76px); }
+
+/* ---------- collage extras ---------- */
+.collage .eye { position: absolute; border-radius: 50%; background: #fff; border: 3px solid #000; box-shadow: inset -6px -8px 0 rgba(0, 0, 0, 0.12); }
+.collage .eye::after { content: ""; position: absolute; width: 38%; height: 38%; left: 34%; top: 30%; border-radius: 50%; background: #000; box-shadow: inset 3px 3px 0 #444; animation: look 5s ease-in-out infinite; }
+@keyframes look { 0%, 40% { transform: translate(0, 0); } 50%, 70% { transform: translate(55%, -20%); } 80%, 100% { transform: translate(-40%, 10%); } }
+.collage .pxsign { position: absolute; right: 7%; top: 12%; transform: rotate(-6deg); font-family: var(--pixel); font-size: clamp(54px, 7vw, 96px); line-height: 0.9; color: #000; background: #fff; border: 3px solid #000; padding: 10px 18px 4px; box-shadow: 8px 8px 0 #000; }
+@media (max-width: 760px) { .collage .pxsign, .collage .eye { display: none; } }
+
+
+/* ---------- sunny theme: colour overrides (layout unchanged) ---------- */
+body { background: var(--bg); color: var(--fg); }
+::selection { background: var(--yellow); color: #000; }
+body::before { opacity: 0.18; }
+body::after { opacity: 0.05; }
+
+.site-header { background: rgba(255, 255, 255, 0.86); border-bottom: 2px solid #111; }
+.nav a { color: #333; }
+.nav a:hover { color: #000; background: var(--yellow); }
+.nav .nav-gh { background: #111; color: #fff; }
+.nav .nav-gh:hover { background: var(--magenta); color: #000; }
+
+.kicker { color: var(--teal-line); }
+.hl { background: var(--teal); color: #000; }
+.caption { color: #1c1c1c; font-weight: 700; }
+.lede { color: #2c2c2c; }
+
+/* hero: daylight sky + halftone sun */
+.hero { background: linear-gradient(180deg, #8fdcf7 0%, #c9efff 42%, #f3fbff 72%, var(--bg) 100%); border-bottom: 2px solid #111; }
+.hero::before {
+  content: "";
+  position: absolute;
+  right: 6%;
+  top: 60px;
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 12px 12px;
+  -webkit-mask-image: radial-gradient(circle, #000 52%, transparent 71%);
+  mask-image: radial-gradient(circle, #000 52%, transparent 71%);
+  opacity: 0.95;
+}
+.hero-floor {
+  background-image: linear-gradient(rgba(10, 143, 160, 0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(10, 143, 160, 0.35) 1px, transparent 1px);
+}
+.hero-dots { background-image: radial-gradient(rgba(0, 0, 0, 0.12) 1px, transparent 1.4px); }
+.hero .mega { color: #0d0d0d; }
+.meta-row { color: #3a3a3a; }
+.meta-row b { color: var(--teal-line); }
+.btn { border-color: #111; }
+.btn:hover { box-shadow: 5px 5px 0 #111; }
+.btn-primary { background: var(--magenta); border-color: #111; color: #000; }
+.btn-ghost { background: #fff; color: #111; }
+.btn-ink { background: #111; color: #fff; }
+.net .dev { stroke: #111; }
+.net .dev-fill { fill: #fff; stroke: #111; }
+.net .lbl { fill: #111; }
+.net .ring { stroke: var(--teal-line); }
+.net .pulse { stroke: var(--teal); }
+.pcard { background: #fff; box-shadow: 6px 6px 0 #111; }
+
+/* section rhythm */
+.section { border-bottom: 2px solid #111; }
+#problem { background: #fff; }
+#how { background: var(--bg); }
+#loading { background: #e4f7fc; }
+#features.lime { background: var(--sky); }
+#features .stripes { background: repeating-linear-gradient(-45deg, var(--yellow) 0 14px, transparent 14px 28px); }
+#proof { background: #fff; }
+#compare { background: #fff4f9; }
+#quickstart { background: #fffbe0; }
+#faq { background: var(--bg); }
+#read { background: #fff; }
+
+/* cards on light */
+.card { background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 #111; }
+.card h3 { color: #111; }
+.card p { color: #333; }
+.card .tag { color: var(--teal-line); }
+.corners::before, .corners::after { border-color: var(--magenta); }
+.faq code, .card code, .lede code, .ticks code { background: #fff; border-color: #111; color: #111; }
+
+.tree { background: linear-gradient(rgba(10, 143, 160, 0.14) 1px, transparent 1px) 0 0 / 100% 32px, #fff; border: 2px solid #111; color: #222; box-shadow: 6px 6px 0 var(--teal); }
+.tree .c { color: var(--teal-line); font-weight: 700; }
+.tree .m { color: #777; }
+.chain span { background: #fff; border: 2px solid #111; color: #111; }
+.chain span:first-child { background: var(--teal); border-color: #111; }
+.chain-note { color: #555; }
+
+.ticks li { color: #2a2a2a; }
+.ticks b { color: #000; }
+.index-card { background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 #111; }
+.index-card .bar { background: #111; color: #eee; border-bottom: 0; }
+.index-card pre { color: #222; }
+.index-card .dim { color: #999; }
+.index-card .hit { background: var(--yellow); color: #000; }
+.bars { border-top: 2px solid #111; }
+.bar-row { color: #222; }
+.bar-row b { color: #000; }
+.bt { background: #fff; border: 2px solid #111; height: 16px; }
+.bars-note { color: #555; }
+
+.fcard { border-color: #111; box-shadow: 6px 6px 0 #111; }
+.fcard:hover { box-shadow: 10px 10px 0 #111; }
+
+.stat .l { color: #444; }
+.stats.color .stat { box-shadow: 6px 6px 0 #111; }
+.source-note { color: #666; }
+
+.table-wrap { border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; }
+th, td { border-bottom: 1px solid rgba(0, 0, 0, 0.1); color: #222; }
+thead th { background: #111; color: #eee; }
+thead th.us { background: var(--magenta); color: #000; }
+tbody th { color: #000; }
+td.us { background: #ffe3f0; color: #000; }
+.ok { color: #0a8f4a; }
+.bad { color: var(--red); }
+
+.paper::before { color: #b9b39b; }
+.code-block { background: #151515; }
+
+.faq details { border-top: 2px solid #111; }
+.faq details:last-child { border-bottom: 2px solid #111; }
+.faq summary { color: #111; }
+.faq summary:hover { background: #fff; }
+.faq summary::after { color: var(--magenta); }
+.faq details[open] summary::after { color: var(--teal-line); }
+.faq .answer { color: #2c2c2c; }
+
+.reads a { border-bottom: 2px solid #111; color: #111; }
+.reads a:hover { color: #000; background: var(--yellow); }
+.reads a span.t { color: #555; }
+
+.site-footer { background: #111; color: #aaa; }
+.site-footer a { color: #ddd; }
+
+
+#features { background: var(--sky); }
+#features .card { border-top-width: 10px; }
+#features .card:nth-child(6n+1) { border-top-color: var(--magenta); }
+#features .card:nth-child(6n+2) { border-top-color: var(--yellow); }
+#features .card:nth-child(6n+3) { border-top-color: var(--lime); }
+#features .card:nth-child(6n+4) { border-top-color: var(--purple); }
+#features .card:nth-child(6n+5) { border-top-color: var(--red); }
+#features .card:nth-child(6n+6) { border-top-color: var(--teal); }
+#features .kicker { color: #003d45; }
+.card.alert { border-color: #111; }
+.card.alert .tag { color: var(--red); }
+.hero .mega { font-size: clamp(52px, 7.4vw, 112px); }
+.hero-art { min-height: 680px; }
+.hero-art svg.net { inset: 100px 0 100px 0; height: auto; }
+.pcard.a { left: 0; top: 0; }
+.pcard.b { right: 0; bottom: 0; top: auto; }
+@media (max-width: 980px) { .hero-art { min-height: 620px; } .hero-art svg.net { inset: 90px 0; } }
+
+@media (max-width: 980px) { .hero::before { width: 280px; height: 280px; right: -70px; top: auto; bottom: 380px; } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
+  .ticker-track { transform: none; }
   html { scroll-behavior: auto; }
 }
 </style>
@@ -457,6 +779,7 @@ td.us { background: rgba(63, 182, 196, 0.08); color: #fff; font-weight: 600; }
   <div class="wrap header-inner">
     <a class="badge" href="{{canonical}}" aria-label="nestwork home">nestwork</a>
     <nav class="nav" aria-label="{{nav_label}}">
+      <a href="articles/"><span lang="en">Articles</span><span lang="zh">文章</span></a>
       <a class="nav-hide" href="#how"><span lang="en">How it works</span><span lang="zh">原理</span></a>
       <a class="nav-hide" href="#compare"><span lang="en">Compare</span><span lang="zh">对比</span></a>
       <a class="nav-hide" href="#quickstart"><span lang="en">Install</span><span lang="zh">安装</span></a>
@@ -471,35 +794,70 @@ td.us { background: rgba(63, 182, 196, 0.08); color: #fff; font-weight: 600; }
   <section class="hero" aria-labelledby="hero-title">
     <div class="hero-floor" aria-hidden="true"></div>
     <div class="hero-dots" aria-hidden="true"></div>
-    <svg class="hero-track" aria-hidden="true" viewBox="0 0 1200 700" preserveAspectRatio="none">
-      <path d="M640 720 L820 610 L990 640 L1220 420" fill="none" stroke="#e0242b" stroke-width="2" stroke-dasharray="10 9" opacity=".7" vector-effect="non-scaling-stroke"/>
-      <path d="M1040 120 L1220 60" fill="none" stroke="#5fd3d9" stroke-width="1" opacity=".5" vector-effect="non-scaling-stroke"/>
-    </svg>
-    <div class="wrap hero-inner">
-      <p class="kicker"><span lang="en">Git-native memory protocol for AI coding agents</span><span lang="zh">AI 编程 agent 的 git 原生记忆协议</span></p>
-      <h1 class="mega" id="hero-title" lang="en">Your agents<br><span class="glitch" data-text="remember.">remember.</span></h1>
-      <h1 class="mega" id="hero-title" lang="zh">你的 agent<br><span class="glitch" data-text="记得住了。">记得住了。</span></h1>
-      <p class="caption" lang="en">One private git repo becomes the shared, persistent memory of Claude Code, Codex, Gemini, Kimi and every other agent you run — across sessions, machines and vendors. No server. No plugin. No lock-in.</p>
-      <p class="caption" lang="zh">一个私有 git 仓库，成为 Claude Code、Codex、Gemini、Kimi 等所有 agent 共享的长期记忆——跨会话、跨机器、跨厂商。不要服务器，不要插件，不被任何一家锁死。</p>
-      <div class="cta-row">
-        <a class="btn btn-primary" href="https://github.com/songth1ef/nestwork/generate" rel="noopener"><span lang="en">Use this template →</span><span lang="zh">用模板创建我的记忆仓库 →</span></a>
-        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener"><span lang="en">★ Star on GitHub</span><span lang="zh">★ 去 GitHub 点个 Star</span></a>
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="kicker"><span lang="en">AI agent memory · git-native protocol</span><span lang="zh">AI agent 记忆 · git 原生协议</span></p>
+        <h1 class="mega" id="hero-title" lang="en">Your agents<br><span class="glitch hl-m" data-text="remember.">remember.</span></h1>
+        <h1 class="mega" id="hero-title" lang="zh">你的 agent<br><span class="glitch hl-m" data-text="记得住了。">记得住了。</span></h1>
+        <p class="caption" lang="en">One private git repo becomes shared, persistent AI agent memory for Claude Code, Codex, Gemini, Kimi and every other agent you run — across sessions, machines and vendors. No server. No plugin. No lock-in.</p>
+        <p class="caption" lang="zh">一个私有 git 仓库，成为 Claude Code、Codex、Gemini、Kimi 等所有 agent 共享的 AI agent 长期记忆——跨会话、跨机器、跨厂商。不要服务器，不要插件，不被任何一家锁死。</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="https://github.com/songth1ef/nestwork/generate" rel="noopener"><span lang="en">Use this template →</span><span lang="zh">用模板创建我的记忆仓库 →</span></a>
+          <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener"><span lang="en">★ Star on GitHub</span><span lang="zh">★ 去 GitHub 点个 Star</span></a>
+        </div>
+        <div class="meta-row">
+          <span><b>Protocol {{protocol}}</b></span><span>v{{version}}</span><span lang="en">Plain markdown + git</span><span lang="zh">纯 markdown + git</span>
+        </div>
       </div>
-      <div class="meta-row">
-        <span><b>Protocol {{protocol}}</b></span><span>v{{version}}</span><span>Claude Code · Codex · Gemini · Kimi · Hermes · OpenClaw</span><span lang="en">Plain markdown + git</span><span lang="zh">纯 markdown + git</span>
-      </div>
-      <div class="hero-term" role="img" aria-label="{{term_label}}">
-<span class="t-dim">$ claude</span><br>
-nestwork context bundle for <span class="t-teal">laptop/claude-a7k2</span><br>
-<span class="t-dim">=== READ-ON-START (resident only) ===</span><br>
-- queen/agent-rules.md<br>
-- shared/resident.md<br>
-<span class="t-dim">=== READ-ON-DEMAND ===</span><br>
-- shared/memory.md <span class="t-teal">← topic index</span><br>
-- projects/ &nbsp;workflow/ <span class="t-red">(select by task)</span>
+      <div class="hero-art" role="img" aria-label="{{art_label}}">
+        <svg class="net" viewBox="0 0 560 560" aria-hidden="true">
+          <circle class="ring" cx="280" cy="280" r="128"/>
+          <circle class="pulse" cx="280" cy="280" r="70"/>
+          <path class="route" d="M140 168 V250 H206"/>
+          <path class="route t" d="M420 168 V250 H354"/>
+          <path class="route t" d="M150 402 H186 V312 H206"/>
+          <path class="route" d="M410 402 H374 V312 H354"/>
+          <rect x="135" y="245" width="10" height="10" fill="none" stroke="#e0242b" stroke-width="2"/>
+          <rect x="415" y="245" width="10" height="10" fill="none" stroke="#5fd3d9" stroke-width="2"/>
+          <rect x="181" y="397" width="10" height="10" fill="none" stroke="#5fd3d9" stroke-width="2"/>
+          <rect x="369" y="397" width="10" height="10" fill="none" stroke="#e0242b" stroke-width="2"/>
+          <!-- laptop -->
+          <rect class="dev-fill" x="92" y="92" width="96" height="62" rx="3"/>
+          <path class="dev" d="M100 100 H180 V146 H100 Z M80 154 H200 L190 166 H90 Z"/>
+          <text class="lbl" x="86" y="190">laptop / claude</text>
+          <!-- desktop -->
+          <rect class="dev-fill" x="368" y="88" width="104" height="68" rx="2"/>
+          <path class="dev" d="M376 96 H464 V148 H376 Z M420 156 V170 M402 172 H438"/>
+          <text class="lbl" x="376" y="196">desk / codex</text>
+          <!-- server -->
+          <path class="dev" d="M96 380 H200 V402 H96 Z M96 406 H200 V428 H96 Z M96 432 H200 V454 H96 Z"/>
+          <circle cx="108" cy="391" r="3" fill="#d3ee6a"/><circle cx="108" cy="417" r="3" fill="#d3ee6a"/><circle cx="108" cy="443" r="3" fill="#e0242b"/>
+          <path class="dev" d="M150 391 H188 M150 417 H188 M150 443 H188"/>
+          <text class="lbl" x="92" y="480">cloud / hermes</text>
+          <!-- phone -->
+          <rect class="dev-fill" x="412" y="366" width="48" height="84" rx="8"/>
+          <path class="dev" d="M428 438 H444 M420 378 H452 V430 H420 Z"/>
+          <text class="lbl" x="392" y="480">phone / kimi</text>
+          <!-- nest -->
+          <rect x="206" y="236" width="148" height="88" fill="#3fb6c4" stroke="#000" stroke-width="3"/>
+          <rect x="200" y="230" width="160" height="100" fill="none" stroke="#3fb6c4" stroke-width="2"/>
+          <text x="280" y="276" text-anchor="middle" style="font-family:var(--pixel);font-size:26px;fill:#000">your-nest.git</text>
+          <text x="280" y="302" text-anchor="middle" style="font-family:var(--pixel);font-size:18px;fill:#000">SHARED BRAIN</text>
+        </svg>
+        <div class="pcard a" aria-hidden="true">
+          <div class="pc-top"><span>AGENT</span><b>SYNCED</b></div>
+          <div class="pc-body">{{px:bot:000:d3ee6a}}<div class="pc-rows"><div><span>ID</span><span>claude-a7k2</span></div><div><span>HOST</span><span>laptop</span></div><div><span>MEM</span><span>18 topics</span></div></div></div>
+          <div class="pc-bars"><i></i><i></i><i></i></div>
+        </div>
+        <div class="pcard b" aria-hidden="true">
+          <div class="pc-top"><span>AGENT</span><b>1 NEW MSG</b></div>
+          <div class="pc-body">{{px:bot2:000:ff2d8f}}<div class="pc-rows"><div><span>ID</span><span>codex</span></div><div><span>HOST</span><span>desk</span></div><div><span>LOAD</span><span>~640 tok</span></div></div></div>
+          <div class="pc-bars"><i></i><i></i><i></i></div>
+        </div>
       </div>
     </div>
   </section>
+  <div class="ticker" aria-hidden="true"><div class="ticker-track"><span>CLAUDE CODE<i>//</i>CODEX<i>//</i>GEMINI<i>//</i>KIMI<i>//</i>HERMES<i>//</i>OPENCLAW<i>//</i>NO SERVER<i>//</i>NO PLUGIN<i>//</i>PLAIN MARKDOWN<i>//</i>GIT-NATIVE<i>//</i>YOUR AGENTS REMEMBER<i>//</i></span><span>CLAUDE CODE<i>//</i>CODEX<i>//</i>GEMINI<i>//</i>KIMI<i>//</i>HERMES<i>//</i>OPENCLAW<i>//</i>NO SERVER<i>//</i>NO PLUGIN<i>//</i>PLAIN MARKDOWN<i>//</i>GIT-NATIVE<i>//</i>YOUR AGENTS REMEMBER<i>//</i></span></div></div>
 
   <section class="section" id="problem" aria-labelledby="problem-title">
     <div class="wrap">
@@ -633,8 +991,8 @@ nestwork context bundle for <span class="t-teal">laptop/claude-a7k2</span><br>
       <div class="grid g4">
         <div class="card"><span class="tag">git-only</span>
           <h3 lang="en">No server, ever</h3><h3 lang="zh">永远不需要服务器</h3>
-          <p lang="en">No database, no daemon, no hosted API. Git already solves storage, history and conflicts — nestwork reuses it. Works offline.</p>
-          <p lang="zh">没有数据库、没有常驻进程、没有托管 API。存储、历史、冲突 git 早就解决了，nestwork 直接复用。离线也能用。</p></div>
+          <p lang="en">No database, no daemon, no hosted API. Git already solves storage, history and conflicts — nestwork reuses it. Memory is plain files you can read anywhere.</p>
+          <p lang="zh">没有数据库、没有常驻进程、没有托管 API。存储、历史、冲突 git 早就解决了，nestwork 直接复用。记忆就是普通文件，随处可读。</p></div>
         <div class="card"><span class="tag">cross-tool</span>
           <h3 lang="en">Six tools, one brain</h3><h3 lang="zh">六种工具，一个大脑</h3>
           <p lang="en">Installers for Claude Code, Codex CLI, Gemini CLI, Kimi Code, Hermes and OpenClaw, plus a generic installer for any markdown-configured agent.</p>
@@ -672,7 +1030,7 @@ nestwork context bundle for <span class="t-teal">laptop/claude-a7k2</span><br>
       <p class="kicker">05 / <span lang="en">Used daily, in production</span><span lang="zh">每天都在真实使用</span></p>
       <h2 class="mega" id="proof-title" lang="en" style="font-size:clamp(38px,5.6vw,72px)">Dogfooded on<br>a real fleet.</h2>
       <h2 class="mega" id="proof-title" lang="zh" style="font-size:clamp(38px,5.6vw,72px)">作者自己的<br>「机队」天天在用。</h2>
-      <div class="stats">
+      <div class="stats color">
         <div class="stat"><div class="n">10</div><div class="l"><span lang="en">machines</span><span lang="zh">台机器</span></div></div>
         <div class="stat"><div class="n">30+</div><div class="l"><span lang="en">agent instances</span><span lang="zh">个 agent 实例</span></div></div>
         <div class="stat"><div class="n">4</div><div class="l"><span lang="en">OSes: Win · macOS · Linux · Android</span><span lang="zh">种系统：Win · macOS · Linux · Android</span></div></div>
@@ -704,19 +1062,19 @@ nestwork context bundle for <span class="t-teal">laptop/claude-a7k2</span><br>
           </thead>
           <tbody>
             <tr><th scope="row"><span lang="en">Infrastructure</span><span lang="zh">基础设施</span></th>
-              <td class="us"><span lang="en">A git repo</span><span lang="zh">一个 git 仓库</span></td><td><span lang="en">Local files per tool</span><span lang="zh">各工具的本机文件</span></td><td><span lang="en">A running server</span><span lang="zh">常驻服务</span></td><td><span lang="en">Worker process</span><span lang="zh">worker 进程</span></td><td><span lang="en">Files in each repo</span><span lang="zh">各仓库里的文件</span></td></tr>
+              <td class="us"><span lang="en">A git repo</span><span lang="zh">一个 git 仓库</span></td><td><span lang="en">Local files per tool</span><span lang="zh">各工具的本机文件</span></td><td><span lang="en">A running server</span><span lang="zh">常驻服务</span></td><td><span lang="en">Local worker + SQLite/Chroma</span><span lang="zh">本机 worker + SQLite/Chroma</span></td><td><span lang="en">Files in each repo</span><span lang="zh">各仓库里的文件</span></td></tr>
             <tr><th scope="row"><span lang="en">Across machines</span><span lang="zh">跨机器</span></th>
-              <td class="us"><span class="ok">✓</span> git pull</td><td><span class="bad">✗</span> <span lang="en">one machine</span><span lang="zh">只在本机</span></td><td><span lang="en">Deploy per machine</span><span lang="zh">每台都要部署</span></td><td><span lang="en">Worker-dependent</span><span lang="zh">依赖 worker</span></td><td><span lang="en">Per repo only</span><span lang="zh">仅限该仓库</span></td></tr>
+              <td class="us"><span class="ok">✓</span> git pull</td><td><span class="bad">✗</span> <span lang="en">one machine</span><span lang="zh">只在本机</span></td><td><span lang="en">Deploy per machine</span><span lang="zh">每台都要部署</span></td><td><span class="bad">✗</span> <span lang="en">local database</span><span lang="zh">本机数据库</span></td><td><span lang="en">Per repo only</span><span lang="zh">仅限该仓库</span></td></tr>
             <tr><th scope="row"><span lang="en">Across tools / vendors</span><span lang="zh">跨工具 / 厂商</span></th>
-              <td class="us"><span class="ok">✓</span> <span lang="en">any markdown-config agent</span><span lang="zh">任何 markdown 配置的 agent</span></td><td><span class="bad">✗</span> <span lang="en">one tool</span><span lang="zh">只服务一个工具</span></td><td><span lang="en">MCP clients only</span><span lang="zh">仅 MCP 客户端</span></td><td><span class="bad">✗</span> Claude</td><td><span lang="en">Partly</span><span lang="zh">部分</span></td></tr>
+              <td class="us"><span class="ok">✓</span> <span lang="en">any markdown-config agent</span><span lang="zh">任何 markdown 配置的 agent</span></td><td><span class="bad">✗</span> <span lang="en">one tool</span><span lang="zh">只服务一个工具</span></td><td><span lang="en">MCP clients only</span><span lang="zh">仅 MCP 客户端</span></td><td><span lang="en">Several (per its README)</span><span lang="zh">多个（见其 README）</span></td><td><span lang="en">Partly</span><span lang="zh">部分</span></td></tr>
             <tr><th scope="row"><span lang="en">User-level memory</span><span lang="zh">用户级记忆</span></th>
               <td class="us"><span class="ok">✓</span></td><td><span class="ok">✓</span></td><td><span class="ok">✓</span></td><td><span class="ok">✓</span></td><td><span class="bad">✗</span> <span lang="en">project only</span><span lang="zh">只管项目</span></td></tr>
             <tr><th scope="row"><span lang="en">Multi-agent collaboration</span><span lang="zh">多 agent 协作</span></th>
-              <td class="us"><span class="ok">✓</span> <span lang="en">protocol-level</span><span lang="zh">协议级</span></td><td><span class="bad">✗</span></td><td><span lang="en">Needs coordination</span><span lang="zh">需自行协调</span></td><td><span class="bad">✗</span> <span lang="en">single agent</span><span lang="zh">单 agent</span></td><td><span class="bad">✗</span></td></tr>
+              <td class="us"><span class="ok">✓</span> <span lang="en">protocol-level</span><span lang="zh">协议级</span></td><td><span class="bad">✗</span></td><td><span lang="en">Needs coordination</span><span lang="zh">需自行协调</span></td><td><span class="bad">✗</span> <span lang="en">per machine</span><span lang="zh">按机器隔离</span></td><td><span class="bad">✗</span></td></tr>
             <tr><th scope="row"><span lang="en">Version history &amp; review</span><span lang="zh">版本历史与审阅</span></th>
-              <td class="us"><span class="ok">✓</span> git log / diff</td><td><span class="bad">✗</span></td><td><span lang="en">Depends</span><span lang="zh">看实现</span></td><td><span lang="en">Limited</span><span lang="zh">有限</span></td><td><span class="ok">✓</span></td></tr>
+              <td class="us"><span class="ok">✓</span> git log / diff</td><td><span class="bad">✗</span></td><td><span lang="en">Depends</span><span lang="zh">看实现</span></td><td><span lang="en">Database, not git</span><span lang="zh">数据库，非 git</span></td><td><span class="ok">✓</span></td></tr>
             <tr><th scope="row"><span lang="en">Data ownership</span><span lang="zh">数据归属</span></th>
-              <td class="us"><span lang="en">100% your repo</span><span lang="zh">100% 在你的仓库</span></td><td><span lang="en">Local, tool-managed</span><span lang="zh">本机，由工具管理</span></td><td><span lang="en">You</span><span lang="zh">你</span></td><td><span lang="en">Third-party worker</span><span lang="zh">第三方 worker</span></td><td><span lang="en">You</span><span lang="zh">你</span></td></tr>
+              <td class="us"><span lang="en">100% your repo</span><span lang="zh">100% 在你的仓库</span></td><td><span lang="en">Local, tool-managed</span><span lang="zh">本机，由工具管理</span></td><td><span lang="en">You</span><span lang="zh">你</span></td><td><span lang="en">Local database</span><span lang="zh">本机数据库</span></td><td><span lang="en">You</span><span lang="zh">你</span></td></tr>
             <tr><th scope="row"><span lang="en">Setup cost</span><span lang="zh">上手成本</span></th>
               <td class="us"><span lang="en">Low — you already know git</span><span lang="zh">低——你本来就会 git</span></td><td><span lang="en">Zero, but tool-bound</span><span lang="zh">零，但绑死在工具上</span></td><td><span lang="en">Medium</span><span lang="zh">中</span></td><td><span lang="en">Medium</span><span lang="zh">中</span></td><td><span lang="en">Low</span><span lang="zh">低</span></td></tr>
           </tbody>

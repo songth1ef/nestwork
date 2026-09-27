@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>nestwork 安装教程：给 AI agent 加长期记忆 — nestwork</title>
+<meta name="description" content="用 nestwork 给 Claude Code、Codex 加长期记忆：前置条件、安装与卸载、怎么验证生效、费用、隐私、升级和团队使用，逐条问答。">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="songth1ef">
+<meta name="theme-color" content="#8fdcf7">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/zh/articles/nestwork-getting-started-faq/">
+<link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/nestwork-getting-started-faq/">
+<link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/nestwork-getting-started-faq/">
+<link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/nestwork-getting-started-faq/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232ec4d6'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="nestwork">
+<meta property="og:title" content="nestwork 安装教程：给 AI agent 加长期记忆">
+<meta property="og:description" content="用 nestwork 给 Claude Code、Codex 加长期记忆：前置条件、安装与卸载、怎么验证生效、费用、隐私、升级和团队使用，逐条问答。">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/zh/articles/nestwork-getting-started-faq/">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og-zh.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="nestwork 安装教程：给 AI agent 加长期记忆">
+<meta name="twitter:description" content="用 nestwork 给 Claude Code、Codex 加长期记忆：前置条件、安装与卸载、怎么验证生效、费用、隐私、升级和团队使用，逐条问答。">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og-zh.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://songth1ef.github.io/nestwork/zh/articles/nestwork-getting-started-faq/#article","headline":"nestwork 安装教程：给 AI agent 加长期记忆","description":"用 nestwork 给 Claude Code、Codex 加长期记忆：前置条件、安装与卸载、怎么验证生效、费用、隐私、升级和团队使用，逐条问答。","inLanguage":"zh-CN","datePublished":"2026-09-27","dateModified":"2026-09-27","author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"publisher":{"@type":"Organization","name":"nestwork","url":"https://songth1ef.github.io/nestwork/"},"image":["https://songth1ef.github.io/nestwork/og-zh.png"],"mainEntityOfPage":"https://songth1ef.github.io/nestwork/zh/articles/nestwork-getting-started-faq/","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://songth1ef.github.io/nestwork/zh/"},{"@type":"ListItem","position":2,"name":"文章","item":"https://songth1ef.github.io/nestwork/zh/articles/"},{"@type":"ListItem","position":3,"name":"nestwork 安装教程：给 AI agent 加长期记忆","item":"https://songth1ef.github.io/nestwork/zh/articles/nestwork-getting-started-faq/"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"装了之后，用 Claude Code 的方式要变吗？","acceptedAnswer":{"@type":"Answer","text":"不用。README 说没有新东西要学。唯一新增的习惯是：遇到值得记住的事，告诉 agent 记下来。"}},{"@type":"Question","name":"一台机器能给多个工具都装上吗？","acceptedAnswer":{"@type":"Answer","text":"能。每个工具有自己的身份文件，比如 ~/.nestwork_id_claude 和 ~/.nestwork_id_codex，装一个不会覆盖另一个。"}},{"@type":"Question","name":"安装时报身份解析错误怎么办？","acceptedAnswer":{"@type":"Answer","text":"安装脚本需要 PATH 上有 python3 来解析主机名和 agent id。也可以用 NESTWORK_HOST、NESTWORK_AGENT_ID 两个环境变量手动指定。"}},{"@type":"Question","name":"Cursor、Copilot 能用吗？","acceptedAnswer":{"@type":"Answer","text":"可以在工作区级别接入：把 AGENTS.md 软链接到 .cursor/rules/、.windsurf/rules/、.clinerules/ 或 .github/copilot-instructions.md。gh copilot 被列为不支持。"}}]}]}</script>
+<style>
+@font-face { font-family: "VT323"; src: url("../../../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../../../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+:root {
+  --bg: #fbf8ef; --fg: #111; --muted: #5c5c5c; --teal: #2ec4d6; --teal-dark: #0a8fa0; --magenta: #ff2d8f;
+  --lime: #d6f25a; --yellow: #ffe53d; --sky: #29c6ec; --red: #ec2a33;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::selection { background: var(--yellow); }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 2px solid #111; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.badge { background: var(--teal); color: #000; font-weight: 800; letter-spacing: -0.03em; padding: 2px 10px 3px; border: 2px solid #000; outline: 2px solid var(--teal); text-decoration: none; font-size: 18px; }
+.nav { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 13px; }
+.nav a { text-decoration: none; color: #333; }
+.nav a:hover { background: var(--yellow); color: #000; }
+.nav .gh { background: #111; color: #fff; padding: 4px 10px; font-weight: 700; }
+.art-hero { background: linear-gradient(180deg, #8fdcf7 0%, #d4f3ff 60%, var(--bg) 100%); border-bottom: 2px solid #111; padding: 48px 0 44px; position: relative; overflow: hidden; }
+.art-hero::after { content: ""; position: absolute; right: -60px; top: -40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 11px 11px; -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%); mask-image: radial-gradient(circle, #000 50%, transparent 70%); pointer-events: none; }
+.crumbs { font-family: var(--pixel); font-size: 20px; letter-spacing: 0.04em; color: #0a5f6b; margin: 0 0 14px; position: relative; z-index: 1; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { background: var(--yellow); }
+.art-hero h1 { font-size: clamp(34px, 5.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 0; max-width: 880px; position: relative; z-index: 1; }
+:lang(zh) .art-hero h1 { line-height: 1.2; letter-spacing: -0.01em; }
+.art-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: #333; position: relative; z-index: 1; }
+.art-meta span { background: #fff; border: 2px solid #111; padding: 2px 8px; }
+.art-meta .kind { background: var(--magenta); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; padding-top: 48px; padding-bottom: 72px; }
+.layout.wide { grid-template-columns: 1fr; }
+.layout > * { min-width: 0; }
+.prose p code, .prose li code, .prose td code { overflow-wrap: anywhere; }
+.wide .prose { max-width: none; }
+.wide .toc { display: none; }
+.wide .prose > p:first-child { max-width: 72ch; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+.prose { max-width: 72ch; }
+.prose > p:first-child { font-size: 1.12em; }
+.prose h2 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; line-height: 1.2; margin: 2.1em 0 0.6em; padding-top: 0.2em; border-top: 2px solid #111; scroll-margin-top: 80px; }
+.prose h2::before { content: "// "; font-family: var(--pixel); color: var(--magenta); font-weight: 400; }
+.prose h3 { font-size: 21px; letter-spacing: -0.015em; margin: 1.6em 0 0.4em; scroll-margin-top: 80px; }
+.prose p, .prose li { color: #222; }
+.prose a { text-decoration-color: var(--magenta); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose a:hover { background: var(--yellow); }
+.prose code { font-family: var(--mono); font-size: 0.86em; background: #fff; border: 1.5px solid #111; padding: 0 5px; }
+.prose pre.code { background: #151515; color: #eee; border-left: 5px solid var(--teal); padding: 16px 18px; overflow-x: auto; font-size: 14.5px; line-height: 1.65; box-shadow: 6px 6px 0 #111; }
+.prose pre.code code { background: none; border: 0; padding: 0; font-size: 1em; color: inherit; }
+.prose blockquote { margin: 1.4em 0; padding: 14px 20px; background: #fff; border: 2px solid #111; border-left: 8px solid var(--magenta); box-shadow: 5px 5px 0 #111; }
+.prose blockquote p { margin: 0; font-weight: 600; }
+.prose figure { margin: 1.6em 0; }
+.prose img { width: 100%; height: auto; border: 2px solid #111; box-shadow: 6px 6px 0 #111; display: block; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin: 0.3em 0; }
+.prose li::marker { color: var(--magenta); font-weight: 700; }
+.table-wrap { overflow-x: auto; border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; margin: 1.4em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #0002; vertical-align: top; }
+thead th { background: #111; color: #fff; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.toc { position: sticky; top: 84px; align-self: start; background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 var(--teal); padding: 16px 18px; font-size: 14.5px; line-height: 1.45; }
+.toc b { display: block; font-family: var(--pixel); font-weight: 400; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 8px; }
+.toc a { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px dashed #0003; color: #222; }
+.toc a:hover { background: var(--yellow); }
+.cta { margin-top: 56px; background: var(--lime); border: 2px solid #111; box-shadow: 8px 8px 0 #111; padding: 28px 28px 30px; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; right: -40px; top: -30px; width: 200px; height: 120px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 12px, transparent 12px 24px); transform: rotate(-4deg); }
+.cta h2 { border: 0; margin: 0 0 8px; padding: 0; font-size: 30px; position: relative; z-index: 1; }
+.cta h2::before { content: none; }
+.cta p { margin: 0 0 18px; max-width: 520px; font-weight: 600; position: relative; z-index: 1; }
+.btn { display: inline-flex; gap: 8px; padding: 12px 20px; font-weight: 800; text-decoration: none; border: 2px solid #111; margin: 0 10px 10px 0; position: relative; z-index: 1; }
+.btn:hover { box-shadow: 5px 5px 0 #111; transform: translate(-2px, -2px); }
+.btn-ink { background: #111; color: #fff; }
+.btn-ghost { background: #fff; color: #111; }
+.more { border-top: 2px solid #111; background: #fff; padding: 48px 0 60px; }
+.more h2 { font-family: var(--pixel); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; margin: 0 0 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+.cards a { display: block; text-decoration: none; background: var(--bg); border: 2px solid #111; box-shadow: 5px 5px 0 #111; padding: 16px 18px; }
+.cards a:hover { background: var(--yellow); }
+.cards b { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; }
+.cards span { display: block; margin-top: 6px; font-size: 14px; color: #444; line-height: 1.5; }
+.site-footer { background: #111; color: #aaa; padding: 30px 0 40px; font-family: var(--mono); font-size: 12.5px; }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.site-footer a { color: #ddd; text-decoration: none; margin-left: 16px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="badge" href="../../../zh/">nestwork</a>
+    <nav class="nav" aria-label="文章">
+      <a href="../">文章</a>
+      <a href="https://songth1ef.github.io/nestwork/articles/nestwork-getting-started-faq/" hreflang="en" data-lang-switch="en">EN</a>
+      <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="art-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="../../../zh/">首页</a> / <a href="../">文章</a> /</p>
+      <h1>nestwork 安装教程：给 AI agent 加长期记忆</h1>
+      <div class="art-meta"><span class="kind">指南</span><span>4 分钟阅读</span><span>更新于 2026-09-27</span></div>
+    </div>
+  </div>
+  <div class="wrap layout">
+    <article class="prose">
+<p><strong>怎么用 nestwork 给 Claude Code 加上长期记忆？</strong> 用 nestwork 模板建一个私有仓库，clone 到每台机器，再运行对应工具的安装脚本，比如 <code>bash ~/nestwork/scripts/install/claude.sh</code>。之后每次会话启动都会先 pull 仓库、读你的规则和一份很小的常驻摘要；agent 写下的记忆会被提交并推送，其他机器和工具都能读到。</p>
+<p>下面是安装前后最常见的问题，每一条都对照 <a href="https://github.com/songth1ef/nestwork/blob/main/README.zh.md" rel="noopener">README</a> 核对过。</p>
+<h2 id="安装前需要准备什么">安装前需要准备什么？</h2>
+<div class="table-wrap"><table><thead><tr><th>前置条件</th><th>原因</th></tr></thead><tbody><tr><td>git，以及一个能 push 的 git 托管（GitHub 或自建服务器）</td><td>记忆就存在私有 git 仓库里，同步靠 pull 和 push</td></tr><tr><td>不需要交互输入的推送凭证（SSH key 或 credential helper）</td><td>hook 在后台运行，没法回答密码提示</td></tr><tr><td><code>PATH</code> 上有 <code>python3</code>（Windows 上 <code>python3</code>、<code>python</code> 或 <code>py</code> 均可）</td><td>安装脚本用几个 Python 小工具解析身份、修改配置文件</td></tr><tr><td>macOS/Linux 用 bash，Windows 用 PowerShell 版安装脚本</td><td>安装脚本和 hook 都是 shell 脚本；hook 代码也处理了 Windows 上 Git Bash 的路径</td></tr><tr><td>agent 工具本身</td><td>Claude Code、Codex CLI、Gemini CLI、Kimi Code、OpenClaw、Hermes，或任何启动时读 Markdown 配置的 CLI</td></tr></tbody></table></div>
+<p>另外你得会基本的 git。README 说得很明确：git 是 nestwork 的核心，不可替换；不熟悉 git 的话，nestwork 不适合你。</p>
+<h2 id="怎么安装">怎么安装？</h2>
+<p>三步。不用部署任何服务，除了 git 托管账号也不用注册别的。</p>
+<ol><li>在 GitHub 上打开<a href="https://github.com/songth1ef/nestwork/generate" rel="noopener">模板</a>（Use this template → Create a new repository），可见性选 <strong>Private</strong>。用模板而不是 fork：fork 默认公开，而且和上游共享历史，以后每次更新都会和你的私有数据打架。</li><li>在每台机器上 clone：</li></ol>
+<pre class="code"><code data-lang="bash">git clone git@github.com:&lt;your-username&gt;/nestwork.git ~/nestwork</code></pre>
+<ol start="3"><li>为这台机器上用到的每个工具运行安装脚本：</li></ol>
+<pre class="code"><code data-lang="bash">bash ~/nestwork/scripts/install/claude.sh     # Claude Code，macOS / Linux
+bash ~/nestwork/scripts/install/codex.sh      # Codex CLI</code></pre>
+<p>Windows 上用 <code>.\nestwork\scripts\install\claude.ps1</code>、<code>codex.ps1</code>。Gemini CLI、Kimi Code、OpenClaw、Hermes 同理，把脚本名换成工具名。其他读 Markdown 配置的 CLI 用 <code>bash scripts/install/generic.sh &lt;prefix&gt; &lt;config-path&gt;</code>。</p>
+<p>「几分钟能装好」这件事 README 没给具体时间，这里也不承诺数字。可以确定的是安装脚本只写本地文件：建好该 agent 的目录，往工具的启动文件里注入一段带标记的启动块，在工具支持的地方注册 hook。</p>
+<h3 id="各个工具实际得到什么">各个工具实际得到什么？</h3>
+<p>各工具的支持程度并不一样，README 写得很坦白：</p>
+<div class="table-wrap"><table><thead><tr><th>工具</th><th>入口文件</th><th>同步方式</th><th>作者使用情况</th></tr></thead><tbody><tr><td>Claude Code</td><td><code>~/.claude/CLAUDE.md</code> + hooks</td><td>启动时 pull；每次写记忆后提交并推送；另有 Stop、SessionEnd hook</td><td>日常主力</td></tr><tr><td>Codex CLI</td><td><code>~/.codex/AGENTS.md</code></td><td>按启动块协议手动提交自己的目录；SessionEnd hook 只用于可选的历史同步</td><td>日常主力</td></tr><tr><td>Kimi Code</td><td><code>~/.kimi-code/AGENTS.md</code> + hooks</td><td>和 Claude Code 一样有逐次写入 hook，但 hook 不能注入上下文</td><td>有安装脚本，作者未实测</td></tr><tr><td>Gemini CLI、OpenClaw、Hermes</td><td>各自的启动文件</td><td>没有 hook，会话结束时提交</td><td>有安装脚本，作者未实测</td></tr></tbody></table></div>
+<p>如果你主要用的是后几种，正式用之前先按下一节自己验证一遍。</p>
+<h2 id="怎么验证已经生效">怎么验证已经生效？</h2>
+<p>README 给的验证方法是跨设备测试，这也是真正要紧的那一项：</p>
+<ol><li>在私有仓库里加一条非敏感、好认的规则或项目状态，commit 并 push。</li><li>在第二台电脑或云服务器上打开已接入的 agent。</li><li>让它总结当前的规则或项目状态。它应当先拉取仓库，再依据共享上下文作答，不需要你重复交代背景。</li></ol>
+<p>测试内容不要用 API key、密钥或雇主机密。</p>
+<p>如果 Claude Code 看起来什么都没加载，先确认 hook 注册了，没有就重新跑安装脚本：</p>
+<pre class="code"><code data-lang="bash">grep -A 5 SessionStart ~/.claude/settings.json
+cat ~/.nestwork_host ~/.nestwork_id_claude</code></pre>
+<p>如果提交没被推送，按 README 的顺序查：remote 是否正确（<code>git -C ~/nestwork remote -v</code>）、<code>settings.json</code> 里的 hook、手动 <code>git push</code> 是否需要交互式输入凭证。</p>
+<h2 id="怎么卸载">怎么卸载？</h2>
+<p>每个安装脚本在 <code>scripts/uninstall/</code> 下都有对应的卸载脚本：</p>
+<pre class="code"><code data-lang="bash">bash ~/nestwork/scripts/uninstall/claude.sh</code></pre>
+<p>卸载<strong>只解除绑定</strong>：从工具启动文件里移除启动块，摘掉 nestwork 注册的 hook。<code>agents/&lt;host&gt;/&lt;agent-id&gt;/</code> 里的记忆、身份文件（<code>~/.nestwork_host</code>、<code>~/.nestwork_id_&lt;tool&gt;</code>）、同一配置文件里你自己写的内容，全部原样保留。重新安装即以原身份恢复。想让下次安装成为一个全新的 agent，加 <code>--purge-identity</code>（PowerShell 用 <code>-PurgeIdentity</code>）。</p>
+<h2 id="要钱吗-隐私怎么保证">要钱吗？隐私怎么保证？</h2>
+<p>nestwork 没有托管服务、没有订阅、没有服务器，就是一个你自己仓库里的脚本和 Markdown。花费只有你本来就有的：放私有仓库的 git 托管，以及 agent 工具本身的用量。<code>distill.py --run-claude</code> 或 <code>--run-codex</code> 会通过本机 CLI 跑一次合并，和普通提问一样消耗你的套餐额度。</p>
+<p>隐私方面，默认设置很简单：仓库是私有的、归你所有。记忆是明文 Markdown，能访问仓库的人都能读；agent 在正常工作中会把读到的内容发给模型服务商。对于既要同步、又不能让托管方读到的内容，有一个可选的 git-crypt 模式（见<a href="../encrypt-agent-memory-git-crypt/">用 git-crypt 加密 AI 记忆</a>）。API key 和密码无论加不加密，都不要存进 nest。只想试试、不想推到任何地方的话，本地 clone 后不加 remote，或者把 <code>origin</code> 指向你自己的 git 服务器。</p>
+<h2 id="怎么升级">怎么升级？</h2>
+<p>你的私有仓库不会自动跟随上游。拉取协议更新有两条路，都不会动 <code>agents/</code>、<code>queen/</code>、<code>shared/</code> 和你自己的项目文件：</p>
+<pre class="code"><code data-lang="bash">bash ~/nestwork/scripts/maintenance/update.sh</code></pre>
+<p><code>update.sh</code> 在有未提交改动时拒绝运行；它会展示即将进来的 diff、请你确认、在本地提交，push 由你决定。另一条路是仓库自带的 GitHub Action（Sync Nestwork upstream）：默认手动触发时开 PR；把仓库变量 <code>NESTWORK_AUTO_SYNC</code> 设为 <code>true</code> 就每周自动跑一次。Claude Code 的会话启动 hook 还会检查上游协议版本（缓存 24 小时），有新版本时打印一行提示，但从不自动应用。</p>
+<p>有一个坑：更新仓库文件不会改写每台机器上的工具配置。<strong>从 2.x 升到 3.x，要在每台机器上为每个工具重跑一遍安装脚本</strong>（或 <code>python3 scripts/install/_bootstrap.py</code>），然后开一个新会话，因为已有的对话还带着旧指令。3.0 升 3.1 不需要刷新启动块，主题记忆是按需开启的。</p>
+<h2 id="团队能用吗">团队能用吗？</h2>
+<p>能，但要想清楚。官方 FAQ 的回答是可以，前提是从私有仓库起步、写入规则清楚：每个 agent 实例一个记忆目录，<code>queen/</code> 里的规则由人来管。但边界也要知道：nestwork 面向的是同时使用多个 agent 的个人开发者，团队级权限控制明确不在目标之内。仓库可见性完全依赖 git 托管的权限，能访问仓库的人能读到所有 agent 的记忆。共享的 <code>projects/</code>、<code>workflow/</code> 可能被多个 agent 同时写，写前 pull 能大幅降低冲突，但不能完全消除。</p>
+<h2 id="常见问题">常见问题</h2>
+<h3 id="装了之后-用-claude-code-的方式要变吗">装了之后，用 Claude Code 的方式要变吗？</h3>
+<p>不用。README 说没有新东西要学。唯一新增的习惯是：遇到值得记住的事，告诉 agent 记下来。</p>
+<h3 id="一台机器能给多个工具都装上吗">一台机器能给多个工具都装上吗？</h3>
+<p>能。每个工具有自己的身份文件，比如 <code>~/.nestwork_id_claude</code> 和 <code>~/.nestwork_id_codex</code>，装一个不会覆盖另一个。</p>
+<h3 id="安装时报身份解析错误怎么办">安装时报身份解析错误怎么办？</h3>
+<p>安装脚本需要 <code>PATH</code> 上有 <code>python3</code> 来解析主机名和 agent id。也可以用 <code>NESTWORK_HOST</code>、<code>NESTWORK_AGENT_ID</code> 两个环境变量手动指定。</p>
+<h3 id="cursor-copilot-能用吗">Cursor、Copilot 能用吗？</h3>
+<p>可以在工作区级别接入：把 <code>AGENTS.md</code> 软链接到 <code>.cursor/rules/</code>、<code>.windsurf/rules/</code>、<code>.clinerules/</code> 或 <code>.github/copilot-instructions.md</code>。<code>gh copilot</code> 被列为不支持。</p>
+<h2 id="相关阅读">相关阅读</h2>
+<ul><li><a href="../ai-agent-memory/">AI agent 记忆是什么</a></li><li><a href="../claude-code-memory-across-machines/">Claude Code 记忆跨机器同步</a></li><li><a href="../share-memory-claude-code-codex/">Claude Code 和 Codex 共享记忆</a></li><li><a href="../long-term-memory-in-practice/">AI 长期记忆用起来是什么样</a></li><li><a href="../nestwork-overview/">nestwork 全景介绍</a></li></ul>
+      <section class="cta" aria-label="给你的 agent 一份记忆">
+        <h2>给你的 agent 一份记忆</h2>
+        <p>nestwork 把一个私有 git 仓库变成 Claude Code、Codex、Gemini、Kimi 等 agent 共享的长期记忆。</p>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">用模板创建我的记忆仓库 →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ 去 GitHub 点个 Star</a>
+      </section>
+    </article>
+    <aside class="toc" aria-label="本文目录"><b>本文目录</b><a href="#安装前需要准备什么">安装前需要准备什么？</a><a href="#怎么安装">怎么安装？</a><a href="#怎么验证已经生效">怎么验证已经生效？</a><a href="#怎么卸载">怎么卸载？</a><a href="#要钱吗-隐私怎么保证">要钱吗？隐私怎么保证？</a><a href="#怎么升级">怎么升级？</a><a href="#团队能用吗">团队能用吗？</a><a href="#常见问题">常见问题</a><a href="#相关阅读">相关阅读</a></aside>
+  </div>
+  <section class="more" aria-label="全部文章">
+    <div class="wrap">
+      <h2>全部文章 →</h2>
+      <div class="cards"><a href="../ai-agent-memory/"><b>AI agent 记忆：四种类型与取舍</b><span>AI agent 记忆是智能体在单次会话之外还能依赖的上下文。对比上下文窗口、工具内置记忆、向量检索服务和文件式记忆，以及编码 agent 的特殊需求。</span></a><a href="../claude-code-memory-across-machines/"><b>Claude Code 记忆跨设备同步：用 git 实现</b><span>Claude Code 的 CLAUDE.md 和 auto memory 都只在本机。本文讲清它们存在哪、为什么换电脑就没了，以及怎样用 git 跨设备同步。</span></a><a href="../share-memory-claude-code-codex/"><b>Claude Code 和 Codex 共享记忆的做法</b><span>Claude Code 读 CLAUDE.md，Codex 读 AGENTS.md。让两者指向同一个私有 git 仓库，就能共享记忆，且各写各的目录。</span></a><a href="../codex-cli-persistent-memory/"><b>Codex 记忆与 AGENTS.md：Codex 长期记忆</b><span>Codex CLI 现有的记忆方式（AGENTS.md 与默认关闭的本地 memories），以及如何用 git 给 Codex 加跨会话、跨机器的长期记忆。</span></a><a href="../agent-memory-tools-compared/"><b>agent 记忆工具对比：Mem0、Letta、Zep 等</b><span>从架构、部署方式、数据归属和适用场景，对比 Mem0、Letta、Zep、Supermemory、claude-mem、工具内置记忆和 nestwork。</span></a><a href="../agent-memory-benchmarks/"><b>记忆基准测试：LoCoMo、LongMemEval、BEAM</b><span>LoCoMo、LongMemEval、BEAM 各测什么、LLM 裁判怎么打分、厂商分数为何不能横比，以及编码 agent 该看哪些指标。</span></a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span>nestwork — AI agent memory, git-native.</span>
+    <span><a href="../../../zh/">首页</a><a href="../">文章</a><a href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-lang-switch]').forEach(function (a) {
+  a.addEventListener('click', function () { try { localStorage.setItem('nestwork_lang', a.getAttribute('data-lang-switch')); } catch (e) {} });
+});
+</script>
+</body>
+</html>

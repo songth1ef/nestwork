@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memory Distillation — Consolidating AI Agent Memory</title>
+<meta name="description" content="Memory distillation merges many agents&#x27; private notes into one reviewed shared memory. What belongs in it, the review flow, and how distill.py runs it.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="songth1ef">
+<meta name="theme-color" content="#8fdcf7">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/articles/memory-distillation/">
+<link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/articles/memory-distillation/">
+<link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/articles/memory-distillation/">
+<link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/articles/memory-distillation/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232ec4d6'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="nestwork">
+<meta property="og:title" content="Memory Distillation — Consolidating AI Agent Memory">
+<meta property="og:description" content="Memory distillation merges many agents&#x27; private notes into one reviewed shared memory. What belongs in it, the review flow, and how distill.py runs it.">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/articles/memory-distillation/">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Memory Distillation — Consolidating AI Agent Memory">
+<meta name="twitter:description" content="Memory distillation merges many agents&#x27; private notes into one reviewed shared memory. What belongs in it, the review flow, and how distill.py runs it.">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://songth1ef.github.io/nestwork/articles/memory-distillation/#article","headline":"Memory Distillation — Consolidating AI Agent Memory","description":"Memory distillation merges many agents' private notes into one reviewed shared memory. What belongs in it, the review flow, and how distill.py runs it.","inLanguage":"en","datePublished":"2026-09-27","dateModified":"2026-09-27","author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"publisher":{"@type":"Organization","name":"nestwork","url":"https://songth1ef.github.io/nestwork/"},"image":["https://songth1ef.github.io/nestwork/og.png"],"mainEntityOfPage":"https://songth1ef.github.io/nestwork/articles/memory-distillation/","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://songth1ef.github.io/nestwork/"},{"@type":"ListItem","position":2,"name":"Articles","item":"https://songth1ef.github.io/nestwork/articles/"},{"@type":"ListItem","position":3,"name":"Memory Distillation — Consolidating AI Agent Memory","item":"https://songth1ef.github.io/nestwork/articles/memory-distillation/"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does distillation delete my agents' memory?","acceptedAnswer":{"@type":"Answer","text":"No. It only reads private memory and writes shared/. Each agent's directory is left unchanged, so you can always go back to the original observations."}},{"@type":"Question","name":"Can I run distillation on a schedule?","acceptedAnswer":{"@type":"Answer","text":"Yes, if you configure it. A scheduled job would typically use --run-claude --commit or --run-codex --commit, which skips the human review; the protocol allows that only when you have accepted the trade-off."}},{"@type":"Question","name":"What is the difference between `compile.sh` and `distill.py`?","acceptedAnswer":{"@type":"Answer","text":"compile.sh concatenates agent memory into shared/memory.md and commits it; no model, no deduplication. distill.py uses a model to merge and deduplicate, and leaves the result for review. compile.sh refuses to run once shared/ uses topic memory."}},{"@type":"Question","name":"Who reviews the result if I use the prompt mode?","acceptedAnswer":{"@type":"Answer","text":"You and the agent session you pasted it into. Follow steps 3 and 4: have a sub-agent check for sensitive data, errors, contradictions and stale entries, read its report, then write and commit."}}]}]}</script>
+<style>
+@font-face { font-family: "VT323"; src: url("../../fonts/vt323-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Inter Tight"; src: url("../../fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+:root {
+  --bg: #fbf8ef; --fg: #111; --muted: #5c5c5c; --teal: #2ec4d6; --teal-dark: #0a8fa0; --magenta: #ff2d8f;
+  --lime: #d6f25a; --yellow: #ffe53d; --sky: #29c6ec; --red: #ec2a33;
+  --sans: "Helvetica Neue", Helvetica, "Inter Tight", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --pixel: "VT323", ui-monospace, Menlo, monospace;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::selection { background: var(--yellow); }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 2px solid #111; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.badge { background: var(--teal); color: #000; font-weight: 800; letter-spacing: -0.03em; padding: 2px 10px 3px; border: 2px solid #000; outline: 2px solid var(--teal); text-decoration: none; font-size: 18px; }
+.nav { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 13px; }
+.nav a { text-decoration: none; color: #333; }
+.nav a:hover { background: var(--yellow); color: #000; }
+.nav .gh { background: #111; color: #fff; padding: 4px 10px; font-weight: 700; }
+.art-hero { background: linear-gradient(180deg, #8fdcf7 0%, #d4f3ff 60%, var(--bg) 100%); border-bottom: 2px solid #111; padding: 48px 0 44px; position: relative; overflow: hidden; }
+.art-hero::after { content: ""; position: absolute; right: -60px; top: -40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, var(--yellow) 34%, transparent 36%) 0 0 / 11px 11px; -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%); mask-image: radial-gradient(circle, #000 50%, transparent 70%); pointer-events: none; }
+.crumbs { font-family: var(--pixel); font-size: 20px; letter-spacing: 0.04em; color: #0a5f6b; margin: 0 0 14px; position: relative; z-index: 1; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { background: var(--yellow); }
+.art-hero h1 { font-size: clamp(34px, 5.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 0; max-width: 880px; position: relative; z-index: 1; }
+:lang(zh) .art-hero h1 { line-height: 1.2; letter-spacing: -0.01em; }
+.art-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; font-family: var(--mono); font-size: 13px; color: #333; position: relative; z-index: 1; }
+.art-meta span { background: #fff; border: 2px solid #111; padding: 2px 8px; }
+.art-meta .kind { background: var(--magenta); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 56px; padding-top: 48px; padding-bottom: 72px; }
+.layout.wide { grid-template-columns: 1fr; }
+.layout > * { min-width: 0; }
+.prose p code, .prose li code, .prose td code { overflow-wrap: anywhere; }
+.wide .prose { max-width: none; }
+.wide .toc { display: none; }
+.wide .prose > p:first-child { max-width: 72ch; }
+@media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
+.prose { max-width: 72ch; }
+.prose > p:first-child { font-size: 1.12em; }
+.prose h2 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; line-height: 1.2; margin: 2.1em 0 0.6em; padding-top: 0.2em; border-top: 2px solid #111; scroll-margin-top: 80px; }
+.prose h2::before { content: "// "; font-family: var(--pixel); color: var(--magenta); font-weight: 400; }
+.prose h3 { font-size: 21px; letter-spacing: -0.015em; margin: 1.6em 0 0.4em; scroll-margin-top: 80px; }
+.prose p, .prose li { color: #222; }
+.prose a { text-decoration-color: var(--magenta); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose a:hover { background: var(--yellow); }
+.prose code { font-family: var(--mono); font-size: 0.86em; background: #fff; border: 1.5px solid #111; padding: 0 5px; }
+.prose pre.code { background: #151515; color: #eee; border-left: 5px solid var(--teal); padding: 16px 18px; overflow-x: auto; font-size: 14.5px; line-height: 1.65; box-shadow: 6px 6px 0 #111; }
+.prose pre.code code { background: none; border: 0; padding: 0; font-size: 1em; color: inherit; }
+.prose blockquote { margin: 1.4em 0; padding: 14px 20px; background: #fff; border: 2px solid #111; border-left: 8px solid var(--magenta); box-shadow: 5px 5px 0 #111; }
+.prose blockquote p { margin: 0; font-weight: 600; }
+.prose figure { margin: 1.6em 0; }
+.prose img { width: 100%; height: auto; border: 2px solid #111; box-shadow: 6px 6px 0 #111; display: block; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin: 0.3em 0; }
+.prose li::marker { color: var(--magenta); font-weight: 700; }
+.table-wrap { overflow-x: auto; border: 2px solid #111; background: #fff; box-shadow: 6px 6px 0 #111; margin: 1.4em 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #0002; vertical-align: top; }
+thead th { background: #111; color: #fff; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.toc { position: sticky; top: 84px; align-self: start; background: #fff; border: 2px solid #111; box-shadow: 6px 6px 0 var(--teal); padding: 16px 18px; font-size: 14.5px; line-height: 1.45; }
+.toc b { display: block; font-family: var(--pixel); font-weight: 400; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 8px; }
+.toc a { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px dashed #0003; color: #222; }
+.toc a:hover { background: var(--yellow); }
+.cta { margin-top: 56px; background: var(--lime); border: 2px solid #111; box-shadow: 8px 8px 0 #111; padding: 28px 28px 30px; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; right: -40px; top: -30px; width: 200px; height: 120px; background: repeating-linear-gradient(-45deg, var(--magenta) 0 12px, transparent 12px 24px); transform: rotate(-4deg); }
+.cta h2 { border: 0; margin: 0 0 8px; padding: 0; font-size: 30px; position: relative; z-index: 1; }
+.cta h2::before { content: none; }
+.cta p { margin: 0 0 18px; max-width: 520px; font-weight: 600; position: relative; z-index: 1; }
+.btn { display: inline-flex; gap: 8px; padding: 12px 20px; font-weight: 800; text-decoration: none; border: 2px solid #111; margin: 0 10px 10px 0; position: relative; z-index: 1; }
+.btn:hover { box-shadow: 5px 5px 0 #111; transform: translate(-2px, -2px); }
+.btn-ink { background: #111; color: #fff; }
+.btn-ghost { background: #fff; color: #111; }
+.more { border-top: 2px solid #111; background: #fff; padding: 48px 0 60px; }
+.more h2 { font-family: var(--pixel); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; margin: 0 0 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+.cards a { display: block; text-decoration: none; background: var(--bg); border: 2px solid #111; box-shadow: 5px 5px 0 #111; padding: 16px 18px; }
+.cards a:hover { background: var(--yellow); }
+.cards b { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; }
+.cards span { display: block; margin-top: 6px; font-size: 14px; color: #444; line-height: 1.5; }
+.site-footer { background: #111; color: #aaa; padding: 30px 0 40px; font-family: var(--mono); font-size: 12.5px; }
+.site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.site-footer a { color: #ddd; text-decoration: none; margin-left: 16px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="badge" href="../../">nestwork</a>
+    <nav class="nav" aria-label="Articles">
+      <a href="../">Articles</a>
+      <a href="https://songth1ef.github.io/nestwork/zh/articles/memory-distillation/" hreflang="zh-CN" data-lang-switch="zh">中文</a>
+      <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="art-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="../../">Home</a> / <a href="../">Articles</a> /</p>
+      <h1>Memory Distillation — Consolidating AI Agent Memory</h1>
+      <div class="art-meta"><span class="kind">Guides</span><span>5 min read</span><span>Updated 2026-09-27</span></div>
+    </div>
+  </div>
+  <div class="wrap layout">
+    <article class="prose">
+<p>What is memory distillation for AI agents? It is the step that turns many agents' private notes into one shared memory: read every agent's memory, filter out what is temporary, check the rest for sensitive data and contradictions, merge it, and have a human confirm before it becomes shared. In nestwork it is always explicitly triggered, never destructive, and <code>scripts/maintenance/distill.py</code> writes its result to the working tree for review instead of committing it.</p>
+<p>Below: why distillation is needed, what should and should not go into shared memory, the review flow, and how <code>distill.py</code> works in its three modes.</p>
+<h2 id="why-several-agents-need-a-distillation-step">Why several agents need a distillation step</h2>
+<p>When each agent writes only to its own directory, writes never collide (see <a href="../multi-agent-memory-without-conflicts/">multi-agent memory without conflicts</a>). The cost is that knowledge ends up scattered. The Claude Code agent on your laptop learned that you prefer small commits; the Codex agent on your desktop learned the same thing in different words; a third agent recorded a lesson nobody else has seen.</p>
+<p>Every agent can read every directory, but reading 30 private memories each session defeats the point of selective loading. Distillation produces one place, <code>shared/</code>, where stable cross-agent facts live, deduplicated and reviewed. It ranks above private memory in the priority chain, so once a fact is distilled, agents treat it as the common baseline.</p>
+<h2 id="what-belongs-in-shared-memory">What belongs in shared memory</h2>
+<p><a href="https://github.com/songth1ef/nestwork/blob/main/AGENTS.md" rel="noopener">AGENTS.md §7</a> draws the line:</p>
+<div class="table-wrap"><table><thead><tr><th>Include</th><th>Exclude</th></tr></thead><tbody><tr><td>Cross-agent stable facts (user identity, stack, preferences)</td><td>Temporary task details</td></tr><tr><td>Validated collaboration patterns</td><td>One-off debugging notes</td></tr><tr><td>Decisions with lasting impact</td><td>Agent-specific context</td></tr></tbody></table></div>
+<p>Three rules keep the merge safe:</p>
+<ul><li><strong>Union, not intersection.</strong> An observation only one agent made is kept. Distillation does not drop unique knowledge because others didn't see it.</li><li><strong>Non-destructive.</strong> Each agent's private memory stays exactly as it was. Distillation reads it and writes only <code>shared/</code>.</li><li><strong>Not automatically resident.</strong> Distilled content lands in the on-demand tier. Promoting anything into a resident summary is a separate decision.</li></ul>
+<p>Divergent observations that are both valid, such as different settings on different machines, are kept side by side rather than forced into one.</p>
+<h2 id="when-to-distill">When to distill</h2>
+<p>Only when you ask. The trigger is a human request, or a scheduled job the human configured. An agent that notices something worth sharing at the end of a session does not write <code>shared/</code>; it records the candidate in its own directory, where the next distillation picks it up. That keeps 30 agents from editing shared memory whenever they feel like it.</p>
+<h2 id="the-flow-sub-agent-review-plus-human-confirmation">The flow: sub-agent review plus human confirmation</h2>
+<p>The protocol's eight steps:</p>
+<ol><li>Read all agents' memory, including topic files for topic-mode scopes.</li><li>Read current <code>shared/</code>: the single <code>memory.md</code>, or in topic mode the index and every shared topic file.</li><li>Spawn a sub-agent to review for sensitive data, factual errors, contradictions and outdated entries. It reports only; it does not write.</li><li>Present the review report to the human for confirmation.</li><li>Merge: remove duplicates, unify consistent facts, keep divergent observations.</li><li>Keep historical evidence in the on-demand tier; replace superseded facts in current summaries with provenance, rather than appending forever.</li><li>In topic mode, write only changed topic files, regenerate the index and run <code>memory-index.py --check</code>. List structural changes (rename, merge, delete, new top-level folder) separately in the review.</li><li>Commit with <code>memory: distill shared</code>.</li></ol>
+<p>Steps 3 and 4 are the reason the tooling does not commit by default: a human has to see the result first.</p>
+<h2 id="distill-py-three-modes"><code>distill.py</code>: three modes</h2>
+<p><a href="https://github.com/songth1ef/nestwork/blob/main/scripts/maintenance/distill.py" rel="noopener"><code>scripts/maintenance/distill.py</code></a> collects every non-empty agent memory and builds the merge prompt. How it runs depends on the flag:</p>
+<div class="table-wrap"><table><thead><tr><th>Mode</th><th>Command</th><th>What happens</th></tr></thead><tbody><tr><td>Prompt (default)</td><td><code>distill.py</code></td><td>Prints a ready-made merge prompt; paste it into any agent session</td></tr><tr><td>Claude runner</td><td><code>distill.py --run-claude</code></td><td>Runs the merge through <code>claude -p</code> and writes the result</td></tr><tr><td>Codex runner</td><td><code>distill.py --run-codex [--profile &lt;p&gt;]</code></td><td>Runs the merge through <code>codex exec</code> and writes the result</td></tr></tbody></table></div>
+<p>The two runners are mutually exclusive, and <code>--profile</code> applies to Codex only. The prompt mode is vendor-agnostic on purpose; the script's own comment notes that a distiller tied to a single vendor stops working the moment that subscription lapses.</p>
+<p>Both runners are sandboxed from the nest's own bootstrap. The Claude runner passes an empty tool list and no setting sources, so a <code>CLAUDE.md</code> startup protocol cannot turn the run into a session-start summary; the Codex runner uses a read-only sandbox in an empty temporary directory.</p>
+<p>Then the flags that control writing:</p>
+<pre class="code"><code data-lang="bash">python3 scripts/maintenance/distill.py --run-claude --dry-run   # print candidate, write nothing
+python3 scripts/maintenance/distill.py --run-claude             # write shared/, do not commit
+git diff -- shared/                                             # review
+git commit -m &quot;memory: distill shared&quot; -- shared/</code></pre>
+<p>Not committing is the default. The run ends with a hint to review <code>git diff -- shared/</code> and commit. <code>--commit</code> pulls, writes, commits with <code>memory: distill shared</code> and pushes in one run, and <code>--no-push</code> keeps that commit local. Use <code>--commit</code> only when you have already accepted skipping review, for example in a scheduled job you set up. <code>--no-commit</code> is still accepted for compatibility but changes nothing.</p>
+<h2 id="topic-mode-write-only-what-changed">Topic mode: write only what changed</h2>
+<p>If <code>shared/memory.md</code> carries the topic-index markers (see <a href="../topic-memory-on-demand-loading/">loading memory on demand</a>), <code>distill.py</code> switches to topic mode automatically:</p>
+<ul><li>Agent topic files become part of the input.</li><li>The model is asked to output only topic files that change or are new, each in full between <code>&lt;&lt;&lt;FILE shared/&lt;topic&gt;.md</code> and <code>&gt;&gt;&gt;END</code>.</li><li>The script rejects invalid paths (only lowercase kebab-case, at most one subfolder, never <code>memory.md</code> or <code>resident.md</code>) and any file without a <code>description</code>.</li><li>It writes those files, regenerates the index, and refuses to continue if the index check finds problems.</li></ul>
+<p>The prompt forbids renaming, merging or deleting topics; that stays a reviewed human decision. Rewriting a split nest back into one file on every run would undo the split, which is also why the plain concatenation script <code>compile.sh</code> refuses to run on a topic-mode <code>shared/</code>.</p>
+<p>In single-file mode the script expects a <code># SHARED MEMORY</code> header and warns if the result passes 500 lines, the protocol limit for <code>shared/memory.md</code>.</p>
+<h2 id="the-same-pipeline-for-tool-native-memory">The same pipeline for tool-native memory</h2>
+<p>Distillation is also how nestwork carries Claude Code, Codex or Kimi Code's own machine-local memory into the nest (<a href="https://github.com/songth1ef/nestwork/blob/main/AGENTS.md" rel="noopener">AGENTS.md §13</a>). The input changes, the pipeline doesn't: read, filter, review, merge, commit. The filter question there is "when does this stop being true?", and raw-copying a tool's memory folder is explicitly ruled out because duplicates drift apart. More in <a href="../rescue-tool-native-memory/">rescuing tool-native memory</a>.</p>
+<h2 id="faq">FAQ</h2>
+<h3 id="does-distillation-delete-my-agents-memory">Does distillation delete my agents' memory?</h3>
+<p>No. It only reads private memory and writes <code>shared/</code>. Each agent's directory is left unchanged, so you can always go back to the original observations.</p>
+<h3 id="can-i-run-distillation-on-a-schedule">Can I run distillation on a schedule?</h3>
+<p>Yes, if you configure it. A scheduled job would typically use <code>--run-claude --commit</code> or <code>--run-codex --commit</code>, which skips the human review; the protocol allows that only when you have accepted the trade-off.</p>
+<h3 id="what-is-the-difference-between-compile-sh-and-distill-py">What is the difference between <code>compile.sh</code> and <code>distill.py</code>?</h3>
+<p><code>compile.sh</code> concatenates agent memory into <code>shared/memory.md</code> and commits it; no model, no deduplication. <code>distill.py</code> uses a model to merge and deduplicate, and leaves the result for review. <code>compile.sh</code> refuses to run once <code>shared/</code> uses topic memory.</p>
+<h3 id="who-reviews-the-result-if-i-use-the-prompt-mode">Who reviews the result if I use the prompt mode?</h3>
+<p>You and the agent session you pasted it into. Follow steps 3 and 4: have a sub-agent check for sensitive data, errors, contradictions and stale entries, read its report, then write and commit.</p>
+<h2 id="related">Related</h2>
+<ul><li><a href="../multi-agent-memory-without-conflicts/">Multi-agent memory without conflicts</a></li><li><a href="../topic-memory-on-demand-loading/">Loading agent memory on demand</a></li><li><a href="../rescue-tool-native-memory/">Rescuing tool-native memory</a></li><li><a href="../git-native-agent-memory/">Git-native agent memory: why git is enough</a></li><li><a href="../memory-is-a-protocol-problem/">Memory is a protocol problem</a></li></ul>
+      <section class="cta" aria-label="Give your agents a memory">
+        <h2>Give your agents a memory</h2>
+        <p>nestwork turns one private git repo into shared, persistent memory for Claude Code, Codex, Gemini, Kimi and more.</p>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">Use this template →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ Star on GitHub</a>
+      </section>
+    </article>
+    <aside class="toc" aria-label="On this page"><b>On this page</b><a href="#why-several-agents-need-a-distillation-step">Why several agents need a distillation step</a><a href="#what-belongs-in-shared-memory">What belongs in shared memory</a><a href="#when-to-distill">When to distill</a><a href="#the-flow-sub-agent-review-plus-human-confirmation">The flow: sub-agent review plus human confirmation</a><a href="#distill-py-three-modes">distill.py: three modes</a><a href="#topic-mode-write-only-what-changed">Topic mode: write only what changed</a><a href="#the-same-pipeline-for-tool-native-memory">The same pipeline for tool-native memory</a><a href="#faq">FAQ</a><a href="#related">Related</a></aside>
+  </div>
+  <section class="more" aria-label="All articles">
+    <div class="wrap">
+      <h2>All articles →</h2>
+      <div class="cards"><a href="../ai-agent-memory/"><b>AI Agent Memory — Four Types and Their Trade-offs</b><span>AI agent memory is context an agent keeps beyond one session. Compare context windows, built-in memory, vector services and files for coding agents.</span></a><a href="../claude-code-memory-across-machines/"><b>Claude Code Memory Across Machines, Synced with Git</b><span>Claude Code&#x27;s CLAUDE.md and auto memory stay on one machine. Where they&#x27;re stored, why they don&#x27;t sync, and how to share them across machines with git.</span></a><a href="../share-memory-claude-code-codex/"><b>Share Memory Between Claude Code and Codex</b><span>Claude Code reads ~/.claude/CLAUDE.md, Codex reads ~/.codex/AGENTS.md. Point both at one git repo to share memory, each writing only its own directory.</span></a><a href="../codex-cli-persistent-memory/"><b>Codex CLI Memory, AGENTS.md and Persistent Recall</b><span>How Codex CLI remembers today (AGENTS.md and opt-in local memories), and how to give Codex persistent memory across sessions and machines with git.</span></a><a href="../agent-memory-tools-compared/"><b>Agent Memory Tools Compared — Mem0, Letta, Zep and More</b><span>Mem0, Letta, Zep, Supermemory, claude-mem, built-in tool memory and nestwork compared on architecture, deployment, data ownership and best fit.</span></a><a href="../agent-memory-benchmarks/"><b>Agent Memory Benchmarks — LoCoMo, LongMemEval, BEAM</b><span>What LoCoMo, LongMemEval and BEAM measure, how LLM judges score them, why vendor numbers don&#x27;t compare, and which metrics matter for coding agents.</span></a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span>nestwork — AI agent memory, git-native.</span>
+    <span><a href="../../">Home</a><a href="../">Articles</a><a href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-lang-switch]').forEach(function (a) {
+  a.addEventListener('click', function () { try { localStorage.setItem('nestwork_lang', a.getAttribute('data-lang-switch')); } catch (e) {} });
+});
+</script>
+</body>
+</html>

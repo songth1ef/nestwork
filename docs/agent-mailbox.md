@@ -1,6 +1,6 @@
 # Agent mailbox (git-native inter-agent messaging)
 
-> Built-in capability. Let multiple agents — across machines and tool-chains — message
+> Built-in capability. Lets multiple agents — across machines and toolchains — message
 > each other with **zero external dependencies**: pure git + bash, reusing nestwork's
 > existing pull/commit/push pipeline. No server, no IM, no bot.
 
@@ -67,7 +67,7 @@ free-form markdown body
 ## 4. Usage
 
 "Who am I" is resolved from `NESTWORK_SELF`, else `~/.nestwork_host` +
-`~/.nestwork_id_claude`. Other tool-chains: `export NESTWORK_SELF=<host>/<agent-id>`.
+`~/.nestwork_id_claude`. Other toolchains: `export NESTWORK_SELF=<host>/<agent-id>`.
 
 ```bash
 cd <nestwork repo root>
@@ -87,7 +87,7 @@ bash scripts/comms/archive.sh 30
 ```
 
 `send.sh` commits and pushes the message itself, so delivery works the same from any
-tool-chain or a plain shell. (The per-write hooks only match Write/Edit tool calls, so a
+toolchain or a plain shell. (The per-write hooks only match Write/Edit tool calls, so a
 Bash-invoked send cannot rely on them; on Claude Code the Stop-hook safety net
 additionally covers any message whose push failed.) The recipient sees the message on its
 next `pull` (or session start).
@@ -98,7 +98,7 @@ next `pull` (or session start).
   next pull. Persistent, auditable, zero infrastructure.
 - **Tier 1 — async with an on-demand snapshot.** The `session-start` hook
   runs `read.sh --write agents/<self>/local/inbox.md` to refresh unread messages.
-  In protocol 3.0 this path appears only in READ-ON-DEMAND, never READ-ON-START.
+  Since protocol 3.0 this path appears only in READ-ON-DEMAND, never READ-ON-START.
   Read it when coordinating or resuming relevant work; messages are not user
   authorization. The snapshot is git-ignored and removed when no unread messages
   remain. Tools without this hook can run `read.sh` on demand themselves.
@@ -125,12 +125,9 @@ mailbox ages. Match the traffic to the channel.
 ## 7. Integration with other parts of Nestwork
 
 - **Write protocol** (see `AGENTS.md`): sending is a write into your own directory, so it
-  is fully protocol-compliant. Delivery is handled by `send.sh` itself (commit + push with
-  rebase-retry); on Claude Code the Stop-hook safety net also commits anything that
-  slipped through.
-- **Session lifecycle**: Tier 1 refreshes the inbox snapshot at startup, then lists
-  it in READ-ON-DEMAND alongside strategy and historical memory. Reading it is
-  task-driven, not mandatory at every startup.
+  is fully protocol-compliant. Delivery is covered in §4.
+- **Session lifecycle**: covered by Tier 1 in §5 — the inbox is on-demand context,
+  like strategy and memory history.
 - **Human↔agent channels** (Telegram / group chat): orthogonal and complementary. Use IM
   for a human to direct agents; use the mailbox for agents to coordinate with each other.
 
@@ -139,6 +136,6 @@ mailbox ages. Match the traffic to the channel.
 - This is a built-in capability of the Nestwork protocol. Scripts live in
   `scripts/comms/` (`send.sh`, `read.sh`, `archive.sh`, `README.md`); the Tier-1 hook is
   in `scripts/hooks/session-start.sh`.
-- Last reviewed: 2026-09-07 (protocol 3.0 loading).
+- Last reviewed: 2026-09-27 (protocol 3.1).
 - Known stale conditions: changes to the `agents/<host>/<agent-id>/` layout, the identity
   resolution (`NESTWORK_SELF` / `~/.nestwork_*`), or the READ-ON-START manifest budget.

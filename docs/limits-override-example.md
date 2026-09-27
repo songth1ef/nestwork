@@ -52,6 +52,12 @@ This file changes **which numbers apply**, not the split mechanics. Splitting
 always follows the universal rule in `AGENTS.md` §6: filename becomes a folder,
 the original file becomes a pure index of links.
 
+Two other budgets are enforced by scripts, not by this table, so overriding a
+row here does not change them: resident-file byte budgets
+(`scripts/maintenance/check-resident.py`, see `docs/context-loading.md`) and the
+topic-file size limits of protocol 3.1 topic memory (soft 16 KB, hard 32 KB,
+checked by `scripts/maintenance/memory-index.py --check`).
+
 ## Tuning log
 
 Record every change with the reason. Without it, a future maintainer cannot tell

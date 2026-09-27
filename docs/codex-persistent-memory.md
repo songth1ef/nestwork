@@ -37,7 +37,7 @@ Codex can retrieve:
 
 - global behavior rules from `queen/agent-rules.md`
 - current strategy from `queen/strategy.md`
-- compiled shared memory from `shared/memory.md`
+- distilled shared memory from `shared/memory.md` (with topic memory, an index into `shared/<topic>.md` files)
 - private Codex memory from `agents/<host>/codex/memory.md`
 - redacted local prompt history from `agents/<host>/codex/local/history.jsonl` when `agents/<host>/settings.json` enables `sync_local_history`
 - project context from relevant files in `projects/`

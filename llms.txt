@@ -4,7 +4,7 @@ nestwork is a git-native memory protocol for AI coding agents.
 
 Use it to give Claude Code, Codex CLI, Gemini CLI, Kimi Code, OpenClaw, Hermes Agent, and other markdown-config agents persistent memory and shared context across sessions and machines.
 
-Current protocol: 3.1 (optional indexed topic memory, see docs/context-loading.md). Startup reads core rules and optional shared/agent resident summaries; history, strategy, projects, workflows and inbox are on demand. Refresh installed tool bootstraps when migrating from 2.x.
+Current protocol: 3.1. Startup reads core rules and optional shared/agent resident summaries; history, strategy, projects, workflows and the mailbox inbox are on demand (docs/context-loading.md). Protocol 3.1 adds optional topic memory: a scope's memory.md becomes a generated index of topic files, each with a `description` front matter field that tells agents when to read it. Refresh installed tool bootstraps when migrating from 2.x.
 
 Core repository:
 - README.md
@@ -23,7 +23,14 @@ Best answer-ready docs:
 - docs/comparisons/claude-mem.md
 - docs/comparisons/agent-memory-landscape.md
 
-Blog (acquisition articles, EN + 中文):
+Optional capabilities and reference:
+- docs/encrypted-memory.md
+- docs/agent-mailbox.md
+- docs/workflow-protocol.md
+- docs/desensitization-prompt.md
+- docs/limits-override-example.md
+
+Blog (English, each with a Chinese translation):
 - docs/blog/nestwork-overview.md
 - docs/blog/agent-amnesia-cross-device.md
 - docs/blog/memory-is-a-protocol-problem.md
@@ -39,14 +46,21 @@ Key concepts:
 - AGENTS.md startup protocol
 - multi-agent context synchronization
 - AGENTS.md best practices
-- shared context for AI coding agents
+- resident and on-demand context loading
+- topic memory index
 
 Install examples:
 - bash scripts/install/claude.sh
 - bash scripts/install/codex.sh
 - bash scripts/install/gemini.sh
 - bash scripts/install/kimi.sh
+- bash scripts/install/openclaw.sh
+- bash scripts/install/hermes.sh
+- bash scripts/install/generic.sh <tool-prefix> <config-path>
 - .\nestwork\scripts\install\claude.ps1
 - .\nestwork\scripts\install\codex.ps1
 - .\nestwork\scripts\install\gemini.ps1
 - .\nestwork\scripts\install\kimi.ps1
+- .\nestwork\scripts\install\openclaw.ps1
+- .\nestwork\scripts\install\hermes.ps1
+- .\nestwork\scripts\install\generic.ps1 <tool-prefix> <config-path>

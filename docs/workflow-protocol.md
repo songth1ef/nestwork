@@ -6,7 +6,7 @@
 
 ## Why `workflow/` exists
 
-Nestwork already has four context categories:
+Besides `workflow/`, Nestwork has four context categories:
 
 - `queen/` — human-maintained rules and strategy
 - `shared/` — cross-agent distilled facts about the user
@@ -30,18 +30,20 @@ These are workflow content. They go in `workflow/`.
 
 ---
 
-## Three-tier mental model
+## Three-stage mental model
+
+These stages describe how knowledge matures. They are unrelated to the resident / on-demand loading tiers in [context loading](context-loading.md).
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│ Tier 1: Draft (lives in agent memory)                           │
+│ Stage 1: Draft (lives in agent memory)                          │
 │ - Raw observations, single-session impressions                  │
 │ - Path: agents/<host>/<id>/memory.md or topic files             │
-│ - Promoted to Tier 2 via distillation                           │
+│ - Promoted to Stage 2 via distillation                          │
 └─────────────────────────────────────────────────────────────────┘
                               ↓ distill (Section 7 process)
 ┌─────────────────────────────────────────────────────────────────┐
-│ Tier 2: Distilled (lives in private mynestwork)                 │
+│ Stage 2: Distilled (lives in private mynestwork)                │
 │ - Cross-agent stable workflow knowledge                         │
 │ - Path: workflow/<topic>.md                                     │
 │ - May contain employer / project names IF the private repo      │
@@ -49,7 +51,7 @@ These are workflow content. They go in `workflow/`.
 └─────────────────────────────────────────────────────────────────┘
                               ↓ human decision (NOT auto)
 ┌─────────────────────────────────────────────────────────────────┐
-│ Tier 3: Exportable (manually copied to public surface)          │
+│ Stage 3: Exportable (manually copied to public surface)         │
 │ - Blog posts, upstream nestwork PRs, public talks               │
 │ - Must be desensitized to the level documented in               │
 │   docs/desensitization-prompt.md                                │
@@ -58,7 +60,7 @@ These are workflow content. They go in `workflow/`.
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-The boundary between Tier 2 and Tier 3 is a **human gate**. Protocol does not automate it. Upstream nestwork is read-only from the perspective of any private instance.
+The boundary between Stage 2 and Stage 3 is a **human gate**. Protocol does not automate it. Upstream nestwork is read-only from the perspective of any private instance.
 
 ---
 
@@ -66,10 +68,10 @@ The boundary between Tier 2 and Tier 3 is a **human gate**. Protocol does not au
 
 | Content | Location | Why |
 |---|---|---|
-| "I prefer Vue 3 + TypeScript" | `shared/memory.md` | Stable user fact |
+| "I prefer Vue 3 + TypeScript" | `shared/memory.md` (or a `shared/` topic file) | Stable user fact |
 | "Vue 3 components ≥ 1000 lines should be split by responsibility" | `workflow/coding-disciplines.md` | Methodology, portable |
 | "sign-mgt-web uses ant-design-vue@4.x with custom theme" | `projects/sign-mgt-web.md` | Project-specific |
-| "Today the agent observed user prefers `:loading` over spinning icons" | `agents/<id>/memory.md` | Single-session, may distill later |
+| "Today the agent observed user prefers `:loading` over spinning icons" | `agents/<host>/<id>/memory.md` | Single-session, may distill later |
 | "Hook architecture (PreToolUse + PostToolUse atomic write)" | `workflow/tooling-stack.md` | Methodology + setup guide |
 | "Strategy: prioritize small verifiable tools over platforms" | `queen/strategy.md` | Human-maintained direction |
 
@@ -104,11 +106,11 @@ The agent is operating in some path (e.g., `F:/code/project/sign-mgt-web/`) and 
    - Agent reads `ingest.target`, `ingest.name`, `desensitize.level`, `desensitize.custom_rules`.
    - Agent applies desensitization per level.
    - Agent writes cleaned result to `<mynestwork>/<target>/<name>.md`.
-5. Agent commits and pushes the new artifact under the standard write protocol.
+5. After the user approves the result, the agent commits and pushes it. Writing outside the agent's own directory requires this explicit, task-specific authorization (`AGENTS.md` Section 2).
 
 ### Default template
 
-When agent prompts the user to create a config, the default content is:
+When the agent prompts the user to create a config, the default content is:
 
 ```json
 {
@@ -151,7 +153,7 @@ AI-driven semantic desensitization. The agent uses the prompt template in `docs/
 2. Identify and rewrite content that leaks confidential information without naming it
 3. Produce a candidate output for human review before committing
 
-`strong` is the default for any new `nestwork.config.json` and is required for any content destined for Tier 3 (exportable).
+`strong` is the default for any new `nestwork.config.json` and is required for any content destined for Stage 3 (exportable).
 
 ### What upstream nestwork provides vs. what users provide
 
@@ -162,7 +164,7 @@ AI-driven semantic desensitization. The agent uses the prompt template in `docs/
 | The schema | Severity calibration via level choice |
 | Empty `_template.md` files | All actual content |
 
-**Upstream never contains specific names, codenames, or any user-identifying information.** This is enforced at the human-review gate when promoting Tier 2 → Tier 3.
+**Upstream never contains specific names, codenames, or any user-identifying information.** This is enforced at the human-review gate when promoting Stage 2 → Stage 3.
 
 ---
 

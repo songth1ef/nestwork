@@ -13,8 +13,8 @@ Without shared context, each AI agent session depends on whatever the user remem
 - decisions are forgotten across sessions
 - multiple machines accumulate different context
 
-Protocol 3.0 starts with `queen/agent-rules.md` and optional shared/agent
-`resident.md` summaries. Strategy, historical memory and project context are
+Since protocol 3.0, startup reads only `queen/agent-rules.md` and optional
+shared/agent `resident.md` summaries. Strategy, historical memory and project context are
 on demand. Priority controls authority, not which files must load at startup.
 See [context loading and migration](context-loading.md).
 
@@ -23,7 +23,7 @@ See [context loading and migration](context-loading.md).
 ```text
 queen/agent-rules.md          behavior rules
 queen/strategy.md             current direction
-shared/memory.md              distilled memory
+shared/memory.md              distilled memory (or an index of topic files)
 agents/<host>/<agent-id>/     private agent memory
 projects/<name>.md            project context
 workflow/<topic>.md           portable cross-project methodology

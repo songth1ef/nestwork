@@ -29,10 +29,12 @@ nestwork keeps `AGENTS.md` focused on protocol:
 5. Read strategy and recent git activity when prioritizing, resuming or coordinating.
 ```
 
-Protocol 3.0 separates loading from authority. Missing resident summaries do
-not make historical memory mandatory, and links are retrieval pointers rather
-than instructions to load everything. Keep history in `memory.md`; only small,
-reviewed facts needed across tasks belong in `resident.md`.
+Since protocol 3.0, loading is separate from authority. Missing resident
+summaries do not make historical memory mandatory, and links are retrieval
+pointers rather than instructions to load everything. Keep history in
+`memory.md` (or, with protocol 3.1 topic memory, in topic files indexed by
+`memory.md`); only small, reviewed facts needed across tasks belong in
+`resident.md`.
 See [context loading and migration](context-loading.md).
 
 ## Why this helps AI agents

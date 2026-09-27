@@ -10,6 +10,13 @@ NESTWORK_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SHARED="$NESTWORK_PATH/shared/memory.md"
 AGENTS_DIR="$NESTWORK_PATH/agents"
 
+# A topic-split nest (AGENTS.md section 6) keeps an index in shared/memory.md.
+# Concatenating every agent into it would silently undo the split.
+if [ -f "$SHARED" ] && grep -q 'nestwork:topic-index:begin' "$SHARED"; then
+  echo "[!] shared/ uses topic files; compile would flatten them. Use distill.py instead." >&2
+  exit 1
+fi
+
 echo "-> scanning $AGENTS_DIR"
 
 # Collect all agent memory files

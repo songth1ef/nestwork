@@ -4,7 +4,7 @@ These docs are designed for the GitHub repository itself, not for a separate web
 
 ## Start here
 
-Current protocol: **3.0**. Startup loads core rules and optional resident summaries; history and project context are on demand.
+Current protocol: **3.1**. Memory scopes may be split into indexed topic files (context-loading.md, Topic memory). Startup loads core rules and optional resident summaries; history and project context are on demand.
 
 - [Context loading and 2.x → 3.0 migration](context-loading.md)
 

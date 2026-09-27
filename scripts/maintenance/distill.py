@@ -11,9 +11,15 @@
 # `--run-claude` (claude -p) and `--run-codex` (codex exec). Pick whichever
 # tool this machine is actually signed in to -- a distiller tied to a single
 # vendor stops working the moment that subscription lapses.
+#
+# Topic mode (AGENTS.md section 6): when shared/memory.md carries the
+# topic-index markers, the distiller reads and writes shared/<topic>.md files
+# instead of one monolith, then regenerates the index. Rewriting a split nest
+# back into a single file would undo the split on every run.
 # -----------------------------------------------------------------------------
 
 import argparse
+import importlib.util
 import io
 import os
 import re
@@ -40,6 +46,37 @@ def read_file_robust(path: Path) -> str | None:
     return None
 
 
+def load_memory_index():
+    path = Path(__file__).resolve().parent / "memory-index.py"
+    spec = importlib.util.spec_from_file_location("nestwork_memory_index", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+MEMORY_INDEX = load_memory_index()
+TOPIC_PATH = re.compile(r"^shared/[a-z0-9][a-z0-9-]*(?:/[a-z0-9][a-z0-9-]*)?\.md$")
+TOPIC_BLOCK = re.compile(r"^<<<FILE (\S+)[ \t]*\r?\n(.*?)\r?\n>>>END[ \t]*$", re.S | re.M)
+
+
+def is_topic_scope(scope: Path) -> bool:
+    memory = scope / "memory.md"
+    return memory.is_file() and MEMORY_INDEX.BEGIN in (read_file_robust(memory) or "")
+
+
+def read_scope(scope: Path) -> str | None:
+    """Memory of one scope: memory.md plus its topic files when split."""
+    content = read_file_robust(scope / "memory.md")
+    if not is_topic_scope(scope):
+        return content
+    parts = [content or ""]
+    for path, rel in MEMORY_INDEX.topic_files(scope):
+        body = read_file_robust(path)
+        if body:
+            parts.append(f"### Topic file `{rel.as_posix()}`\n\n{body}")
+    return "\n\n".join(parts)
+
+
 def collect_memory_data(nestwork_path: Path) -> list[dict[str, str]]:
     agents_dir = nestwork_path / "agents"
     if not agents_dir.exists():
@@ -50,10 +87,9 @@ def collect_memory_data(nestwork_path: Path) -> list[dict[str, str]]:
         if not host_dir.is_dir():
             continue
         for agent_dir in sorted(host_dir.iterdir()):
-            memory_path = agent_dir / "memory.md"
-            if not memory_path.is_file():
+            if not (agent_dir / "memory.md").is_file():
                 continue
-            content = read_file_robust(memory_path)
+            content = read_scope(agent_dir)
             if content and "_No memory yet._" not in content:
                 memory_data.append(
                     {
@@ -114,6 +150,85 @@ def build_prompt(current_shared: str, memory_data: list[dict[str, str]], now: st
         ]
     )
     return "\n".join(sections) + "\n"
+
+
+def read_shared_topics(nestwork_path: Path) -> dict[str, str]:
+    shared = nestwork_path / "shared"
+    return {
+        f"shared/{rel.as_posix()}": read_file_robust(path) or ""
+        for path, rel in MEMORY_INDEX.topic_files(shared)
+    }
+
+
+def build_topic_prompt(topics: dict[str, str], memory_data: list[dict[str, str]], now: str) -> str:
+    sources = ", ".join(f"`{item['id']}`" for item in memory_data)
+    sections = [
+        "--- DISTILLATION PROMPT BEGIN ---",
+        f"Date: {now}",
+        "",
+        "# TASK: Distill Agent Memories into Shared Topic Files",
+        "",
+        "You are the Nestwork distiller. Shared memory is split into topic "
+        "files under `shared/` (AGENTS.md sections 6 and 7). Each topic file "
+        "starts with YAML front matter whose `description` says when an agent "
+        "should read it; agents choose files by that line alone.",
+        "",
+        "## Rules:",
+        "1. Merge cross-agent stable facts into the existing topic that fits best.",
+        "2. Create a new topic only when no existing description covers the fact. "
+        "Never rename, merge or delete topics; that needs human review.",
+        "3. Keep divergent observations if they are consistent (different machines / tools).",
+        "4. Filter out temporary task details or one-off debugging notes.",
+        "5. NEVER delete facts; only add, update, or unify. Keep provenance dates.",
+        "6. Every file keeps front matter with `description` (one line, when to read) "
+        f"and `updated: {now[:10]}` when changed.",
+        "",
+        f"## Source agents ({len(memory_data)}): {sources}",
+        "",
+        "## Current shared topic files:",
+    ]
+    for name, body in topics.items():
+        sections.extend(["", f"<<<FILE {name}", body, ">>>END"])
+    if not topics:
+        sections.append("(None yet)")
+
+    for memory in memory_data:
+        sections.extend(
+            [
+                "",
+                f"## Private memory from agent: {memory['id']}",
+                "```markdown",
+                memory["content"],
+                "```",
+            ]
+        )
+
+    sections.extend(
+        [
+            "",
+            "## Instruction:",
+            "Output ONLY the topic files that change or are new, each as its FULL "
+            "contents between a `<<<FILE shared/<topic>.md` line and a `>>>END` "
+            "line. Paths are lowercase kebab-case, at most one subfolder deep. "
+            "Do not output shared/memory.md or shared/resident.md.",
+            "--- DISTILLATION PROMPT END ---",
+        ]
+    )
+    return "\n".join(sections) + "\n"
+
+
+def extract_topic_files(text: str) -> dict[str, str]:
+    files: dict[str, str] = {}
+    for match in TOPIC_BLOCK.finditer(text):
+        name, body = match.group(1), match.group(2).strip()
+        if not TOPIC_PATH.match(name) or name.endswith(("/memory.md", "/resident.md")):
+            raise ValueError(f"distiller proposed an invalid topic path: {name}")
+        if not MEMORY_INDEX.parse_front_matter(body + "\n").get("description"):
+            raise ValueError(f"{name}: missing `description` front matter")
+        files[name] = body + "\n"
+    if not files:
+        raise ValueError("LLM output contained no <<<FILE ... >>>END topic blocks")
+    return files
 
 
 def extract_shared_memory(text: str) -> str:
@@ -279,6 +394,38 @@ def write_shared_memory(
         run_git(nestwork_path, "push", "-q")
 
 
+def write_topic_files(
+    nestwork_path: Path,
+    files: dict[str, str],
+    *,
+    commit: bool,
+    push: bool,
+) -> None:
+    if commit:
+        run_git(nestwork_path, "pull", "--rebase", "--autostash", "-q")
+
+    for name, body in files.items():
+        path = nestwork_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(body, encoding="utf-8")
+    shared = nestwork_path / "shared"
+    if MEMORY_INDEX.process(nestwork_path, shared, check=False):
+        raise ValueError("shared topic index has problems; fix them before committing")
+    if not commit:
+        return
+
+    run_git(nestwork_path, "add", "--", "shared/")
+    diff = run_git(nestwork_path, "diff", "--cached", "--quiet", "--", "shared/", check=False)
+    if diff.returncode == 0:
+        return
+    if diff.returncode != 1:
+        raise subprocess.CalledProcessError(diff.returncode, diff.args, output=diff.stdout, stderr=diff.stderr)
+
+    run_git(nestwork_path, "commit", "-m", "memory: distill shared", "--", "shared/")
+    if push:
+        run_git(nestwork_path, "push", "-q")
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Print or run a manual all-agent memory distillation into shared/memory.md."
@@ -342,9 +489,13 @@ def main() -> int:
         print("No meaningful agent memory found to distill.")
         return 0
 
-    current_shared = read_file_robust(shared_file) or ""
+    topic_mode = is_topic_scope(nestwork_path / "shared")
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    prompt = build_prompt(current_shared, memory_data, now)
+    if topic_mode:
+        prompt = build_topic_prompt(read_shared_topics(nestwork_path), memory_data, now)
+    else:
+        current_shared = read_file_robust(shared_file) or ""
+        prompt = build_prompt(current_shared, memory_data, now)
 
     if sys.platform == "win32":
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
@@ -367,10 +518,29 @@ def main() -> int:
         else:
             model = args.model or os.environ.get("NESTWORK_DISTILL_CODEX_MODEL", "")
             raw_output = run_codex(prompt, args.profile or None, model or None)
-        shared_content = extract_shared_memory(raw_output)
+        if topic_mode:
+            topic_files = extract_topic_files(raw_output)
+        else:
+            shared_content = extract_shared_memory(raw_output)
     except (FileNotFoundError, ValueError, RuntimeError, subprocess.CalledProcessError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
+
+    if topic_mode:
+        if args.dry_run:
+            for name, body in topic_files.items():
+                print(f"<<<FILE {name}\n{body}>>>END")
+            return 0
+        try:
+            write_topic_files(nestwork_path, topic_files, commit=not args.no_commit, push=not args.no_push)
+        except (ValueError, subprocess.CalledProcessError) as exc:
+            stderr = getattr(exc, "stderr", None)
+            print(f"Error: {stderr.strip() if stderr else exc}", file=sys.stderr)
+            return 1
+        print(f"Updated {len(topic_files)} shared topic file(s): {', '.join(topic_files)}")
+        if not args.no_commit:
+            print("Committed" + ("" if args.no_push else " and pushed") + ": memory: distill shared")
+        return 0
 
     for warning in validate_shared_memory(shared_content):
         print(f"Warning: {warning}", file=sys.stderr)

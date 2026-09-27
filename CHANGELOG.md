@@ -1,6 +1,18 @@
 # Changelog
 
-[English](CHANGELOG.md) | [中文](CHANGELOG.zh.md)
+English | [中文](CHANGELOG.zh.md)
+
+All changes to the nestwork protocol and code. **Maintained continuously.**
+
+Conventions:
+
+- Reverse chronological order, newest first
+- One heading per release: `## vX.Y.Z - YYYY-MM-DD`
+- Entries grouped by kind: Protocol / Added / Changed / Fixed / Deprecated / Removed
+- Protocol changes must be labelled `Protocol vX.Y` — `MAJOR.MINOR`; a MAJOR bump requires downstream action, a MINOR bump is additive-compatible
+- Private data protection: no change may break private content under `agents/` `queen/` `shared/` `projects/` `workflow/<topic>.md`
+
+---
 
 ## Unreleased
 
@@ -11,6 +23,15 @@
 - `distill.py` detects topic mode and exchanges `<<<FILE shared/<topic>.md … >>>END` blocks with the runner, validates paths and front matter, writes changed topics only and regenerates the index. `compile.sh` refuses to flatten a topic-mode `shared/`.
 - Taxonomy governance: agents add leaf topics after checking the index; renames, merges and new top-level folders happen only in reviewed distillation.
 - Additive: scopes without markers keep single-file memory; hooks and bootstraps are unchanged.
+
+### Documentation alignment (protocol 3.1, README)
+
+- Both READMEs checked against the scripts: the banner now states protocol 3.1 and introduces topic memory; the directory tree adds `queen/limits.md`, topic files, `outbox/`, the `shared/` layout and every maintenance script; the file-size section covers topic memory and `memory-index.py --check`.
+- The distillation section adds the `--run-claude` runner, `--no-commit` / `--no-push`, and topic-mode behaviour; the FAQ and Non-goals no longer describe Codex as the only runner.
+- Per-tool hook coverage is rewritten from the installers (Claude Code / Kimi Code / Codex / tools without hooks). The Kimi row in the `generic.sh` table, which duplicated the native `kimi.sh`, is gone; uninstall instructions add `kimi` and the arguments `generic` needs.
+- "Staying up to date" is consolidated into two paths, GitHub Action and `update.sh`; the sync scope now matches `update.sh`'s `PROTOCOL_FILES`, and it notes that 3.0 → 3.1 needs no bootstrap refresh. All examples use `~/nestwork`.
+- Troubleshooting describes the current Python identity resolver (`_identity.py`, `NESTWORK_HOST` / `NESTWORK_AGENT_ID`) instead of a `hostname` fallback that no longer exists.
+- Duplication inside the README is merged: the problem paragraph and its bullet list, the fork explanation in Install and the FAQ, and the two hook-coverage statements. Project context is described as on demand; the protocol timeline is chronological and dated; inline `v2.2+` tags are removed.
 
 ### Documentation alignment (protocol 3.0)
 
@@ -24,7 +45,6 @@
 - Startup reads core rules and optional shared/agent `resident.md` only. Existing memory, strategy, projects and workflows remain on demand; no automatic legacy fallback.
 - Reinstall the marked tool bootstrap after updating scripts. See `docs/context-loading.md` for migration and byte-budget checks. Historical data is preserved.
 - Memory write limits explicitly apply inside Nestwork, not user project artifacts. Current tasks no longer require unrelated status reports.
-
 
 ### Protocol v2.5
 
@@ -51,7 +71,6 @@
 ### Fixed (docs)
 
 - **Kimi Code was missing from the entire answer-engine surface.** Shipped as an installer on 2026-07-21, it appeared only in the README body — both README tool badges, `llms.txt`, `docs/README.md`, `docs/ai-agent-memory.md`, `docs/shared-context-for-ai-coding-agents.md`, and `docs/faq.md` all still advertised a list without it. This is precisely the drift the GEO duplication ADR predicted, in the one place where a stale copy does the most damage. New test `test_advertised_tool_list_covers_every_installer` derives the expected list from `scripts/install/*.sh`, so shipping a tool without updating the docs now turns a test red instead of silently misinforming answer engines.
-
 - **Mailbox delivery is self-contained.** `send.sh` now commits and pushes the message itself (with rebase-retry) instead of relying on the per-write hooks — those only match Write/Edit tool calls, so a Bash-invoked send was never auto-committed, and non-Claude tool-chains had no covering hook at all. Docs updated to describe the real mechanism.
 - **Mailbox read state moved to git-ignored `local/comms/seen.txt`.** Marking messages read no longer creates commits on `main`. A legacy committed `comms/seen.txt` is imported automatically on first read; it can be `git rm`-ed afterwards.
 - **CI sync scope aligned with `update.sh`.** `sync-upstream.yml` `PROTOCOL_PATHS` previously synced only scripts/AGENTS/CLAUDE/SOUL/READMEs, silently never propagating `docs/`, `schemas/`, CHANGELOGs, or the workflow/projects/decisions templates; both lists now match (CI still excludes `.github/workflows/` — GITHUB_TOKEN cannot push workflow files) and both now also carry `VERSION` and `llms.txt`.
@@ -182,17 +201,59 @@ Splits the Stop-hook workload and adds a SessionEnd hook.
 
 - Additive-compatible: existing agents keep working until they re-run the installer.
 
+---
+
 ## v0.2.0 - 2026-04-19
 
-- Introduced protocol v2 host/agent layout: `agents/<host>/<agent-id>/`.
-- Added and hardened installers for Claude Code, Codex CLI, Gemini CLI, OpenClaw, Hermes Agent, and generic markdown-config tools.
-- Aligned identity persistence with the protocol v2 two-line `~/.nestwork_id` format.
-- Hardened Codex Windows session hook generation for Windows PowerShell 5.1.
-- Added answer-ready GitHub docs, `llms.txt`, and repository-first GEO content for AI agent memory searches.
-- Added tests for installer syntax, identity migration, protocol docs, and GEO content assets.
+### Protocol v2.0 (breaking)
+
+Introduced the host/agent layout: `agents/<host>/<agent-id>/`.
+
+### Added
+
+- Full installer matrix: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Hermes Agent, and generic markdown-config tools
+- Hardened Codex Windows session hook generation for Windows PowerShell 5.1
+- Answer-ready GitHub docs, `llms.txt`, and repository-first GEO content for AI agent memory searches
+- Tests for installer syntax, identity migration, protocol docs, and GEO content assets
+
+### Changed
+
+- Identity persistence aligned with the protocol v2 two-line `~/.nestwork_id` format
+
+---
 
 ## v0.1.0 - 2026-04-17
 
-- Created the initial nestwork protocol template.
-- Added `queen/`, `agents/`, `shared/`, and `projects/` repository layout.
-- Added startup instructions through `AGENTS.md` and `CLAUDE.md`.
+### Initial release
+
+- Created the initial nestwork protocol template
+- `queen/`, `agents/`, `shared/`, and `projects/` repository layout
+- Startup instructions through `AGENTS.md` and `CLAUDE.md`
+
+---
+
+## Maintenance conventions
+
+### When to update
+
+- Protocol changes (AGENTS.md sections, `protocol-version`, etc.) → must update
+- New scripts or configuration files → must update
+- Pure wording edits, typo fixes, individual comments → no update
+- Sync operations in private instances (e.g. `mynestwork`) → no update (this file tracks upstream protocol evolution only)
+
+### MINOR vs MAJOR
+
+- MINOR (e.g. v2.1 → v2.2): new optional fields, directories, hook events or config files; **existing agents keep working without any action**
+- MAJOR (e.g. v2.0 → v3.0): directory layout changes, agent-id format changes, breaking hook contracts, breaking `nestwork.config.json` schema
+
+MAJOR bumps **should be avoided**. When one is unavoidable, it must ship a downstream migration path and at least one MINOR release of transition.
+
+### Tags and releases
+
+- Every MINOR bump → tag `v0.x.0`, publish a GitHub Release, and link the release notes from the CHANGELOG
+- Patches (bug fixes only, no protocol change) → accumulate until the next MINOR release; no separate tag
+
+### Keeping English and Chinese in sync
+
+- `CHANGELOG.md` (this file) and `CHANGELOG.zh.md` **must stay in sync**
+- Whenever one changes, update the other (same information, wording tuned independently)

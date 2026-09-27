@@ -1,11 +1,6 @@
 # Your AI agent forgets everything the moment you switch devices
 
-> Current behavior aligned with protocol 3.0: resident startup; history and inbox on demand. [Loading and migration](../context-loading.md).
-
-> Candidate titles:
-> - Your AI agent forgets everything the moment you switch devices
-> - One git repo, 16 agents, one shared notebook
-> - Stop re-explaining context to your agent
+> Current behavior, aligned with protocol 3.1: at startup an agent reads only the small resident tier; strategy, history, projects and the inbox are fetched on demand. A memory scope can also opt into topic memory, where `memory.md` becomes a generated index over topic files. See [Loading and migration](../context-loading.md) and [AGENTS.md](../../AGENTS.md) §6.
 
 ![A developer in front of four devices, a confused robot on each screen, question marks floating above all of them](images/amnesia-cover-nw.png)
 
@@ -19,7 +14,7 @@ You probably know this scene. Switch machines, switch tools, switch projects, or
 
 And these past couple of years, machines aren't the only thing you've been switching. Almost every month someone ships the "current strongest" model. You're using Cursor and start wanting to try Claude Code; a while later Codex drops a new version and you want to jump again; Gemini updates and you circle back to take another look. Every tool switch means retraining the thing on your project background, your coding conventions, the traps you've already fallen into. Add a new computer on top of that and you're starting from zero again. The tools change, the models change, the machines change, and the only constant is that pile of context you keep having to re-explain, spinning in place.
 
-Sometimes the tool switch isn't even your call. Policy, regional restrictions, accounts, pricing. The day the tool you lean on heavily suddenly stops working, your memory, if it's tied to that tool, goes down with it. Including the day you decide to move everything over to a domestic (for example, a Chinese) model. You want the thing you swap out to be the tool, not another from-scratch teaching session.
+Sometimes the tool switch isn't even your call. Policy, regional restrictions, accounts, pricing. The day the tool you lean on heavily suddenly stops working, your memory, if it's tied to that tool, goes down with it. The same goes for the day you decide to move everything over to a domestic Chinese model. When that happens, you want to swap out the tool, not sit through another teaching session from scratch.
 
 ## Amnesia is a tax you keep paying
 
@@ -51,13 +46,13 @@ If it were just "use git to store markdown," that would only be a clever little 
 
 Cross-machine means actually cross-machine. It uses a git remote, so your laptop, your desktop, a few Linux boxes, even an agent on Android, as long as it can push, are inside the same brain. No more crowding into the same directory on the same machine and waiting in line.
 
-Multiple agents writing at once, without colliding. Every machine, every agent has its own directory and only writes its own. When there's a conflict the rule is hard: your own directory takes local, someone else's directory takes remote. Everyone clears their own doorstep, so by design they never overwrite each other.
+Multiple agents writing at once, without colliding. Every machine, every agent has its own directory and only writes its own. When there's a conflict the rule is hard: your own directory takes local, someone else's directory takes remote. Everyone minds their own patch, so by design they never overwrite each other.
 
-Writes are atomic. Before each write it does a pull --rebase, then commits and pushes when done, with automatic retry on failure. The race window is squeezed down to the instant of a single write, instead of staying open for the whole session.
+Writes are atomic. On tools with per-write hooks (currently Claude Code and Kimi Code), every memory write is preceded by a `pull --rebase` and followed by a commit and push, with automatic retry on failure. The race window is squeezed down to the instant of a single write, instead of staying open for the whole session. Tools without those hooks, such as Codex and Gemini, commit and push their own directory at the end of the session.
 
 Conflicts get an arbiter, and it doesn't split the difference. Memory is layered, with priority hard-coded: behavior rules > strategy > shared memory > each agent's private memory > projects > methodology. When two instructions clash, the higher-priority one wins, and you're not allowed to mash the two together. The "compromise instruction" you'd get from mashing them is usually the worst trap, so nestwork bans it outright.
 
-Memory gets distilled. The scattered private observations of each agent get merged into shared memory. This step isn't crude: it first sends a sub-agent to review, checking for sensitive information, factual errors, and contradictions, then hands it to a human to confirm, and it only merges and only adds, never deleting your original records.
+Memory gets distilled. The scattered private observations of each agent get merged into shared memory. This step isn't crude: it first sends a sub-agent to review, checking for sensitive information, factual errors, contradictions, and stale entries, then hands the result to a human to confirm. Shared memory is a union, not an intersection: an observation only one agent made is kept, and each agent's own memory is left untouched.
 
 Agents can also leave each other messages. There's a built-in git-native mailbox, where one agent leaves another an asynchronous note, and the other reads unread messages on demand when coordinating relevant work. For the first time, agents across machines have a "you've got mail."
 
@@ -71,17 +66,17 @@ For anyone feeding project background, internal traps, and business judgment to 
 
 ![A locked git repo wrapped in a shield halo, a hand holding a key](images/amnesia-encrypt-nw.png)
 
-## This isn't a slide deck, the author uses it every day
+## This isn't vaporware: the author uses it every day
 
-The author himself runs more than 16 agent instances across Windows, macOS, several Linux boxes, and Android, all sharing the same nestwork memory. This protocol wasn't designed to be shown off, it's something he can't get through a day without.
+The author himself runs more than 16 agent instances across Windows, macOS, several Linux boxes, and Android, all sharing the same nestwork memory. This protocol wasn't designed to be shown off; it's something he can't get through a day without.
 
-There's a detail I really like too: you get on board through GitHub's Use this template, not a fork. After a fork, when upstream updates it's easy to drag your private data into the mix; template inheritance gives you the protocol skeleton, but the memory stays your own private stuff in your own repo, untouchable by upstream updates.
+There's a detail I really like too: you get on board through GitHub's Use this template, not a fork. With a fork, every upstream update risks tangling with your private data. Template inheritance gives you the protocol skeleton, while your memory stays in your own repo, out of reach of upstream updates.
 
 ## Three steps to plug memory into your agent
 
-Search GitHub for songth1ef/nestwork, drop a star while you're there so it's easy to find later.
+Search GitHub for songth1ef/nestwork, and drop a star while you're there so it's easy to find later.
 
-Use Use this template to create your own private repo, clone it, and install the hooks for your tool:
+Click Use this template to create your own private repo, clone it, and run the installer for your tool:
 
 ```bash
 bash scripts/install/claude.sh
@@ -90,8 +85,6 @@ bash scripts/install/claude.sh
 # bash scripts/install/gemini.sh
 ```
 
-Once it's installed, the pull / commit / push syncing runs automatically, and you use your agent exactly the way you always did. Except this time, when you switch machines or switch tools, it remembers.
+Once it's installed, Claude Code syncs every memory write on its own, and Codex and Gemini commit and push at the end of each session as their installed instructions tell them to. You use your agent exactly the way you always did. Except this time, when you switch machines or switch tools, it remembers.
 
 Try it on two devices and two tools for a week. The day you switch machines, open the agent, and it picks up yesterday's work without missing a beat, you'll get it.
-
-<!-- pain-point angle | humanized | zh | EN -->

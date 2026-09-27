@@ -24,6 +24,15 @@
 - 分类治理：agent 查过索引后可新增叶子主题；改名、合并、新增顶层目录只在经人工审核的蒸馏中进行。
 - 增量兼容：没有索引标记的作用域继续使用单文件记忆；hook 与启动块无需改动。
 
+### 文档修正（协议 3.1，README）
+
+- 两份 README 对照脚本校准：顶部说明改为协议 3.1 并介绍主题记忆；目录树补上 `queen/limits.md`、主题文件、`outbox/`、`shared/` 子结构和全部维护脚本；行数限制一节补充主题记忆与 `memory-index.py --check`。
+- 蒸馏一节补上 `--run-claude` runner、`--no-commit` / `--no-push` 以及主题模式下的行为；FAQ 与「不做什么」不再写成只有 Codex 一条通道。
+- 按安装脚本重写各工具的 hook 覆盖说明（Claude Code / Kimi Code / Codex / 无 hook 工具），删去 `generic.sh` 表里与原生 `kimi.sh` 重复的 Kimi 行；卸载说明补上 `kimi` 与 `generic` 的参数要求。
+- 「跟踪上游更新」合并成 GitHub Action 与 `update.sh` 两条路径，同步范围按 `update.sh` 的 `PROTOCOL_FILES` 补齐，并说明 3.0 → 3.1 无需刷新启动块；统一使用 `~/nestwork` 路径。
+- 故障排查改为描述当前的 Python 身份解析（`_identity.py`、`NESTWORK_HOST` / `NESTWORK_AGENT_ID`），删掉已不存在的 `hostname` 回退说明。
+- 合并 README 内部重复：问题描述段与列表、安装步骤与 FAQ 中的 fork 说明、两处 hook 覆盖说明。项目上下文改为按需查阅；协议演进按时间顺序排列并标注日期；去掉正文里的 `v2.2+` 版本标签。
+
 ### 文档修正（协议 3.0）
 
 - 修复加密实例更新：直接提取上游文件，再经私有仓 clean filter 暂存，避免 `VERSION` 等短文件被 smudge filter 截空；工作区不干净或过滤器失败时停止更新。新增真实 git-crypt 回归测试。
@@ -31,12 +40,11 @@
 - 修正 Claude/AGENTS.md 指南、邮箱文档、常驻结转表、限制覆盖示例和获客博客的旧启动行为。邮箱快照仍刷新，但仅按需读取。
 - 补充文档一致性检查，保护当前协议说明、常驻路径、迁移步骤及邮箱读取层级。
 
-### Protocol v3.0 — resident / on demand
+### Protocol v3.0 — 常驻 / 按需
 
-- Startup reads core rules and optional shared/agent `resident.md` only. Existing memory, strategy, projects and workflows remain on demand; no automatic legacy fallback.
-- Reinstall the marked tool bootstrap after updating scripts. See `docs/context-loading.md` for migration and byte-budget checks. Historical data is preserved.
-- Memory write limits explicitly apply inside Nestwork, not user project artifacts. Current tasks no longer require unrelated status reports.
-
+- 启动只读核心规则和可选的共享/实例 `resident.md`。既有记忆、战略、项目和工作流一律按需读取；不会自动回退到旧的全量加载。
+- 更新脚本后须重装带标记的工具启动块。迁移步骤与字节预算检查见 `docs/context-loading.md`。历史数据保留。
+- 记忆写入限制明确只作用于 Nestwork 仓库内部，不约束用户项目产物。当前任务不再要求附带无关的状态汇报。
 
 ### Protocol v2.5
 
@@ -63,7 +71,6 @@
 ### 修复（文档）
 
 - **Kimi Code 在整个答案引擎面上是缺失的。** 它 2026-07-21 就作为安装器发布了，却只出现在 README 正文里——两份 README 的工具 badge、`llms.txt`、`docs/README.md`、`docs/ai-agent-memory.md`、`docs/shared-context-for-ai-coding-agents.md`、`docs/faq.md` 全都还在宣传一份没有它的清单。这正是 GEO 重复策略 ADR 预言过的漂移，而且发生在**过期副本危害最大的那一处**。新增测试 `test_advertised_tool_list_covers_every_installer` 从 `scripts/install/*.sh` 反推期望清单，以后发布新工具却不更新文档会让测试变红，而不是默默向答案引擎提供错误信息。
-
 - **邮箱投递自包含。** `send.sh` 现在自己 commit + push 消息（带 rebase 重试），不再依赖 per-write hook——那些 hook 只匹配 Write/Edit 工具调用，经 Bash 调用的发送从来不会被自动提交，非 Claude 工具链更是没有任何兜底 hook。文档已改为描述真实机制。
 - **邮箱已读状态移到被 git 忽略的 `local/comms/seen.txt`。** 标记已读不再在 `main` 上产生提交。旧版已提交的 `comms/seen.txt` 首次读取时自动导入，之后可 `git rm`。
 - **CI 同步范围与 `update.sh` 对齐。** `sync-upstream.yml` 的 `PROTOCOL_PATHS` 之前只同步 scripts/AGENTS/CLAUDE/SOUL/README，`docs/`、`schemas/`、CHANGELOG 和 workflow/projects/decisions 模板从未经 CI 传播；现在两份清单一致（CI 仍排除 `.github/workflows/`——GITHUB_TOKEN 无法推送 workflow 文件），且双方都新增了 `VERSION` 与 `llms.txt`。

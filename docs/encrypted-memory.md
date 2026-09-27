@@ -72,6 +72,29 @@ git commit -m "security: encrypt memory files with git-crypt"
 git cat-file -p HEAD:shared/memory.md | head -c 12 | od -c   # expect \0 G I T C R Y P T \0
 ```
 
+### Topic memory: encrypt the topic files, not just the index
+
+The patterns in step 4 assume single-file memory. If a scope uses topic memory
+(protocol 3.1, `AGENTS.md` §6), its `memory.md` is only a generated index and the
+facts live in topic files such as `shared/<topic>.md` — which those patterns
+leave in plaintext. Cover the whole scope directory instead:
+
+```gitattributes
+shared/** filter=git-crypt diff=git-crypt
+agents/** filter=git-crypt diff=git-crypt
+```
+
+`**` matches every depth, so `shared/tooling/mailbox.md` and each agent's
+`outbox/` are covered too (verified with git-crypt 0.8.0: every file under both
+directories is stored as `GITCRYPT` ciphertext, files outside them stay
+plaintext). Then re-run the step 6 check on one topic file.
+
+Two consequences follow. Topic filenames and the `description` lines copied into
+the index are visible unless the index is encrypted too (see the filename
+anti-pattern in §6). And `scripts/maintenance/memory-index.py` reads front matter
+from the working tree, so run it and `distill.py` only on an unlocked clone;
+on a locked clone the files are ciphertext and it cannot build a valid index.
+
 ### Optional: purge plaintext already in history
 
 `git-crypt init` only encrypts the *future*; plaintext already committed remains on the
@@ -107,7 +130,7 @@ git-crypt unlock /path/to/myrepo-gitcrypt.key    # run once after clone, then tr
 5. **Minimize encryption scope** — encrypt only files that truly hold private content
    (typically memory); keep portable methodology docs plaintext so they stay reusable.
 
-## 5. Three real pitfalls (a paper plan will get these wrong)
+## 5. Three real pitfalls (easy to miss until you hit them)
 
 - **#1 · Named-key mismatch.** `git-crypt init -k <name>` configures filter
   `git-crypt-<name>`, which does **not** match `filter=git-crypt` in `.gitattributes` →
@@ -156,6 +179,6 @@ git-crypt unlock /path/to/myrepo-gitcrypt.key    # run once after clone, then tr
 
 - This describes an **optional** capability of the Nestwork protocol; the methodology is
   upstream, but **no key and no private content ever appear here**.
-- Last reviewed: 2026-06-06.
-- Known stale conditions: git-crypt CLI flag changes; a future built-in encryption mode
+- Last reviewed: 2026-09-27 (topic memory note for protocol 3.1).
+- Known stale conditions: git-crypt CLI flag changes; changes to which files hold memory (`AGENTS.md` §6); a future built-in encryption mode
   in the install scripts would supersede these manual steps.

@@ -1,6 +1,6 @@
 # nestwork
 
-> Protocol 3.0: only core rules and small shared/agent resident summaries load at startup. History and project context are on demand. Existing users must refresh their tool bootstrap; [migration guide](docs/context-loading.md).
+> Protocol 3.1: startup loads only core rules and small shared/agent resident summaries; history and project context are retrieved on demand, and a memory scope can optionally be split into topic files routed by a generated index. Upgrading from 2.x requires refreshing each tool's bootstrap; see the [migration guide](docs/context-loading.md).
 
 ```text
           ♕           //  _   __ ______ _____ ______ _       __ ____  ____  __ __
@@ -24,14 +24,14 @@ Version: v0.6.0 | Protocol: 3.1
 
 ## What problem it solves
 
-Every time you open an AI coding agent on a new machine, in a new session, or after switching tools, it starts from zero — "who are you?", "where was this project left?" The agent on your work computer knows your rules; the one on your laptop doesn't. A cloud host can't see progress recorded elsewhere. And vendor-private memory locks you into one ecosystem.
-
-nestwork fixes this with one idea: **use a private git repo as the shared brain for all your agents.** Configure your context once, then every agent — Claude, Codex, Gemini, or any markdown-config CLI — reads the same versioned context across sessions, machines, tools, and vendors. No plugins, no servers, no third-party dependencies. Just a private git repo.
+Every time you open an AI coding agent on a new machine, in a new session, or after switching tools, it starts from zero — "who are you?", "where was this project left?"
 
 - The agent on your work computer knows your rules, but your personal computer starts blank
 - A cloud development host cannot see project progress already recorded on another machine
 - Switching sessions or tools makes you repeatedly re-explain who you are and what was decided
 - Vendor-private memory (OpenAI Memory, etc.) locks you into one ecosystem
+
+nestwork fixes this with one idea: **use a private git repo as the shared brain for all your agents.** Configure your context once, then every agent — Claude, Codex, Gemini, or any markdown-config CLI — reads the same versioned context across sessions, machines, tools, and vendors. No plugins, no servers, no third-party dependencies. Just a private git repo.
 
 ---
 
@@ -41,9 +41,7 @@ nestwork fixes this with one idea: **use a private git repo as the shared brain 
 
 On GitHub, click Use this template → Create a new repository. Set visibility to Private. Your memory belongs only to you.
 
-> Why not Fork?
-> Forks are public by default and tightly coupled to upstream. A repo created from a template is fully yours.
-> When nestwork ships updates, `git merge upstream/main` would conflict with the `queen/strategy.md`, `agents/`, `shared/` you've intentionally customized. The `update.sh` script syncs only the protocol layer; your private data is never touched.
+> Why not fork? Forks are public by default and share history with upstream, so every update would conflict with your private data. See [the FAQ](#why-a-template-instead-of-a-fork).
 
 ### 2. Clone to each machine
 
@@ -109,7 +107,7 @@ bash ~/nestwork/scripts/uninstall/claude.sh     # macOS / Linux
 .\nestwork\scripts\uninstall\claude.ps1         # Windows
 ```
 
-Same pattern for `codex` / `gemini` / `hermes` / `openclaw` / `generic`. Pass `--purge-identity` (PowerShell: `-PurgeIdentity`) if you also want to drop that tool's agent id, so a future install starts as a brand-new agent.
+Same pattern for `codex` / `gemini` / `kimi` / `hermes` / `openclaw`; `generic` takes the same `<prefix> <config-path>` arguments you installed it with. Pass `--purge-identity` (PowerShell: `-PurgeIdentity`) if you also want to drop that tool's agent id, so a future install starts as a brand-new agent.
 
 ---
 
@@ -117,7 +115,7 @@ Same pattern for `codex` / `gemini` / `hermes` / `openclaw` / `generic`. Pass `-
 
 After install, there's nothing new to learn — you use your agent the way you already do.
 
-- **It remembers, automatically.** Open a session on any machine and the agent pulls your nest, loading your rules, preferences, and where each project was left. No "who are you?" re-introduction.
+- **It remembers, automatically.** Open a session on any machine and the agent pulls your nest and loads your rules plus a small resident summary; project progress and history are looked up when the task needs them. No "who are you?" re-introduction.
 - **You decide what's kept.** When you reach a decision, a lesson, or a change in project status, tell the agent to record it (or accept its suggestion to). It writes to its own `agents/<host>/<agent-id>/` directory and pushes — versioned, and yours.
 - **It follows you across machines and tools.** Move to your laptop, a cloud host, or from Claude to Codex; the next session reads the same context. Memory lives in your git repo, not a vendor.
 
@@ -144,12 +142,12 @@ The git sync, the priority chain, and the hooks all run automatically. See [How 
 
 ## Why it's worth keeping history
 
-Retention and loading are separate. Protocol 3.0 starts with core rules and small
+Retention and loading are separate. Since protocol 3.0, startup loads core rules and small
 shared/agent resident summaries. Historical memory, strategy, projects and
 workflows are searched for the current task, not loaded in full at startup.
 
 Keep decisions, lessons and methods with lasting value in the on-demand tier,
-organized for retrieval. Promote only reviewed, stable facts and essential
+organized for retrieval (optionally as topic files behind a generated index). Promote only reviewed, stable facts and essential
 boundaries needed across tasks into resident summaries.
 
 Missing summaries do not trigger full-history reads, and links do not require
@@ -240,7 +238,7 @@ The race window shrinks from "the whole session" to "a single write." Multiple a
 | Stop | Safety-net commit+push (no-op when clean) | Backstop |
 | SessionEnd | claude-mem export + local history sync | Cross-machine reach |
 
-Claude Code and Kimi Code register per-write memory synchronization hooks. Codex registers a SessionEnd hook only for optional local-history snapshots; Codex memory edits still follow the manual commit/push bootstrap protocol. Other tools follow their bootstrap protocol (see [Supported tools](#supported-tools)).
+The table describes Claude Code, which registers all five events. Which hooks each other tool gets is listed under [Supported tools](#supported-tools).
 
 ---
 
@@ -299,9 +297,9 @@ Your rules: edit `queen/agent-rules.md`. Behavior boundaries that apply to every
 
 Your strategy: edit `queen/strategy.md`. Current-stage goals and decision direction. For example, "prioritize small, verifiable, monetizable tools" or "don't build complex systems before validating demand."
 
-Your projects: add `projects/<project-name>.md`. Auto-loaded context when working on that project. Naming, module boundaries, tech-stack rationale, lessons learned, etc.
+Your projects: add `projects/<project-name>.md`. Context the agent looks up when a task touches that project. Naming, module boundaries, tech-stack rationale, lessons learned, etc.
 
-Your workflow (new in v2.2+): add `workflow/<topic>.md`. Cross-project portable workflow knowledge: coding disciplines, tool preferences, methodologies, migration guides. See next section.
+Your workflow: add `workflow/<topic>.md`. Cross-project portable workflow knowledge: coding disciplines, tool preferences, methodologies, migration guides. See next section.
 
 ---
 
@@ -361,11 +359,11 @@ Codex starts up, reads `~/.codex/AGENTS.md` (the installer injected the nestwork
 
 Memory isn't in any vendor; it's in your git repo. The cost of switching tools is near zero.
 
-### Scenario: ingest employer-project knowledge into the nest (v2.2+)
+### Scenario: ingest employer-project knowledge into the nest
 
 You spot a worth-recording architectural pattern in an employer project (e.g. NestJS module organization conventions).
 
-1. Create `nestwork.config.json` at the project root (see example above), put the employer name and internal codenames in `custom_rules`
+1. Create `nestwork.config.json` at the project root (example in [docs/workflow-protocol.md](docs/workflow-protocol.md)), put the employer name and internal codenames in `custom_rules`
 2. Tell Claude Code to ingest the methodology:
    > Ingest the XX pattern from this project into mynestwork's `projects/<project>.md`, desensitizing per nestwork.config.json
 3. The agent reads the config, runs the desensitization prompt, produces a draft
@@ -386,12 +384,15 @@ bash ~/nestwork/scripts/maintenance/compile.sh
 # Vendor-agnostic: prints a distillation prompt for you to feed any agent session
 python3 ~/nestwork/scripts/maintenance/distill.py
 
-# Codex one-shot: aggregate, write back to shared/memory.md, commit, push
-# (add --dry-run to preview without writing)
+# One-shot runner: aggregate, write back to shared/, commit, push
+# (--dry-run previews without writing; --no-commit / --no-push stop earlier)
+python3 ~/nestwork/scripts/maintenance/distill.py --run-claude
 python3 ~/nestwork/scripts/maintenance/distill.py --run-codex --profile <your-profile>
 ```
 
-None of these modify the original agent memory — distillation reads private memory and writes only `shared/memory.md`, with commit message `memory: distill shared`. Every agent picks up the result on its next `git pull`.
+`--run-claude` (`claude -p`) and `--run-codex` (`codex exec`) are mutually exclusive; `--profile` applies to Codex only. None of these modify the original agent memory — distillation reads private memory and writes only `shared/`, with commit message `memory: distill shared`. Every agent picks up the result on its next `git pull`.
+
+If `shared/` uses topic memory, `distill.py` writes only the topic files that changed and regenerates the index; `compile.sh` refuses to run, because concatenation would undo the split.
 
 The rules that make this safe — shared is a union and not an intersection, never delete, sub-agent review followed by human confirmation — are in [AGENTS.md](AGENTS.md) §7.
 
@@ -424,14 +425,18 @@ nestwork/
 ├── SOUL.md                     Hermes' short persona file
 ├── queen/                      Behaviour rules + strategy, agent read-only, never synced
 │   ├── agent-rules.md
-│   └── strategy.md
+│   ├── strategy.md
+│   └── limits.md               Optional per-instance file-size-limit override
 ├── agents/
 │   └── <host>/<agent-id>/
 │       ├── resident.md         Small startup facts and retrieval pointers
-│       ├── memory.md           Private history (on demand)
-│       └── carryover/          Distilled tool-native memory (cold — never injected, v2.5+)
-├── shared/resident.md          Small shared startup index
-├── shared/memory.md            Cross-agent compiled memory
+│       ├── memory.md           Private history, or its topic index (on demand)
+│       ├── <topic>.md          Topic files, when topic memory is enabled
+│       ├── outbox/             Mailbox messages this agent sent
+│       └── carryover/          Distilled tool-native memory (cold, never injected)
+├── shared/
+│   ├── resident.md             Small shared startup index
+│   └── memory.md               Cross-agent compiled memory, or its topic index
 ├── projects/<project>.md       Project context
 ├── workflow/<topic>.md         Cross-project portable knowledge
 ├── decisions/                  Protocol-level ADRs
@@ -443,7 +448,8 @@ nestwork/
     ├── uninstall/              Per-tool uninstallers (unbind only; memory & identity kept)
     ├── hooks/                  Runtime hooks (pre/post/stop, session-start, optional sync)
     ├── comms/                  Agent mailbox (send / read / archive)
-    └── maintenance/            compile.sh · distill.py · sync-claude-md.sh · update.sh
+    └── maintenance/            compile.sh · distill.py · memory-index.py · check-resident.py
+                                update.sh · sync-claude-md.sh · migrate-v2.sh
 ```
 
 ---
@@ -463,6 +469,8 @@ Any markdown file in the repo is split once it outgrows its limit, always the sa
 | anything else | soft 500 / hard 1000 |
 
 **Why limits at all?** Context windows are large, but attention degrades with token count — loading a 5000-line `memory.md` wholesale is poorly utilised. An index plus topic files lets an agent follow only what is relevant.
+
+For `shared/` and agent memory, line counts alone proved too weak (long lines slip through), so a memory scope can opt in to **topic memory**: `memory.md` becomes an index generated by `scripts/maintenance/memory-index.py` from each topic file's `description` front matter, and agents open only the files whose description matches the task. `memory-index.py --check` fails on a stale index, a topic without `description`, a file over 32 KB, or nesting deeper than two levels. Scopes that do not opt in keep single-file memory. Details: [AGENTS.md](AGENTS.md) §6 and [context loading](docs/context-loading.md).
 
 Tune against **retrieval quality, not raw context-window size**: a bigger window does not justify proportionally bigger files.
 
@@ -485,7 +493,12 @@ Split mechanics and worked examples: [AGENTS.md](AGENTS.md) §6.
 | OpenClaw | Open source | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install/openclaw.sh` | Entry exists, untested by author |
 | Hermes Agent | Open source | `~/.hermes/SOUL.md` | `bash scripts/install/hermes.sh` | Entry exists, untested by author |
 
-Claude Code and Kimi Code register the full atomic per-write synchronization hooks. Codex registers a SessionEnd hook for optional local-history snapshots through `~/.codex/config.toml` + `~/.codex/hooks.json`; Codex memory edits still follow the manual commit/push bootstrap protocol. Other tools follow their bootstrap protocol.
+Hook coverage differs by tool:
+
+- **Claude Code**: SessionStart, PreToolUse / PostToolUse (Write|Edit), Stop, and SessionEnd (claude-mem export + optional local history sync).
+- **Kimi Code**: SessionStart pull, PreToolUse / PostToolUse (Write|Edit), and Stop. Kimi Code hooks cannot inject context, so the bootstrap in `AGENTS.md` tells the agent what to read.
+- **Codex**: a SessionEnd hook for optional local-history snapshots, via `~/.codex/config.toml` + `~/.codex/hooks.json`. Codex memory edits still follow the manual commit/push steps in the bootstrap.
+- **Gemini CLI, OpenClaw, Hermes, and `generic.sh` tools**: no hooks; they follow the bootstrap protocol and commit at session end.
 
 ### Optional: capture local tool history
 
@@ -528,7 +541,6 @@ bash scripts/install/generic.sh <prefix> <config-path>
 | iFlow CLI | Alibaba iFlow | `iflow` |
 | Trae CLI / Solo | ByteDance | `trae` |
 | Qoder | Alibaba | `qoder` |
-| Kimi Code CLI | Moonshot | `kimi` |
 | Tongyi Lingma CLI | Alibaba Cloud | `lingma` |
 
 > Tip: Qwen Code is a fork of Gemini CLI and may already accept `~/.gemini/GEMINI.md`. Try `install/gemini.sh` first.
@@ -555,21 +567,17 @@ bash scripts/install/generic.sh <prefix> <config-path>
 
 ## Staying up to date
 
-**Migrating to 3.0 also requires refreshing tool bootstraps.** `update.sh` and sync PRs update repository files; they do not rewrite tool configuration on each machine. After syncing, rerun the installer for each tool in use (or `_bootstrap.py`), then open a new session. Missing `resident.md` does not require loading full history. See the [migration guide](docs/context-loading.md).
-
 Two paths, neither touches your private data (`agents/`, `queen/`, `shared/`, `projects/`, `workflow/<topic>.md`).
 
-### Manual (recommended default)
+**Coming from 2.x, also refresh tool bootstraps.** `update.sh` and sync PRs update repository files; they do not rewrite tool configuration on each machine. After syncing to 3.x, rerun the installer for each tool in use (or `_bootstrap.py`), then open a new session. Missing `resident.md` does not require loading full history. 3.0 → 3.1 needs no bootstrap refresh; topic memory is opt-in per scope. See the [migration guide](docs/context-loading.md).
 
-When you want the latest protocol-layer updates, open Actions → Sync Nestwork upstream → Run workflow.
+### GitHub Action (PR-based)
 
-Most repos don't need to follow upstream daily; manual review keeps protocol changes explicit and controllable.
+`.github/workflows/sync-upstream.yml` in your private repo opens a PR to your `main` whenever upstream's protocol layer differs. You review the diff and merge.
 
-### Automatic (optional)
+By default it runs only when you trigger it: Actions → Sync Nestwork upstream → Run workflow. Most repos don't need to follow upstream daily, and manual runs keep protocol changes explicit.
 
-The `.github/workflows/sync-upstream.yml` in your private repo can run every Monday at 03:00 UTC, opening a PR to your `main` whenever there's a diff. You review the diff and merge.
-
-Auto-sync is off by default. To enable:
+To also run it every Monday at 03:00 UTC:
 
 1. Settings → Secrets and variables → Actions → Variables
 2. Create a repository variable `NESTWORK_AUTO_SYNC`
@@ -577,15 +585,15 @@ Auto-sync is off by default. To enable:
 
 PR create/update/reopen uses the GitHub REST API, no longer the `gh pr ...` GraphQL path. If the default token is blocked, add an Actions secret `NESTWORK_SYNC_TOKEN` and the workflow will prefer it.
 
-GitHub forbids `GITHUB_TOKEN` from pushing commits that modify workflow files, so the CI path does not overwrite `.github/workflows/`; workflow changes go through the manual path below.
+GitHub forbids `GITHUB_TOKEN` from pushing commits that modify workflow files, so the CI path does not overwrite `.github/workflows/`; workflow changes go through `update.sh`.
 
-### Manual protocol-layer refresh
+### `update.sh` (local)
 
 ```bash
-bash ~/my-nest/scripts/maintenance/update.sh
+bash ~/nestwork/scripts/maintenance/update.sh
 ```
 
-Covers `scripts/`, `.github/workflows/`, `AGENTS.md`, `CLAUDE.md`, `SOUL.md`, the bilingual READMEs, `docs/`, `schemas/`, plus `workflow/README.md` + `workflow/_template.md`. Does not touch your private content under `workflow/`.
+Covers `scripts/`, `.github/workflows/`, `AGENTS.md`, `CLAUDE.md`, `SOUL.md`, the bilingual READMEs and CHANGELOGs, `VERSION`, `llms.txt`, `docs/`, `schemas/`, plus the templates `workflow/README.md`, `workflow/_template.md`, `projects/_template.md`, `decisions/_template.md` and `decisions/README.md`. Does not touch your private content under `workflow/`, `projects/` or `decisions/`.
 
 ---
 
@@ -593,7 +601,7 @@ Covers `scripts/`, `.github/workflows/`, `AGENTS.md`, `CLAUDE.md`, `SOUL.md`, th
 
 ### Why a template instead of a fork?
 
-Forks are public by default and tightly coupled to upstream. Each upstream update would conflict with your private `queen/`, `agents/`, `shared/`. A template-created private repo has no shared git history; you sync the protocol layer selectively via `git checkout upstream/main -- <files>`, leaving private data untouched.
+Forks are public by default and tightly coupled to upstream: `git merge upstream/main` would conflict with the `queen/`, `agents/` and `shared/` content you have customized. A template-created private repo has no shared git history; `update.sh` and the sync workflow check out only the protocol-layer paths from upstream, leaving private data untouched.
 
 ### Will my employer's code be ingested into the nest?
 
@@ -611,7 +619,7 @@ Each agent owns a directory under `agents/<host>/<agent-id>/`; regular memory wr
 |---|---|---|
 | `queen/` | You (human) | Won't (you have only two hands) |
 | `agents/<host>/<agent-id>/` | Only that agent | Won't for regular memory writes |
-| `shared/` | Only explicit `compile.sh` / `distill.py --run-codex` | Won't during regular agent memory writes |
+| `shared/` | Only explicit `compile.sh` / `distill.py` | Won't during regular agent memory writes |
 | `projects/` | Agent or human | Multiple agents writing theoretically can; PreToolUse hook's `git pull --rebase` greatly reduces this |
 | `workflow/` | Agent or human | Same as above |
 
@@ -622,7 +630,7 @@ PreToolUse hook does `git pull --rebase` before each write, shrinking the race w
 Not automatically. You explicitly trigger distillation:
 
 - `compile.sh`: pure concat of all agent memory
-- `distill.py`: LLM distillation (recommended)
+- `distill.py`: LLM distillation (recommended); prints a prompt for any agent, or runs end-to-end with `--run-claude` / `--run-codex`
 
 The distillation calls a sub-agent for review (sensitive data, factual contradictions, outdated entries) and you confirm the merge. Goal: non-destructive. Each agent's private memory is unchanged.
 
@@ -656,7 +664,7 @@ No. Git is the core of nestwork, not optional. If you don't know git, nestwork i
 ### `bash scripts/install/claude.sh` fails
 
 - macOS / Linux: check that `~/.claude/` exists and is writable.
-- Windows Git Bash: `hostname -s` is unsupported; the installer falls back to `hostname | cut -d. -f1`. If that still fails, set `NESTWORK_HOST=desktop-xxx` manually.
+- `ERROR: identity resolver returned ...`: installers resolve host and agent id with `python3 scripts/install/_identity.py`, so `python3` must be on `PATH`. To pin the values yourself, set `NESTWORK_HOST` and/or `NESTWORK_AGENT_ID`.
 
 ### Hooks installed, but commits aren't pushed
 
@@ -735,7 +743,7 @@ To keep nestwork lightweight, protocol-neutral, and git-only, the following are 
 - Server-side API / sync service: there will never be a server; all sync is via git push/pull
 - Built-in or mandatory end-to-end encryption: the protocol does not bake encryption in; private repos rely on GitHub's security model by default. An optional, off-by-default git-crypt mode is available when you have a genuine confidentiality need — see [docs/encrypted-memory.md](docs/encrypted-memory.md). API keys and other secrets still don't belong here; use a secret store.
 - Real-time collaboration / live notifications: git is asynchronous; if two agents truly write the same file in the same second, the PreToolUse hook blocks rather than locks in real time
-- Cross-vendor LLM call abstraction: distillation uses Codex but doesn't try to unify all LLM APIs; agents read markdown when switching tools
+- Cross-vendor LLM call abstraction: `distill.py` can shell out to the Claude or Codex CLI, or print a prompt for any agent, but doesn't try to unify LLM APIs; agents read markdown when switching tools
 - GUI / web app: pure file protocol; all interaction is via the agent or git CLI
 - Automated onboarding / interactive tutorial: README is the entry; no interactive wizard
 
@@ -753,8 +761,8 @@ If you need any of the above, nestwork may not be the right fit. Pick a dedicate
 - v2.3 (2026-05-08): Added §10 nestwork-vs-repo-5-doc boundary (`projects/<name>.md` 5-field convention + `decisions/` for protocol-level ADRs + `workflow/lessons.md` for cross-repo lessons); SessionStart hook now auto-checks upstream protocol version (24h cache, advisory only, never auto-applies)
 - v2.4 (2026-05-08): Added §12 orphan-branch strategy for high-churn artefacts. `agents/*/*/local/` is now in default `.gitignore`; `agent-history-<host>-<agent-id>` orphan branches hold a single rolling-overwrite snapshot (force-push). Fixes unbounded main-history bloat when `sync_local_history` is enabled (observed mynestwork: 177 MB → 1.6 MB).
 - v2.5 (2026-07-28): Added §13 tool-native memory carryover. Every coding agent's own memory is machine-local (Claude Code, Codex, Kimi Code alike), so it dies with the disk — and account-bound memory dies with the account. New reserved cold path `agents/<host>/<agent-id>/carryover/<tool>.md` receives that memory **distilled** through the §7 pipeline, never raw-mirrored, and is never injected at session start.
-- v3.1 (current protocol): optional topic memory — a scope's `memory.md` becomes a generated index over topic files with `description` front matter; agents read the index and open only matching files. Additive; see [context loading](docs/context-loading.md).
-- v3.0: core rules + optional resident summaries at startup; history, strategy, projects, workflows and inbox on demand. Existing instances must refresh tool bootstraps and open a new session; historical data stays intact.
+- v3.0 (2026-09-06): core rules + optional resident summaries at startup; history, strategy, projects, workflows and inbox on demand. Existing instances must refresh tool bootstraps and open a new session; historical data stays intact.
+- v3.1 (2026-09-27, current protocol): optional topic memory — a scope's `memory.md` becomes a generated index over topic files with `description` front matter; agents read the index and open only matching files. Additive; see [context loading](docs/context-loading.md).
 
 Full protocol: [AGENTS.md](AGENTS.md).
 
@@ -762,8 +770,10 @@ Full protocol: [AGENTS.md](AGENTS.md).
 
 ## Related docs
 
-- [AGENTS.md](AGENTS.md): Protocol spec (authoritative reference for Nestwork maintenance)
-- [docs/workflow-protocol.md](docs/workflow-protocol.md): v2.2 workflow deep dive
+- [AGENTS.md](AGENTS.md): Protocol spec (authoritative; consult when maintaining or migrating — startup reads only the resident list)
+- [docs/context-loading.md](docs/context-loading.md): Resident / on-demand loading, topic memory, and migration from 2.x
+- [docs/workflow-protocol.md](docs/workflow-protocol.md): `workflow/` layer and `nestwork.config.json` ingestion deep dive
+- [docs/agent-mailbox.md](docs/agent-mailbox.md): Agent mailbox reference
 - [docs/desensitization-prompt.md](docs/desensitization-prompt.md): AI desensitization methodology
 - [docs/encrypted-memory.md](docs/encrypted-memory.md): Optional git-crypt encryption for private memory
 - [schemas/nestwork.config.schema.json](schemas/nestwork.config.schema.json): `nestwork.config.json` JSON Schema

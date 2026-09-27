@@ -50,10 +50,18 @@ Migrating an existing monolith (manual, reviewed):
    `<!-- nestwork:topic-index:begin -->` / `<!-- nestwork:topic-index:end -->`.
 4. Run `memory-index.py`, then `memory-index.py --check`; verify every original
    heading landed in exactly one topic file before committing.
-5. Point `shared/resident.md` at `memory.md` as the index.
+5. Point the scope's `resident.md` at `memory.md` as the index.
 
-Hooks and bootstraps need no change: they already list `shared/memory.md` as
+Hooks and bootstraps need no change: they already list `memory.md` as
 on-demand, which is now the index.
+
+After the split, distill with `scripts/maintenance/distill.py`. It detects the
+index markers and switches to topic mode: agent topic files become input, and
+in its run modes (`--run-claude` / `--run-codex`) it writes only the `shared/`
+topic files that change, then regenerates the index. Its prompt forbids
+renaming, merging or deleting topics; that stays a reviewed human decision.
+`scripts/maintenance/compile.sh` refuses to run on a topic-mode `shared/`,
+because concatenating agent memory into `memory.md` would undo the split.
 
 ## Migration from 2.x
 

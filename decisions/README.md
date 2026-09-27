@@ -14,7 +14,18 @@ This directory captures decisions about how nestwork works:
 It is **not** for project-internal decisions. Project ADRs belong in that
 project's repo (typically under `docs/architecture.md` or `decisions/`).
 
-See `AGENTS.md` §10 for the layer-boundary rules.
+See `AGENTS.md` §10.2 for the layer-boundary rules.
+
+## Index
+
+| Date | ADR | Status |
+|---|---|---|
+| 2026-06-11 | [Keep GEO doc duplication; control drift with consistency tests](2026-06-11-geo-docs-duplication-with-drift-tests.md) | accepted |
+| 2026-07-28 | [Carry tool-native memory into the nest](2026-07-28-tool-memory-carryover.md) | accepted (amended by protocol 3.0) |
+
+This index covers upstream `nestwork`'s ADRs; add a row whenever an ADR is
+added or its status changes. `update.sh` refreshes this README in private
+instances but does not copy the ADR files themselves.
 
 ## File naming
 
@@ -25,10 +36,7 @@ decisions/YYYY-MM-DD-<short-slug>.md
 Date-prefixed for chronological browsing. Slug uses hyphens, lowercase,
 3-6 words.
 
-Examples:
-
-- `2026-05-08-no-runs-directory.md`
-- `2026-05-08-projects-md-five-fields.md`
+Example: `2026-07-28-tool-memory-carryover.md`.
 
 ## Template
 
@@ -42,4 +50,4 @@ from context, but only if you record the trade-offs explicitly.
 - `proposed` — under discussion
 - `accepted` — current standing decision
 - `rejected` — considered, not adopted (still useful to record so it isn't relitigated)
-- `superseded` — replaced by a later ADR; reference the new one in `supersedes:`
+- `superseded` — replaced by a later ADR; the newer ADR names this one in its `supersedes:` field

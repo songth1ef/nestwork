@@ -42,7 +42,7 @@ auditable with standard tooling, no memory server required.
 What still differs across this group is **cross-machine sync and concurrent
 writes**: some projects are single-machine first, and some libraries do not yet
 ship automatic git synchronization or multi-writer concurrency. nestwork's design
-emphasis is git-remote sync (pull/commit/push hooks), template inheritance ("use
+emphasis is git-remote sync (pull/commit/push, automated by per-write hooks where the tool supports them), template inheritance ("use
 this template" to connect a new instance), per-host/per-agent private
 directories, and a per-agent write model that avoids write contention.
 
@@ -77,6 +77,12 @@ summarization pipelines. This is one benchmark and an early result, but it is
 relevant context for plaintext-first designs: simple storage with good retrieval
 is a defensible choice, and retrieval quality is where investment tends to pay
 off. (See arXiv:2603.02473.)
+
+nestwork's own retrieval is agent-driven and needs no search index by default: agents
+search headings and keywords in the on-demand tier. Protocol 3.1 adds an
+optional routing layer — a generated `memory.md` index of topic files, each
+with a `description` that says when to read it — rather than an embedding
+index.
 
 ## When nestwork is a better fit
 

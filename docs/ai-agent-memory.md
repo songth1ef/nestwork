@@ -2,7 +2,7 @@
 
 ## Short answer
 
-AI agent memory is persistent context that an AI coding agent loads before it starts work. nestwork stores that memory in git so agents can share rules, project context, and past decisions across sessions, machines, and tools.
+AI agent memory is persistent context that an AI coding agent can rely on across sessions: rules it must follow, facts about the user and projects, and past decisions. nestwork stores that memory in git so agents can share it across sessions, machines, and tools.
 
 ## What problem does it solve?
 
@@ -15,12 +15,15 @@ nestwork uses a private git repository with this structure:
 ```text
 nestwork/
 ├── queen/                 # human-managed rules and strategy
+├── shared/                # distilled cross-agent memory
 ├── agents/<host>/<id>/    # private memory for one agent instance
-├── shared/                # compiled cross-agent memory
-└── projects/              # project-specific context
+├── projects/              # project-specific context
+└── workflow/              # portable cross-project methodology
 ```
 
-Each agent writes only to its own `agents/<host>/<agent-id>/` directory. Shared memory is compiled from agent memory instead of edited by every agent directly.
+Each agent writes only to its own `agents/<host>/<agent-id>/` directory. Shared memory is distilled from agent memory instead of edited by every agent directly.
+
+Memory is loaded in two tiers. At startup an agent reads only the resident tier: `queen/agent-rules.md` plus small, optional `resident.md` summaries. Everything else — strategy, memory history, projects, workflows — is on demand: the agent searches it when the current task needs it. When a memory file grows large, protocol 3.1 lets it become an index of topic files, so the agent reads only the topics that match the task. See [context loading](context-loading.md).
 
 ## When to use nestwork
 
@@ -34,11 +37,12 @@ Use nestwork when:
 
 ## When not to use nestwork
 
-Do not use nestwork as a database, vector store, chat history archive, or team knowledge base. It is a lightweight memory protocol for agent startup context, not a replacement for product documentation or source control.
+Do not use nestwork as a database, vector store, chat history archive, or team knowledge base. It is a lightweight memory protocol for agent context, not a replacement for product documentation or source control.
 
 ## Related docs
 
 - [Claude Code memory](claude-code-memory.md)
 - [Codex persistent memory](codex-persistent-memory.md)
 - [Git-native memory protocol](git-native-memory-protocol.md)
+- [Context loading and topic memory](context-loading.md)
 - [FAQ](faq.md)

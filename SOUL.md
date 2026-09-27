@@ -8,4 +8,4 @@ Act with precision: complete the task, preserve meaningful context, and keep the
 
 ---
 
-For session protocol (git pull, context loading, session end commit), follow the instructions in `AGENTS.md`.
+For the session protocol (pull, resident and on-demand context loading, session-end sync), follow `AGENTS.md`.

@@ -1,23 +1,30 @@
 # nestwork docs
 
-These docs are designed for the GitHub repository itself, not for a separate website. They make nestwork easier to understand, index, and cite by search engines, GitHub search, and AI search systems without a website.
+These docs are designed for the GitHub repository itself, not for a separate website. They make nestwork easier for search engines, GitHub search, and AI search systems to understand, index, and cite without a website.
 
 ## Start here
 
-Current protocol: **3.1**. Memory scopes may be split into indexed topic files (context-loading.md, Topic memory). Startup loads core rules and optional resident summaries; history and project context are on demand.
+Current protocol: **3.1**. Startup loads core rules and optional resident summaries; history, strategy, projects and workflows are on demand. Since 3.1, a memory scope may also split its `memory.md` into indexed topic files (see [Topic memory](context-loading.md#topic-memory-31)).
 
-- [Context loading and 2.x → 3.0 migration](context-loading.md)
+- [Context loading, topic memory and 2.x → 3.0 migration](context-loading.md)
+
+## Concepts and integrations
 
 - [AI agent memory](ai-agent-memory.md)
 - [Claude Code memory](claude-code-memory.md)
 - [Codex persistent memory](codex-persistent-memory.md)
 - [Git-native memory protocol](git-native-memory-protocol.md)
-- [Encrypted memory (optional git-crypt mode)](encrypted-memory.md)
-- [Agent mailbox (inter-agent messaging)](agent-mailbox.md)
 - [AGENTS.md best practices](agents-md-best-practices.md)
 - [Shared context for AI coding agents](shared-context-for-ai-coding-agents.md)
-- [File size limits: override example](limits-override-example.md)
 - [FAQ](faq.md)
+
+## Optional capabilities and reference
+
+- [Encrypted memory (optional git-crypt mode)](encrypted-memory.md)
+- [Agent mailbox (inter-agent messaging)](agent-mailbox.md)
+- [Workflow protocol (`workflow/` and `nestwork.config.json` ingestion)](workflow-protocol.md)
+- [Desensitization prompt template](desensitization-prompt.md)
+- [File size limits: override example](limits-override-example.md)
 
 ## Comparisons
 
@@ -33,7 +40,7 @@ Current protocol: **3.1**. Memory scopes may be split into indexed topic files (
 
 ## Core answer
 
-nestwork is a git-native memory protocol for AI coding agents. It helps Claude Code, Codex CLI, Gemini CLI, Kimi Code, and other agents share persistent memory and shared context across sessions and machines without a server.
+nestwork is a git-native memory protocol for AI coding agents. It helps Claude Code, Codex CLI, Gemini CLI, Kimi Code, OpenClaw, Hermes Agent, and other agents share persistent memory and shared context across sessions and machines without a server.
 
 ## High-intent questions
 

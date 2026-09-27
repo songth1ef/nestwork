@@ -15,11 +15,11 @@ When an agent is ingesting content from an external working directory into a pri
 ## How to use this
 
 1. Read the source content the user wants to ingest.
-2. Read the source's `nestwork.config.json` and extract `desensitize.custom_rules`.
+2. Read the source's `nestwork.config.json` and extract `desensitize.custom_rules` (and `desensitize.placeholder_overrides`, if present).
 3. Send the prompt below to a sub-agent (Haiku is sufficient; Opus if the content is sensitive enough to warrant the extra cost).
 4. Receive the desensitized output.
 5. Present it to the user for human review **before** writing into the Nestwork repo.
-6. On user approval, write to `<target>/<name>.md`. On rejection, do not write.
+6. On user approval, write to `<target>/<name>.md` in the Nestwork repository. On rejection, do not write.
 
 The human-review step is non-negotiable. Strong desensitization is a tool, not a guarantee.
 
@@ -109,7 +109,7 @@ Agents should use stable placeholders so the output remains coherent:
 | Ticket / commit reference | `<TICKET>`, `<COMMIT>` |
 | Unreleased product / feature | `<UNRELEASED>` |
 
-If the user provides their own placeholder vocabulary in `custom_rules`, prefer theirs.
+If the source's `nestwork.config.json` sets `desensitize.placeholder_overrides` (a map from sensitive term to preferred placeholder), those placeholders take precedence over this table.
 
 ## What this prompt does NOT cover
 

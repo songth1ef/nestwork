@@ -1,11 +1,6 @@
 # I gave 16 AI agents one shared brain, using nothing but git
 
-> Current behavior aligned with protocol 3.0: resident startup; history and inbox on demand. [Loading and migration](../context-loading.md).
-
-> Candidate titles:
-> - I gave 16 AI agents one shared brain, using nothing but git
-> - No server, no database: I used git to give a swarm of AIs the same memory
-> - Agents on Windows, Mac, Linux, and Android all take notes in the same book
+> Current behavior, aligned with protocol 3.1: at startup an agent reads only the small resident tier; strategy, history, projects and the inbox are fetched on demand. A memory scope can also opt into topic memory, where `memory.md` becomes a generated index over topic files. See [Loading and migration](../context-loading.md) and [AGENTS.md](../../AGENTS.md) §6.
 
 ![Four devices arranged in a circle, a glowing brain made of circuitry at the center](images/story-cover-nw.png)
 
@@ -49,7 +44,7 @@ And if there really is a collision? The protocol hardcodes a rule: in your own d
 
 Splitting up the directories isn't enough on its own. When two machines push one right after the other, that little sliver of time in between can still cause trouble.
 
-The thing that handles this is atomic sync on every write. Each time an agent does a Write/Edit, it runs `pull --rebase` before writing, then commits and pushes immediately after, retrying automatically on failure. I'm not typing this out by hand every time; it runs automatically once the hooks are installed.
+What handles this is atomic sync on every write. Each time Claude Code does a Write/Edit in its own memory directory, a hook runs `pull --rebase` first, then commits and pushes right after, retrying automatically on failure. I'm not typing any of this by hand; it just runs once the hooks are installed.
 
 The effect is that the real race window gets squeezed down to the tiny instant of a single write. I've been using it this long, and losing memory across machines or having two machines collide just hasn't happened again. Installing it is a single line:
 
@@ -57,13 +52,13 @@ The effect is that the real race window gets squeezed down to the tiny instant o
 bash scripts/install/claude.sh
 ```
 
-Same goes for codex and gemini. Once the hooks are in, you barely feel the pull / commit / push happening at all.
+Codex and Gemini have install scripts too, but they don't get per-write hooks (today only Claude Code and Kimi Code do). Their installer writes the protocol into the tool's startup file, and the agent commits and pushes its own directory at the end of the session. Either way, once it's set up you barely notice the pull / commit / push happening.
 
 ## Problem 3: the protocol will get upgraded, will my own stuff get wiped out?
 
 This was a hidden risk I only realized later. The protocol itself iterates. How directories are split, how the rules are written, upstream nestwork updates all of it. If I'd forked it, every sync from upstream would mean a manual merge, and one wrong move could wipe out the strategy I'd built up over months, every agent's private memory, the team's shared memory, all of it gone.
 
-What nestwork does is inherit via GitHub's Use this template, not fork. The protocol skeleton is inherited, but your private repo is an independent branch from day one. Upstream updates the protocol through its own update script, which touches the protocol layer and can't touch your `agents/`, `shared/`, or `strategy/`. My own stuff sits safely in its own repo.
+What nestwork does is inherit via GitHub's Use this template, not fork. The protocol skeleton is inherited, but your private repo is an independent branch from day one. Upstream updates the protocol through its own update script, which touches the protocol layer and never touches your `agents/`, `shared/`, `queen/` (where your rules and strategy live), or `projects/`. My own stuff sits safely in its own repo.
 
 "Clone and you're in" means the same thing. A new machine shows up, you clone it down, run the install script, and the agents on that machine automatically join the same brain.
 
@@ -90,5 +85,3 @@ If you're also sick of reciting the same thing to your agents on every machine:
 - Install: `bash scripts/install/claude.sh` (same for codex / gemini)
 
 Let your agents start taking notes in the same book, starting today.
-
-<!-- story angle: credible-story | humanized | EN -->

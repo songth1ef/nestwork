@@ -1,7 +1,7 @@
 # <Topic Name>
 
 > Copy this template, rename to `<topic>.md`, fill in the sections that apply, delete the rest.
-> Keep it under 200 lines. Split into a folder when exceeded (see `AGENTS.md` Section 6).
+> Keep it under 200 lines. Split into a folder when exceeded (see `AGENTS.md` §6).
 
 ---
 

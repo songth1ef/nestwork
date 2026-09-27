@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>nestwork — Git-Native Shared Memory for AI Coding Agents</title>
-<meta name="description" content="Give Claude Code, Codex, Gemini and Kimi one persistent memory across sessions, machines and tools. Git-native: no server, no plugin, no vendor lock-in.">
+<title>nestwork — 用 git 让 Claude Code、Codex 等 AI 编程助手共享长期记忆</title>
+<meta name="description" content="让 Claude Code、Codex、Gemini、Kimi 跨会话、跨机器、跨工具共享同一份长期记忆。git 原生协议：不要服务器、不要插件、不被厂商锁定。">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="author" content="songth1ef">
 <meta name="theme-color" content="#000000">
-<link rel="canonical" href="https://songth1ef.github.io/nestwork/">
+<link rel="canonical" href="https://songth1ef.github.io/nestwork/zh/">
 <link rel="alternate" hreflang="en" href="https://songth1ef.github.io/nestwork/">
 <link rel="alternate" hreflang="zh-CN" href="https://songth1ef.github.io/nestwork/zh/">
 <link rel="alternate" hreflang="x-default" href="https://songth1ef.github.io/nestwork/">
@@ -16,26 +16,26 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%233fb6c4'/%3E%3Ctext x='16' y='23' font-family='Helvetica,Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3En%3C/text%3E%3C/svg%3E">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="nestwork">
-<meta property="og:title" content="nestwork — Git-Native Shared Memory for AI Coding Agents">
-<meta property="og:description" content="Give Claude Code, Codex, Gemini and Kimi one persistent memory across sessions, machines and tools. Git-native: no server, no plugin, no vendor lock-in.">
-<meta property="og:url" content="https://songth1ef.github.io/nestwork/">
-<meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://songth1ef.github.io/nestwork/og.png">
+<meta property="og:title" content="nestwork — 用 git 让 Claude Code、Codex 等 AI 编程助手共享长期记忆">
+<meta property="og:description" content="让 Claude Code、Codex、Gemini、Kimi 跨会话、跨机器、跨工具共享同一份长期记忆。git 原生协议：不要服务器、不要插件、不被厂商锁定。">
+<meta property="og:url" content="https://songth1ef.github.io/nestwork/zh/">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://songth1ef.github.io/nestwork/og-zh.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="nestwork: your agents remember. One private git repo as shared memory for every AI coding agent.">
+<meta property="og:image:alt" content="nestwork：让你的 AI agent 记得住。一个私有 git 仓库，作为所有 AI 编程 agent 的共享记忆。">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="nestwork — Git-Native Shared Memory for AI Coding Agents">
-<meta name="twitter:description" content="Give Claude Code, Codex, Gemini and Kimi one persistent memory across sessions, machines and tools. Git-native: no server, no plugin, no vendor lock-in.">
-<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og.png">
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://songth1ef.github.io/nestwork/#website","url":"https://songth1ef.github.io/nestwork/","name":"nestwork","inLanguage":["en","zh-CN"]},{"@type":"WebPage","@id":"https://songth1ef.github.io/nestwork/#webpage","url":"https://songth1ef.github.io/nestwork/","name":"nestwork — Git-Native Shared Memory for AI Coding Agents","description":"Give Claude Code, Codex, Gemini and Kimi one persistent memory across sessions, machines and tools. Git-native: no server, no plugin, no vendor lock-in.","inLanguage":"en","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"},"dateModified":"2026-09-27"},{"@type":"SoftwareApplication","@id":"https://songth1ef.github.io/nestwork/#software","name":"nestwork","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux, Windows","softwareVersion":"0.6.0","description":"Give Claude Code, Codex, Gemini and Kimi one persistent memory across sessions, machines and tools. Git-native: no server, no plugin, no vendor lock-in.","url":"https://songth1ef.github.io/nestwork/","downloadUrl":"https://github.com/songth1ef/nestwork","codeRepository":"https://github.com/songth1ef/nestwork","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"keywords":"AI agent memory, persistent memory, Claude Code, Codex CLI, Gemini CLI, Kimi Code, AGENTS.md, git, shared context"},{"@type":"FAQPage","@id":"https://songth1ef.github.io/nestwork/#faq","mainEntity":[{"@type":"Question","name":"What is nestwork?","acceptedAnswer":{"@type":"Answer","text":"nestwork is a git-native memory protocol for AI coding agents. A private git repository holds your rules, preferences, lessons and project context as plain markdown, and every agent you use — Claude Code, Codex CLI, Gemini CLI, Kimi Code, Hermes, OpenClaw — reads and writes that same repository. The result is one persistent, versioned memory that follows you across sessions, machines and vendors."}},{"@type":"Question","name":"How do I share memory between Claude Code and Codex?","acceptedAnswer":{"@type":"Answer","text":"Clone your nest once per machine and run both installers: scripts/install/claude.sh and scripts/install/codex.sh. Both tools get the same startup protocol pointing at the same repository, so a rule or lesson written in a Claude Code session is available to Codex in its next session, and vice versa. Each tool writes to its own directory, so they never overwrite each other."}},{"@type":"Question","name":"Does Claude Code's memory sync across machines?","acceptedAnswer":{"@type":"Answer","text":"Not by itself. As of 2026, Claude Code, Codex and Kimi Code all keep their built-in memory on the local machine. nestwork puts the durable part of that context in git, so a new laptop or cloud box gets it with a single git clone. You can also distill a tool's native memory into the nest so it survives a machine change, a tool change or a lost account."}},{"@type":"Question","name":"Won't loading all that memory bloat my context window?","acceptedAnswer":{"@type":"Answer","text":"No — that is exactly what the protocol avoids. At startup an agent reads only a small resident tier (core rules plus two short summaries, about 10 KB, checked by script). Everything else is on demand: memory.md is a generated index of topic files, each with a one-line description of when to read it, and the agent opens only the files that match the current task."}},{"@type":"Question","name":"Is nestwork a vector database or a RAG system?","acceptedAnswer":{"@type":"Answer","text":"No. There are no embeddings and no retrieval service. Memory is human-readable markdown that you can open, edit, diff and review like any other file in git. Retrieval works the way an agent already uses skills: read a short index, pick the relevant file, read it."}},{"@type":"Question","name":"Do I need to run a server or pay for a service?","acceptedAnswer":{"@type":"Answer","text":"No. There is no hosted service, daemon or database — only git and a few shell and Python scripts in your own repository. Host it on GitHub, GitLab, a self-hosted Gitea or any git remote you already use. It keeps working offline and syncs when you reconnect."}},{"@type":"Question","name":"What happens when many agents write at the same time?","acceptedAnswer":{"@type":"Answer","text":"Every agent instance owns its own directory, agents/<host>/<agent-id>/, so ordinary memory writes never touch the same file. On tools with hooks, each write runs pull --rebase first and commit + push right after, with retries. Shared memory is only rewritten during an explicit, human-reviewed distillation."}},{"@type":"Question","name":"Can I keep sensitive memory private?","acceptedAnswer":{"@type":"Answer","text":"Keep the repository private — that is enough for most people. For content that must stay confidential even from your git host, enable the optional git-crypt mode: agents read and write plain text while every commit stores ciphertext. Never store API keys or secrets in memory, encrypted or not; use a secret manager."}},{"@type":"Question","name":"How is this different from AGENTS.md or CLAUDE.md?","acceptedAnswer":{"@type":"Answer","text":"A per-repository AGENTS.md describes one codebase. nestwork uses the same file format as a startup protocol for a user-level memory repository, so your identity, preferences, cross-project lessons and live project state travel with you into every repository and every tool — while each project's own AGENTS.md keeps working as before."}},{"@type":"Question","name":"Can a team use nestwork?","acceptedAnswer":{"@type":"Answer","text":"Yes, but start small: one private repository, one directory per agent instance, and human-owned rules in queen/, which agents treat as read-only. The layered authority chain decides whose instruction wins, so shared rules stay stable while each agent keeps its own notes."}}]}]}</script>
+<meta name="twitter:title" content="nestwork — 用 git 让 Claude Code、Codex 等 AI 编程助手共享长期记忆">
+<meta name="twitter:description" content="让 Claude Code、Codex、Gemini、Kimi 跨会话、跨机器、跨工具共享同一份长期记忆。git 原生协议：不要服务器、不要插件、不被厂商锁定。">
+<meta name="twitter:image" content="https://songth1ef.github.io/nestwork/og-zh.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://songth1ef.github.io/nestwork/#website","url":"https://songth1ef.github.io/nestwork/","name":"nestwork","inLanguage":["en","zh-CN"]},{"@type":"WebPage","@id":"https://songth1ef.github.io/nestwork/zh/#webpage","url":"https://songth1ef.github.io/nestwork/zh/","name":"nestwork — 用 git 让 Claude Code、Codex 等 AI 编程助手共享长期记忆","description":"让 Claude Code、Codex、Gemini、Kimi 跨会话、跨机器、跨工具共享同一份长期记忆。git 原生协议：不要服务器、不要插件、不被厂商锁定。","inLanguage":"zh-CN","isPartOf":{"@id":"https://songth1ef.github.io/nestwork/#website"},"about":{"@id":"https://songth1ef.github.io/nestwork/#software"},"dateModified":"2026-09-27"},{"@type":"SoftwareApplication","@id":"https://songth1ef.github.io/nestwork/#software","name":"nestwork","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux, Windows","softwareVersion":"0.6.0","description":"Give Claude Code, Codex, Gemini and Kimi one persistent memory across sessions, machines and tools. Git-native: no server, no plugin, no vendor lock-in.","url":"https://songth1ef.github.io/nestwork/","downloadUrl":"https://github.com/songth1ef/nestwork","codeRepository":"https://github.com/songth1ef/nestwork","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"songth1ef","url":"https://github.com/songth1ef"},"keywords":"AI agent memory, persistent memory, Claude Code, Codex CLI, Gemini CLI, Kimi Code, AGENTS.md, git, shared context"},{"@type":"FAQPage","@id":"https://songth1ef.github.io/nestwork/zh/#faq","mainEntity":[{"@type":"Question","name":"nestwork 是什么？","acceptedAnswer":{"@type":"Answer","text":"nestwork 是一套面向 AI 编程 agent 的 git 原生记忆协议。一个私有 git 仓库用普通 markdown 保存你的规矩、偏好、踩坑经验和项目上下文，你用的每个 agent——Claude Code、Codex CLI、Gemini CLI、Kimi Code、Hermes、OpenClaw——都读写同一个仓库。结果就是一份跨会话、跨机器、跨厂商的长期记忆，而且带版本历史。"}},{"@type":"Question","name":"怎么让 Claude Code 和 Codex 共享记忆？","acceptedAnswer":{"@type":"Answer","text":"在每台机器上 clone 一次你的记忆仓库，然后分别运行 scripts/install/claude.sh 和 scripts/install/codex.sh。两个工具会拿到指向同一仓库的同一套启动协议：在 Claude Code 里记下的规则或教训，Codex 下个会话就能用，反之亦然。每个工具只写自己的目录，互不覆盖。"}},{"@type":"Question","name":"Claude Code 的记忆能跨机器同步吗？","acceptedAnswer":{"@type":"Answer","text":"它自己不能。截至 2026 年，Claude Code、Codex、Kimi Code 的内置记忆都只存在本机。nestwork 把其中值得长期保留的上下文放进 git，新电脑或云服务器 git clone 一下就有了。你也可以把工具的原生记忆蒸馏进仓库，这样换机器、换工具、丢账号都不会丢。"}},{"@type":"Question","name":"记忆越攒越多，会不会把上下文窗口撑爆？","acceptedAnswer":{"@type":"Answer","text":"不会，协议正是为此设计的。启动时 agent 只读很小的常驻层（核心规则加两份简短摘要，约 10 KB，由脚本检查）。其余都按需读取：memory.md 是自动生成的主题索引，每个主题文件都有一行「什么时候该读」的描述，agent 只打开与当前任务匹配的文件。"}},{"@type":"Question","name":"nestwork 是向量数据库或 RAG 吗？","acceptedAnswer":{"@type":"Answer","text":"不是。没有 embedding，也没有检索服务。记忆就是人能直接读的 markdown，可以像 git 里其他文件一样打开、编辑、diff 和审阅。检索方式和 agent 使用 skill 一样：读一份简短的索引，挑出相关文件，再读它。"}},{"@type":"Question","name":"需要部署服务器或付费吗？","acceptedAnswer":{"@type":"Answer","text":"不需要。没有托管服务、没有常驻进程、没有数据库，只有 git 和你仓库里的几份 shell / Python 脚本。托管在 GitHub、GitLab、自建 Gitea 或任何你已有的 git 远端都行。离线照常使用，联网后自动同步。"}},{"@type":"Question","name":"很多 agent 同时写，会冲突吗？","acceptedAnswer":{"@type":"Answer","text":"每个 agent 实例独占自己的目录 agents/<host>/<agent-id>/，日常写记忆根本不会碰到同一个文件。在支持 hook 的工具上，每次写入前自动 pull --rebase，写完立即 commit + push，失败会重试。共享记忆只在明确触发、经人审核的蒸馏中才会被改写。"}},{"@type":"Question","name":"敏感的记忆能保密吗？","acceptedAnswer":{"@type":"Answer","text":"把仓库设为私有，对大多数人已经足够。如果连 git 托管方也不能看到，可以开启可选的 git-crypt 模式：agent 读写明文，提交进 git 的全是密文。无论是否加密，都不要把 API key 或密码写进记忆，它们应该放在专门的密钥管理工具里。"}},{"@type":"Question","name":"它和 AGENTS.md / CLAUDE.md 有什么区别？","acceptedAnswer":{"@type":"Answer","text":"单个仓库里的 AGENTS.md 只描述那一个代码库。nestwork 用同样的文件格式，作为一个「用户级记忆仓库」的启动协议：你的身份、偏好、跨项目的经验和在飞项目状态，会跟着你进入每一个仓库、每一个工具；各项目自己的 AGENTS.md 照常生效。"}},{"@type":"Question","name":"团队可以用吗？","acceptedAnswer":{"@type":"Answer","text":"可以，但建议从小处开始：一个私有仓库，每个 agent 实例一个目录，规则放在由人维护、agent 只读的 queen/ 里。分层的权威链决定谁的指令优先，共享规则保持稳定，每个 agent 又各自保留自己的笔记。"}}]}]}</script>
 <script>
 (function () {
   /* Honour an explicit language choice made on the other page. Crawlers have
      no stored preference, so both URLs stay independently indexable. */
   try {
     var want = localStorage.getItem('nestwork_lang');
-    if (want && want !== 'en') location.replace(want === 'zh' ? 'https://songth1ef.github.io/nestwork/zh/' : 'https://songth1ef.github.io/nestwork/');
+    if (want && want !== 'zh') location.replace(want === 'zh' ? 'https://songth1ef.github.io/nestwork/zh/' : 'https://songth1ef.github.io/nestwork/');
   } catch (e) {}
 })();
 </script>
@@ -445,13 +445,13 @@ td.us { background: rgba(63, 182, 196, 0.08); color: #fff; font-weight: 600; }
 <body>
 <header class="site-header">
   <div class="wrap header-inner">
-    <a class="badge" href="https://songth1ef.github.io/nestwork/" aria-label="nestwork home">nestwork</a>
-    <nav class="nav" aria-label="Primary">
-      <a class="nav-hide" href="#how">How it works</a>
-      <a class="nav-hide" href="#compare">Compare</a>
-      <a class="nav-hide" href="#quickstart">Install</a>
+    <a class="badge" href="https://songth1ef.github.io/nestwork/zh/" aria-label="nestwork home">nestwork</a>
+    <nav class="nav" aria-label="主导航">
+      <a class="nav-hide" href="#how">原理</a>
+      <a class="nav-hide" href="#compare">对比</a>
+      <a class="nav-hide" href="#quickstart">安装</a>
       <a class="nav-hide" href="#faq">FAQ</a>
-      <a href="https://songth1ef.github.io/nestwork/zh/" hreflang="zh-CN" data-lang-switch="zh">中文</a>
+      <a href="https://songth1ef.github.io/nestwork/" hreflang="en" data-lang-switch="en">EN</a>
       <a class="nav-gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
     </nav>
   </div>
@@ -466,19 +466,19 @@ td.us { background: rgba(63, 182, 196, 0.08); color: #fff; font-weight: 600; }
       <path d="M1040 120 L1220 60" fill="none" stroke="#5fd3d9" stroke-width="1" opacity=".5" vector-effect="non-scaling-stroke"/>
     </svg>
     <div class="wrap hero-inner">
-      <p class="kicker">Git-native memory protocol for AI coding agents</p>
-      <h1 class="mega" id="hero-title">Your agents<br><span class="glitch" data-text="remember.">remember.</span></h1>
+      <p class="kicker">AI 编程 agent 的 git 原生记忆协议</p>
       
-      <p class="caption">One private git repo becomes the shared, persistent memory of Claude Code, Codex, Gemini, Kimi and every other agent you run — across sessions, machines and vendors. No server. No plugin. No lock-in.</p>
+      <h1 class="mega" id="hero-title">你的 agent<br><span class="glitch" data-text="记得住了。">记得住了。</span></h1>
       
+      <p class="caption">一个私有 git 仓库，成为 Claude Code、Codex、Gemini、Kimi 等所有 agent 共享的长期记忆——跨会话、跨机器、跨厂商。不要服务器，不要插件，不被任何一家锁死。</p>
       <div class="cta-row">
-        <a class="btn btn-primary" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">Use this template →</a>
-        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ Star on GitHub</a>
+        <a class="btn btn-primary" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">用模板创建我的记忆仓库 →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ 去 GitHub 点个 Star</a>
       </div>
       <div class="meta-row">
-        <span><b>Protocol 3.1</b></span><span>v0.6.0</span><span>Claude Code · Codex · Gemini · Kimi · Hermes · OpenClaw</span>Plain markdown + git
+        <span><b>Protocol 3.1</b></span><span>v0.6.0</span><span>Claude Code · Codex · Gemini · Kimi · Hermes · OpenClaw</span>纯 markdown + git
       </div>
-      <div class="hero-term" role="img" aria-label="Example session start: the agent loads two resident files and lists the rest as on-demand.">
+      <div class="hero-term" role="img" aria-label="会话启动示例：agent 只加载两个常驻文件，其余列为按需读取。">
 <span class="t-dim">$ claude</span><br>
 nestwork context bundle for <span class="t-teal">laptop/claude-a7k2</span><br>
 <span class="t-dim">=== READ-ON-START (resident only) ===</span><br>
@@ -493,103 +493,103 @@ nestwork context bundle for <span class="t-teal">laptop/claude-a7k2</span><br>
 
   <section class="section" id="problem" aria-labelledby="problem-title">
     <div class="wrap">
-      <p class="kicker">01 / The problem</p>
-      <h2 class="mega" id="problem-title">Every session<br><span class="indent">starts at zero.</span></h2>
+      <p class="kicker">01 / 问题</p>
       
-      <p class="lede">You spent an afternoon teaching one agent your stack, your rules and where the project stands. Open a new session, a second laptop or a different tool — and it is gone. You are back to reciting your own medical history.</p>
+      <h2 class="mega" id="problem-title">每个新会话，<br><span class="indent">都从零开始。</span></h2>
       
+      <p class="lede">你花一下午教会一个 agent 你的技术栈、你的规矩、项目进行到哪一步。换个会话、换台电脑、换个工具——全没了。你又得把自己的「病历」从头背一遍。</p>
       <div class="grid g4">
         <div class="card alert">
           <span class="tag">ERR_01</span>
-          <h3>Machine-bound</h3>
-          <p>The agent on your work computer knows your rules. The one on your laptop, your cloud box or your phone starts blank.</p>
+          <h3>记忆锁在一台机器上</h3>
           
+          <p>公司电脑上的 agent 懂你的规矩，笔记本、云服务器、手机上的那个一片空白。</p>
         </div>
         <div class="card alert">
           <span class="tag">ERR_02</span>
-          <h3>Vendor-locked</h3>
-          <p>Claude's memory only feeds Claude, Codex's only feeds Codex. Switch tools and the context you built stays behind.</p>
+          <h3>被一家厂商锁死</h3>
           
+          <p>Claude 的记忆只喂 Claude，Codex 的只喂 Codex。一换工具，辛苦攒的上下文全留在原地。</p>
         </div>
         <div class="card alert">
           <span class="tag">ERR_03</span>
-          <h3>Agents don't talk</h3>
-          <p>One agent records a gotcha; another agent, one machine over, walks straight into it the next day.</p>
+          <h3>agent 之间互不通气</h3>
           
+          <p>一个 agent 刚记下的坑，隔壁机器上的另一个 agent 第二天照样踩进去。</p>
         </div>
         <div class="card alert">
           <span class="tag">ERR_04</span>
-          <h3>Fragile ownership</h3>
-          <p>A lapsed subscription, a regional block or a lost account can wipe out months of accumulated context overnight.</p>
+          <h3>记忆不归你所有</h3>
           
+          <p>订阅到期、地区限制、账号丢失，任何一件都能让你攒了几个月的上下文一夜清零。</p>
         </div>
       </div>
       <blockquote class="quote">
-        <p style="margin:0">“On machine A an agent wrote down ‘this deploy script has a nasty gotcha’. The next day, the agent on machine B stepped on the exact same rake.”</p>
         
-        <footer>— from “I gave 16 AI agents one shared brain, using nothing but git”</footer>
+        <p style="margin:0">“我明明在 A 机器上让 agent 记下了『这个部署脚本有个坑』，B 机器上的 agent 第二天又踏踏实实踩了一遍。”</p>
         
+        <footer>—— 摘自《我用 git 给 16 个 AI agent 装了同一个大脑》</footer>
       </blockquote>
     </div>
   </section>
 
   <section class="section" id="how" aria-labelledby="how-title">
     <div class="wrap">
-      <p class="kicker">02 / How it works</p>
-      <h2 class="mega" id="how-title">One repo.<br><span class="indent">One brain.</span></h2>
+      <p class="kicker">02 / 工作原理</p>
       
-      <p class="lede">nestwork is not a service you run — it is a protocol your agents follow. Memory is plain markdown in <span class="hl">your own private git repo</span>. Every agent pulls before it reads and commits after it writes, so whatever one agent learns, every other agent can use next session.</p>
+      <h2 class="mega" id="how-title">一个仓库，<br><span class="indent">一个大脑。</span></h2>
       
+      <p class="lede">nestwork 不是一个要你部署的服务，而是一套 agent 共同遵守的协议。记忆就是 <span class="hl">你自己私有 git 仓库</span> 里的普通 markdown。每个 agent 读之前先 pull、写之后立即提交，于是一个 agent 学到的东西，下一个会话里所有 agent 都能用上。</p>
       <div class="grid g3 steps">
         <div class="card corners">
           <span class="step-num">01</span>
-          <h3>Create your private nest</h3>
-          <p>Click <b>Use this template</b> on GitHub and make it private. It is your repo, on your account — nothing is sent to anyone else.</p>
+          <h3>创建你的私有记忆仓库</h3>
           
+          <p>在 GitHub 点 <b>Use this template</b>，设为 private。仓库在你自己的账号下，不经过任何第三方。</p>
         </div>
         <div class="card corners">
           <span class="step-num">02</span>
-          <h3>Run one installer per tool</h3>
-          <p>Clone it on each machine and run the installer for Claude Code, Codex, Gemini, Kimi, Hermes or OpenClaw. It wires up session-start loading and sync hooks.</p>
+          <h3>每个工具跑一行安装脚本</h3>
           
+          <p>在每台机器上 clone，然后给 Claude Code、Codex、Gemini、Kimi、Hermes 或 OpenClaw 跑对应安装脚本，自动接好启动加载和同步 hook。</p>
         </div>
         <div class="card corners">
           <span class="step-num">03</span>
-          <h3>Just keep working</h3>
-          <p>Hooks run <code>pull --rebase</code> before every memory write and commit + push right after. Open any agent on any machine and it already knows you.</p>
+          <h3>照常干活就行</h3>
           
+          <p>每次写记忆前 hook 自动 <code>pull --rebase</code>，写完立即 commit + push。任何机器上打开任何 agent，它都已经认识你。</p>
         </div>
       </div>
-<div class="tree" role="img" aria-label="Repository layout of a nestwork memory repo"><span class="c">your-nest/</span>                      <span class="m"># private git repo — the shared brain</span>
+<div class="tree" role="img" aria-label="nestwork 记忆仓库的目录结构"><span class="c">your-nest/</span>                      <span class="m"># private git repo — the shared brain</span>
 ├── <span class="c">queen/</span>                      <span class="m"># rules &amp; strategy · human-owned, read-only for agents</span>
 ├── <span class="c">shared/</span>                     <span class="m"># cross-agent memory · topic files + generated index</span>
 ├── <span class="c">agents/</span>
 │   └── <span class="r">&lt;host&gt;/&lt;agent-id&gt;/</span>      <span class="m"># each agent writes ONLY here → no write conflicts</span>
 ├── <span class="c">projects/</span>                   <span class="m"># live project state</span>
 └── <span class="c">workflow/</span>                   <span class="m"># portable methods that follow you between jobs</span></div>
-      <div class="chain" aria-label="Authority chain from highest to lowest">
+      <div class="chain" aria-label="从高到低的权威链">
         <span>queen/agent-rules</span><i>&gt;</i><span>queen/strategy</span><i>&gt;</i><span>shared</span><i>&gt;</i><span>agents/*</span><i>&gt;</i><span>projects</span><i>&gt;</i><span>workflow</span>
       </div>
-      <p class="chain-note">Authority chain: when two sources disagree, the higher layer wins — agents never blend conflicting instructions.</p>
       
+      <p class="chain-note">权威链：两处说法冲突时，高层说了算——agent 不会把矛盾的指令搅在一起。</p>
     </div>
   </section>
 
   <section class="section" id="loading" aria-labelledby="loading-title">
     <div class="wrap split">
       <div>
-        <p class="kicker">03 / Context that scales</p>
-        <h2 class="mega" id="loading-title" style="font-size:clamp(38px,5.6vw,72px)">Loads like<br>a skill.</h2>
+        <p class="kicker">03 / 能长期积累的上下文</p>
         
-        <p class="lede" style="margin-top:28px">More context is not better context: a model's effective attention is far smaller than its advertised window. So nestwork never dumps your whole history into the prompt.</p>
+        <h2 class="mega" id="loading-title" style="font-size:clamp(38px,5.6vw,72px)">像 skill 一样<br>按需加载。</h2>
         
+        <p class="lede" style="margin-top:28px">上下文不是越多越好：模型真正能用好的注意力，远小于标称的上下文窗口。所以 nestwork 从不把你的全部历史一股脑塞进提示词。</p>
         <ul class="ticks">
-          <li><b>Resident tier, ~10 KB.</b> At startup an agent reads only the core rules and two short summaries — byte budgets are checked by script.</li>
           
-          <li><b>Topic index.</b> Memory is split into topic files, each with a one-line <code>description</code> saying when to read it. <code>memory.md</code> is a generated routing table.</li>
+          <li><b>常驻层，约 10 KB。</b> 启动时只读核心规则和两份简短摘要，字节预算由脚本检查。</li>
           
-          <li><b>Open only what matches.</b> Doing a git operation? The agent opens <code>git-discipline.md</code> and nothing else. Your memory can grow for years without bloating a single session.</li>
+          <li><b>主题索引。</b> 记忆拆成一个个主题文件，每个都带一行 <code>description</code>，写明什么时候该读；<code>memory.md</code> 是自动生成的路由表。</li>
           
+          <li><b>只打开命中的。</b> 要做 git 操作？agent 只打开 <code>git-discipline.md</code>。记忆可以积累好几年，单次会话依然轻快。</li>
         </ul>
       </div>
       <div class="index-card">
@@ -610,98 +610,98 @@ nestwork context bundle for <span class="t-teal">laptop/claude-a7k2</span><br>
 
   <section class="section" id="features" aria-labelledby="features-title">
     <div class="wrap">
-      <p class="kicker">04 / What you get</p>
-      <h2 class="mega" id="features-title">Everything is<br><span class="indent">a text file.</span></h2>
+      <p class="kicker">04 / 你会得到什么</p>
       
+      <h2 class="mega" id="features-title">一切，<br><span class="indent">都是文本文件。</span></h2>
       <div class="grid g4">
         <div class="card"><span class="tag">git-only</span>
-          <h3>No server, ever</h3>
-          <p>No database, no daemon, no hosted API. Git already solves storage, history and conflicts — nestwork reuses it. Works offline.</p>
-          </div>
+          <h3>永远不需要服务器</h3>
+          
+          <p>没有数据库、没有常驻进程、没有托管 API。存储、历史、冲突 git 早就解决了，nestwork 直接复用。离线也能用。</p></div>
         <div class="card"><span class="tag">cross-tool</span>
-          <h3>Six tools, one brain</h3>
-          <p>Installers for Claude Code, Codex CLI, Gemini CLI, Kimi Code, Hermes and OpenClaw, plus a generic installer for any markdown-configured agent.</p>
-          </div>
+          <h3>六种工具，一个大脑</h3>
+          
+          <p>为 Claude Code、Codex CLI、Gemini CLI、Kimi Code、Hermes、OpenClaw 提供安装脚本，任何用 markdown 配置的 agent 也能用通用脚本接入。</p></div>
         <div class="card"><span class="tag">conflict-free</span>
-          <h3>Built for many agents</h3>
-          <p>Each agent owns <code>agents/&lt;host&gt;/&lt;id&gt;/</code>. Atomic per-write hooks pull, write, commit and push with retry — dozens of agents, no clobbering.</p>
-          </div>
+          <h3>为多 agent 而设计</h3>
+          
+          <p>每个 agent 独占 <code>agents/&lt;host&gt;/&lt;id&gt;/</code>。逐次写入的原子 hook 自动 pull → 写 → commit → push 并重试，几十个 agent 同时写也不互相覆盖。</p></div>
         <div class="card"><span class="tag">3.1</span>
-          <h3>Topic memory</h3>
-          <p>Skill-style routing: a generated index plus topic files. A <code>--check</code> guard fails on stale indexes, missing descriptions or oversized files.</p>
-          </div>
+          <h3>主题记忆</h3>
+          
+          <p>skill 式路由：自动生成的索引 + 主题文件。<code>--check</code> 会拦住索引过期、缺描述或文件过大。</p></div>
         <div class="card"><span class="tag">distill</span>
-          <h3>Memory distillation</h3>
-          <p>Merge every agent's private notes into shared memory with <code>claude -p</code> or <code>codex exec</code> — a union, never destructive, human-reviewed.</p>
-          </div>
+          <h3>记忆蒸馏</h3>
+          
+          <p>用 <code>claude -p</code> 或 <code>codex exec</code> 把各 agent 的私有笔记合并进共享记忆——只做并集、从不删除、由人审核。</p></div>
         <div class="card"><span class="tag">mailbox</span>
-          <h3>Agent-to-agent mail</h3>
-          <p>One agent leaves a note in its outbox; another agent on another machine reads it when coordinating. No queue, no broker — just a file and a push.</p>
-          </div>
+          <h3>agent 之间能留言</h3>
+          
+          <p>一个 agent 往自己的发件箱写一条，另一台机器上的 agent 协作时就能读到。没有消息队列、没有中间件，就是一个文件加一次 push。</p></div>
         <div class="card"><span class="tag">git-crypt</span>
-          <h3>Optional encryption</h3>
-          <p>Turn on git-crypt and your git host only ever sees ciphertext, while agents keep reading and writing plain markdown.</p>
-          </div>
+          <h3>可选加密</h3>
+          
+          <p>开启 git-crypt 后，git 托管方看到的只有密文，agent 读写的依然是明文 markdown。</p></div>
         <div class="card"><span class="tag">carryover</span>
-          <h3>Rescue tool memory</h3>
-          <p>Claude Code, Codex and Kimi each keep memory on one machine. Distill it into your nest so it survives a new laptop, a new tool or a lost account.</p>
-          </div>
+          <h3>把工具记忆救出来</h3>
+          
+          <p>Claude Code、Codex、Kimi 的原生记忆都只存在单台机器上。把它们蒸馏进你的仓库，换电脑、换工具、丢账号都不怕。</p></div>
       </div>
     </div>
   </section>
 
   <section class="section" id="proof" aria-labelledby="proof-title">
     <div class="wrap">
-      <p class="kicker">05 / Used daily, in production</p>
-      <h2 class="mega" id="proof-title" style="font-size:clamp(38px,5.6vw,72px)">Dogfooded on<br>a real fleet.</h2>
+      <p class="kicker">05 / 每天都在真实使用</p>
       
+      <h2 class="mega" id="proof-title" style="font-size:clamp(38px,5.6vw,72px)">作者自己的<br>「机队」天天在用。</h2>
       <div class="stats">
-        <div class="stat"><div class="n">10</div><div class="l">machines</div></div>
-        <div class="stat"><div class="n">30+</div><div class="l">agent instances</div></div>
-        <div class="stat"><div class="n">4</div><div class="l">OSes: Win · macOS · Linux · Android</div></div>
-        <div class="stat"><div class="n">6</div><div class="l">tool installers</div></div>
+        <div class="stat"><div class="n">10</div><div class="l">台机器</div></div>
+        <div class="stat"><div class="n">30+</div><div class="l">个 agent 实例</div></div>
+        <div class="stat"><div class="n">4</div><div class="l">种系统：Win · macOS · Linux · Android</div></div>
+        <div class="stat"><div class="n">6</div><div class="l">种工具安装脚本</div></div>
       </div>
-      <p class="source-note">Source: the author's own private nest, counted 2026-09. Claude Code and Codex are daily drivers; other installers ship but are less battle-tested.</p>
       
+      <p class="source-note">来源：作者自己的私有记忆仓库，2026-09 统计。Claude Code 与 Codex 是日常主力；其余工具的安装脚本已提供，实战验证较少。</p>
     </div>
   </section>
 
   <section class="section" id="compare" aria-labelledby="compare-title">
     <div class="wrap">
-      <p class="kicker">06 / Compare</p>
-      <h2 class="mega" id="compare-title" style="font-size:clamp(38px,5.6vw,72px)">Protocol,<br>not plugin.</h2>
+      <p class="kicker">06 / 横向对比</p>
       
-      <p class="lede">Most AI agent memory is either a service you have to run or a feature locked inside one tool on one machine. nestwork sits one layer above them: a neutral, portable source of truth any agent can read.</p>
+      <h2 class="mega" id="compare-title" style="font-size:clamp(38px,5.6vw,72px)">是协议，<br>不是插件。</h2>
       
+      <p class="lede">大多数 AI agent 记忆方案，要么是一个得自己跑的服务，要么是锁在某一个工具、某一台机器里的功能。nestwork 站在它们上面一层：一份中立、可迁移、任何 agent 都能读的真相源。</p>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
               <th scope="col"></th>
               <th scope="col" class="us">nestwork</th>
-              <th scope="col">Built-in tool memory</th>
+              <th scope="col">工具内置记忆</th>
               <th scope="col">MCP memory server</th>
               <th scope="col">claude-mem</th>
-              <th scope="col">Per-repo CLAUDE.md / AGENTS.md</th>
+              <th scope="col">单仓 CLAUDE.md / AGENTS.md</th>
             </tr>
           </thead>
           <tbody>
-            <tr><th scope="row">Infrastructure</th>
-              <td class="us">A git repo</td><td>Local files per tool</td><td>A running server</td><td>Worker process</td><td>Files in each repo</td></tr>
-            <tr><th scope="row">Across machines</th>
-              <td class="us"><span class="ok">✓</span> git pull</td><td><span class="bad">✗</span> one machine</td><td>Deploy per machine</td><td>Worker-dependent</td><td>Per repo only</td></tr>
-            <tr><th scope="row">Across tools / vendors</th>
-              <td class="us"><span class="ok">✓</span> any markdown-config agent</td><td><span class="bad">✗</span> one tool</td><td>MCP clients only</td><td><span class="bad">✗</span> Claude</td><td>Partly</td></tr>
-            <tr><th scope="row">User-level memory</th>
-              <td class="us"><span class="ok">✓</span></td><td><span class="ok">✓</span></td><td><span class="ok">✓</span></td><td><span class="ok">✓</span></td><td><span class="bad">✗</span> project only</td></tr>
-            <tr><th scope="row">Multi-agent collaboration</th>
-              <td class="us"><span class="ok">✓</span> protocol-level</td><td><span class="bad">✗</span></td><td>Needs coordination</td><td><span class="bad">✗</span> single agent</td><td><span class="bad">✗</span></td></tr>
-            <tr><th scope="row">Version history &amp; review</th>
-              <td class="us"><span class="ok">✓</span> git log / diff</td><td><span class="bad">✗</span></td><td>Depends</td><td>Limited</td><td><span class="ok">✓</span></td></tr>
-            <tr><th scope="row">Data ownership</th>
-              <td class="us">100% your repo</td><td>Local, tool-managed</td><td>You</td><td>Third-party worker</td><td>You</td></tr>
-            <tr><th scope="row">Setup cost</th>
-              <td class="us">Low — you already know git</td><td>Zero, but tool-bound</td><td>Medium</td><td>Medium</td><td>Low</td></tr>
+            <tr><th scope="row">基础设施</th>
+              <td class="us">一个 git 仓库</td><td>各工具的本机文件</td><td>常驻服务</td><td>worker 进程</td><td>各仓库里的文件</td></tr>
+            <tr><th scope="row">跨机器</th>
+              <td class="us"><span class="ok">✓</span> git pull</td><td><span class="bad">✗</span> 只在本机</td><td>每台都要部署</td><td>依赖 worker</td><td>仅限该仓库</td></tr>
+            <tr><th scope="row">跨工具 / 厂商</th>
+              <td class="us"><span class="ok">✓</span> 任何 markdown 配置的 agent</td><td><span class="bad">✗</span> 只服务一个工具</td><td>仅 MCP 客户端</td><td><span class="bad">✗</span> Claude</td><td>部分</td></tr>
+            <tr><th scope="row">用户级记忆</th>
+              <td class="us"><span class="ok">✓</span></td><td><span class="ok">✓</span></td><td><span class="ok">✓</span></td><td><span class="ok">✓</span></td><td><span class="bad">✗</span> 只管项目</td></tr>
+            <tr><th scope="row">多 agent 协作</th>
+              <td class="us"><span class="ok">✓</span> 协议级</td><td><span class="bad">✗</span></td><td>需自行协调</td><td><span class="bad">✗</span> 单 agent</td><td><span class="bad">✗</span></td></tr>
+            <tr><th scope="row">版本历史与审阅</th>
+              <td class="us"><span class="ok">✓</span> git log / diff</td><td><span class="bad">✗</span></td><td>看实现</td><td>有限</td><td><span class="ok">✓</span></td></tr>
+            <tr><th scope="row">数据归属</th>
+              <td class="us">100% 在你的仓库</td><td>本机，由工具管理</td><td>你</td><td>第三方 worker</td><td>你</td></tr>
+            <tr><th scope="row">上手成本</th>
+              <td class="us">低——你本来就会 git</td><td>零，但绑死在工具上</td><td>中</td><td>中</td><td>低</td></tr>
           </tbody>
         </table>
       </div>
@@ -710,14 +710,14 @@ nestwork context bundle for <span class="t-teal">laptop/claude-a7k2</span><br>
 
   <section class="section paper" id="quickstart" aria-labelledby="qs-title">
     <div class="wrap">
-      <p class="kicker">07 / Quickstart · a few minutes</p>
+      <p class="kicker">07 / 快速开始 · 几分钟</p>
       <p class="execute" aria-hidden="true">execute?</p>
-      <h2 class="sr-only" id="qs-title">Install nestwork</h2>
-      <p class="lede">Create your private repo from the template, clone it on each machine, then run the installer for every tool you use. Open a new session — done.</p>
+      <h2 class="sr-only" id="qs-title">安装 nestwork</h2>
       
+      <p class="lede">用模板创建私有仓库，在每台机器上 clone，再给你用的每个工具跑一遍安装脚本。开一个新会话，就完成了。</p>
       <div class="qs-grid">
         <div class="code-block">
-          <div class="code-head"><span>macOS / Linux</span><button class="copy-btn" type="button"><span class="idle">COPY</span><span class="done">COPIED</span></button></div>
+          <div class="code-head"><span>macOS / Linux</span><button class="copy-btn" type="button"><span class="idle">复制</span><span class="done">已复制</span></button></div>
 <pre><code>git clone https://github.com/&lt;you&gt;/&lt;your-nest&gt;.git ~/nestwork
 bash ~/nestwork/scripts/install/claude.sh
 bash ~/nestwork/scripts/install/codex.sh
@@ -725,7 +725,7 @@ bash ~/nestwork/scripts/install/gemini.sh
 bash ~/nestwork/scripts/install/kimi.sh</code></pre>
         </div>
         <div class="code-block">
-          <div class="code-head"><span>Windows PowerShell</span><button class="copy-btn" type="button"><span class="idle">COPY</span><span class="done">COPIED</span></button></div>
+          <div class="code-head"><span>Windows PowerShell</span><button class="copy-btn" type="button"><span class="idle">复制</span><span class="done">已复制</span></button></div>
 <pre><code>git clone https://github.com/&lt;you&gt;/&lt;your-nest&gt;.git $HOME\nestwork
 &amp; $HOME\nestwork\scripts\install\claude.ps1
 &amp; $HOME\nestwork\scripts\install\codex.ps1
@@ -733,14 +733,14 @@ bash ~/nestwork/scripts/install/kimi.sh</code></pre>
 &amp; $HOME\nestwork\scripts\install\kimi.ps1</code></pre>
         </div>
       </div>
-      <ul class="tools" aria-label="Supported tools">
+      <ul class="tools" aria-label="支持的工具">
         <li class="daily">Claude Code</li><li class="daily">Codex CLI</li><li>Gemini CLI</li><li>Kimi Code</li><li>Hermes Agent</li><li>OpenClaw</li><li>generic.sh</li>
       </ul>
-      <p class="note">Filled = the author's daily drivers. Every installer only edits text between its own markers and ships with an uninstaller; your memory and your other config are never touched.</p>
       
+      <p class="note">实心 = 作者日常主力。每个安装脚本只改动自己标记块之内的内容，并配有卸载脚本；你的记忆和其他配置不会被动到。</p>
       <div class="cta-row" style="margin-top:30px">
-        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">Use this template →</a>
-        <a class="btn btn-ghost" style="color:var(--ink);border-color:var(--ink)" href="https://github.com/songth1ef/nestwork#install" rel="noopener">Full install guide</a>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">用模板创建我的记忆仓库 →</a>
+        <a class="btn btn-ghost" style="color:var(--ink);border-color:var(--ink)" href="https://github.com/songth1ef/nestwork#install" rel="noopener">完整安装指南</a>
       </div>
     </div>
   </section>
@@ -748,36 +748,36 @@ bash ~/nestwork/scripts/install/kimi.sh</code></pre>
   <section class="section faq" id="faq" aria-labelledby="faq-title">
     <div class="wrap">
       <p class="kicker">08 / FAQ</p>
-      <h2 class="mega" id="faq-title" style="font-size:clamp(38px,5.6vw,72px)">Questions,<br>answered.</h2>
       
-      <details open><summary>What is nestwork?</summary><div class="answer"><p>nestwork is a git-native memory protocol for AI coding agents. A private git repository holds your rules, preferences, lessons and project context as plain markdown, and every agent you use — Claude Code, Codex CLI, Gemini CLI, Kimi Code, Hermes, OpenClaw — reads and writes that same repository. The result is one persistent, versioned memory that follows you across sessions, machines and vendors.</p></div></details>
-      <details><summary>How do I share memory between Claude Code and Codex?</summary><div class="answer"><p>Clone your nest once per machine and run both installers: <code>scripts/install/claude.sh</code> and <code>scripts/install/codex.sh</code>. Both tools get the same startup protocol pointing at the same repository, so a rule or lesson written in a Claude Code session is available to Codex in its next session, and vice versa. Each tool writes to its own directory, so they never overwrite each other.</p></div></details>
-      <details><summary>Does Claude Code&#x27;s memory sync across machines?</summary><div class="answer"><p>Not by itself. As of 2026, Claude Code, Codex and Kimi Code all keep their built-in memory on the local machine. nestwork puts the durable part of that context in git, so a new laptop or cloud box gets it with a single <code>git clone</code>. You can also distill a tool's native memory into the nest so it survives a machine change, a tool change or a lost account.</p></div></details>
-      <details><summary>Won&#x27;t loading all that memory bloat my context window?</summary><div class="answer"><p>No — that is exactly what the protocol avoids. At startup an agent reads only a small resident tier (core rules plus two short summaries, about 10 KB, checked by script). Everything else is on demand: <code>memory.md</code> is a generated index of topic files, each with a one-line description of when to read it, and the agent opens only the files that match the current task.</p></div></details>
-      <details><summary>Is nestwork a vector database or a RAG system?</summary><div class="answer"><p>No. There are no embeddings and no retrieval service. Memory is human-readable markdown that you can open, edit, diff and review like any other file in git. Retrieval works the way an agent already uses skills: read a short index, pick the relevant file, read it.</p></div></details>
-      <details><summary>Do I need to run a server or pay for a service?</summary><div class="answer"><p>No. There is no hosted service, daemon or database — only git and a few shell and Python scripts in your own repository. Host it on GitHub, GitLab, a self-hosted Gitea or any git remote you already use. It keeps working offline and syncs when you reconnect.</p></div></details>
-      <details><summary>What happens when many agents write at the same time?</summary><div class="answer"><p>Every agent instance owns its own directory, <code>agents/&lt;host&gt;/&lt;agent-id&gt;/</code>, so ordinary memory writes never touch the same file. On tools with hooks, each write runs <code>pull --rebase</code> first and commit + push right after, with retries. Shared memory is only rewritten during an explicit, human-reviewed distillation.</p></div></details>
-      <details><summary>Can I keep sensitive memory private?</summary><div class="answer"><p>Keep the repository private — that is enough for most people. For content that must stay confidential even from your git host, enable the optional git-crypt mode: agents read and write plain text while every commit stores ciphertext. Never store API keys or secrets in memory, encrypted or not; use a secret manager.</p></div></details>
-      <details><summary>How is this different from AGENTS.md or CLAUDE.md?</summary><div class="answer"><p>A per-repository <code>AGENTS.md</code> describes one codebase. nestwork uses the same file format as a startup protocol for a user-level memory repository, so your identity, preferences, cross-project lessons and live project state travel with you into every repository and every tool — while each project's own <code>AGENTS.md</code> keeps working as before.</p></div></details>
-      <details><summary>Can a team use nestwork?</summary><div class="answer"><p>Yes, but start small: one private repository, one directory per agent instance, and human-owned rules in <code>queen/</code>, which agents treat as read-only. The layered authority chain decides whose instruction wins, so shared rules stay stable while each agent keeps its own notes.</p></div></details>
+      <h2 class="mega" id="faq-title" style="font-size:clamp(38px,5.6vw,72px)">常见问题。</h2>
+      <details open><summary>nestwork 是什么？</summary><div class="answer"><p>nestwork 是一套面向 AI 编程 agent 的 git 原生记忆协议。一个私有 git 仓库用普通 markdown 保存你的规矩、偏好、踩坑经验和项目上下文，你用的每个 agent——Claude Code、Codex CLI、Gemini CLI、Kimi Code、Hermes、OpenClaw——都读写同一个仓库。结果就是一份跨会话、跨机器、跨厂商的长期记忆，而且带版本历史。</p></div></details>
+      <details><summary>怎么让 Claude Code 和 Codex 共享记忆？</summary><div class="answer"><p>在每台机器上 clone 一次你的记忆仓库，然后分别运行 <code>scripts/install/claude.sh</code> 和 <code>scripts/install/codex.sh</code>。两个工具会拿到指向同一仓库的同一套启动协议：在 Claude Code 里记下的规则或教训，Codex 下个会话就能用，反之亦然。每个工具只写自己的目录，互不覆盖。</p></div></details>
+      <details><summary>Claude Code 的记忆能跨机器同步吗？</summary><div class="answer"><p>它自己不能。截至 2026 年，Claude Code、Codex、Kimi Code 的内置记忆都只存在本机。nestwork 把其中值得长期保留的上下文放进 git，新电脑或云服务器 <code>git clone</code> 一下就有了。你也可以把工具的原生记忆蒸馏进仓库，这样换机器、换工具、丢账号都不会丢。</p></div></details>
+      <details><summary>记忆越攒越多，会不会把上下文窗口撑爆？</summary><div class="answer"><p>不会，协议正是为此设计的。启动时 agent 只读很小的常驻层（核心规则加两份简短摘要，约 10 KB，由脚本检查）。其余都按需读取：<code>memory.md</code> 是自动生成的主题索引，每个主题文件都有一行「什么时候该读」的描述，agent 只打开与当前任务匹配的文件。</p></div></details>
+      <details><summary>nestwork 是向量数据库或 RAG 吗？</summary><div class="answer"><p>不是。没有 embedding，也没有检索服务。记忆就是人能直接读的 markdown，可以像 git 里其他文件一样打开、编辑、diff 和审阅。检索方式和 agent 使用 skill 一样：读一份简短的索引，挑出相关文件，再读它。</p></div></details>
+      <details><summary>需要部署服务器或付费吗？</summary><div class="answer"><p>不需要。没有托管服务、没有常驻进程、没有数据库，只有 git 和你仓库里的几份 shell / Python 脚本。托管在 GitHub、GitLab、自建 Gitea 或任何你已有的 git 远端都行。离线照常使用，联网后自动同步。</p></div></details>
+      <details><summary>很多 agent 同时写，会冲突吗？</summary><div class="answer"><p>每个 agent 实例独占自己的目录 <code>agents/&lt;host&gt;/&lt;agent-id&gt;/</code>，日常写记忆根本不会碰到同一个文件。在支持 hook 的工具上，每次写入前自动 <code>pull --rebase</code>，写完立即 commit + push，失败会重试。共享记忆只在明确触发、经人审核的蒸馏中才会被改写。</p></div></details>
+      <details><summary>敏感的记忆能保密吗？</summary><div class="answer"><p>把仓库设为私有，对大多数人已经足够。如果连 git 托管方也不能看到，可以开启可选的 git-crypt 模式：agent 读写明文，提交进 git 的全是密文。无论是否加密，都不要把 API key 或密码写进记忆，它们应该放在专门的密钥管理工具里。</p></div></details>
+      <details><summary>它和 AGENTS.md / CLAUDE.md 有什么区别？</summary><div class="answer"><p>单个仓库里的 <code>AGENTS.md</code> 只描述那一个代码库。nestwork 用同样的文件格式，作为一个「用户级记忆仓库」的启动协议：你的身份、偏好、跨项目的经验和在飞项目状态，会跟着你进入每一个仓库、每一个工具；各项目自己的 <code>AGENTS.md</code> 照常生效。</p></div></details>
+      <details><summary>团队可以用吗？</summary><div class="answer"><p>可以，但建议从小处开始：一个私有仓库，每个 agent 实例一个目录，规则放在由人维护、agent 只读的 <code>queen/</code> 里。分层的权威链决定谁的指令优先，共享规则保持稳定，每个 agent 又各自保留自己的笔记。</p></div></details>
     </div>
   </section>
 
   <section class="section" id="read" aria-labelledby="read-title">
     <div class="wrap">
-      <p class="kicker">09 / Read more</p>
-      <h2 class="sr-only" id="read-title">Articles and documentation</h2>
+      <p class="kicker">09 / 延伸阅读</p>
+      <h2 class="sr-only" id="read-title">文章与文档</h2>
       <ul class="reads">
-        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/blog/16-agents-one-brain.md" rel="noopener">I gave 16 AI agents one shared brain, using nothing but git<span class="t">story</span></a></li>
-        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/blog/agent-amnesia-cross-device.md" rel="noopener">Your AI agent forgets everything when you switch devices<span class="t">essay</span></a></li>
-        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/blog/memory-is-a-protocol-problem.md" rel="noopener">AI agent memory is a protocol problem, not a database problem<span class="t">essay</span></a></li>
-        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/claude-code-memory.md" rel="noopener">Claude Code memory across machines<span class="t">guide</span></a></li>
-        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/codex-persistent-memory.md" rel="noopener">Persistent memory for Codex CLI<span class="t">guide</span></a></li>
-        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/shared-context-for-ai-coding-agents.md" rel="noopener">Shared context for AI coding agents<span class="t">guide</span></a></li>
-        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/comparisons/agent-memory-landscape.md" rel="noopener">The AI agent memory landscape<span class="t">compare</span></a></li>
-        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/comparisons/claude-mem.md" rel="noopener">nestwork vs claude-mem<span class="t">compare</span></a></li>
-        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/context-loading.md" rel="noopener">Resident and on-demand context loading<span class="t">protocol</span></a></li>
-        <li><a href="https://github.com/songth1ef/nestwork/blob/main/AGENTS.md" rel="noopener">The full protocol: AGENTS.md<span class="t">protocol</span></a></li>
+        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/blog/16-agents-one-brain.zh.md" rel="noopener">我用 git 给 16 个 AI agent 装了同一个大脑<span class="t">故事</span></a></li>
+        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/blog/agent-amnesia-cross-device.zh.md" rel="noopener">换台设备，你的 AI agent 就失忆了<span class="t">随笔</span></a></li>
+        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/blog/memory-is-a-protocol-problem.zh.md" rel="noopener">AI agent 记忆不是数据库问题，而是协议问题<span class="t">随笔</span></a></li>
+        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/claude-code-memory.md" rel="noopener">Claude Code 跨机器记忆（英文）<span class="t">指南</span></a></li>
+        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/codex-persistent-memory.md" rel="noopener">Codex CLI 长期记忆（英文）<span class="t">指南</span></a></li>
+        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/shared-context-for-ai-coding-agents.md" rel="noopener">AI 编程 agent 的共享上下文（英文）<span class="t">指南</span></a></li>
+        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/comparisons/agent-memory-landscape.md" rel="noopener">AI agent 记忆方案全景（英文）<span class="t">对比</span></a></li>
+        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/comparisons/claude-mem.md" rel="noopener">nestwork 与 claude-mem 对比（英文）<span class="t">对比</span></a></li>
+        <li><a href="https://github.com/songth1ef/nestwork/blob/main/docs/context-loading.md" rel="noopener">常驻与按需的上下文加载（英文）<span class="t">协议</span></a></li>
+        <li><a href="https://github.com/songth1ef/nestwork/blob/main/AGENTS.md" rel="noopener">协议全文：AGENTS.md（英文）<span class="t">协议</span></a></li>
       </ul>
     </div>
   </section>
@@ -788,13 +788,13 @@ bash ~/nestwork/scripts/install/kimi.sh</code></pre>
     <div class="bar-p" aria-hidden="true"></div>
     <div class="halftone" aria-hidden="true"></div>
     <div class="wrap">
-      <h2 class="mega" id="cta-title">Stop <span class="box">re-explaining</span> yourself.</h2>
       
-      <p>A few minutes to set up. Every agent you run from then on starts where the last one stopped.</p>
+      <h2 class="mega" id="cta-title">别再一遍遍<br><span class="box">重新介绍自己</span>。</h2>
       
+      <p>花几分钟搭好。从此每一个 agent，都从上一个停下的地方接着干。</p>
       <div class="cta-row">
-        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">Use this template →</a>
-        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ Star on GitHub</a>
+        <a class="btn btn-ink" href="https://github.com/songth1ef/nestwork/generate" rel="noopener">用模板创建我的记忆仓库 →</a>
+        <a class="btn btn-ghost" href="https://github.com/songth1ef/nestwork" rel="noopener">★ 去 GitHub 点个 Star</a>
       </div>
     </div>
   </section>
@@ -802,13 +802,13 @@ bash ~/nestwork/scripts/install/kimi.sh</code></pre>
 
 <footer class="site-footer">
   <div class="wrap footer-inner">
-    nestwork — your agents remember. Protocol 3.1 · v0.6.0
     
+    nestwork——让你的 agent 记得住。协议 3.1 · v0.6.0
     <span>
-      <a href="https://github.com/songth1ef/nestwork/blob/main/AGENTS.md" rel="noopener">Protocol</a>
+      <a href="https://github.com/songth1ef/nestwork/blob/main/AGENTS.md" rel="noopener">协议全文</a>
       <a href="https://github.com/songth1ef/nestwork/blob/main/CHANGELOG.md" rel="noopener">Changelog</a>
       <a href="https://github.com/songth1ef/nestwork/issues" rel="noopener">Issues</a>
-      <a href="https://songth1ef.github.io/nestwork/zh/" hreflang="zh-CN" data-lang-switch="zh">中文</a>
+      <a href="https://songth1ef.github.io/nestwork/" hreflang="en" data-lang-switch="en">EN</a>
     </span>
   </div>
 </footer>

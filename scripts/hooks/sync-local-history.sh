@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 # nestwork local-history sync (thin wrapper)
 #
-# Gated by ~/.nestwork/settings.json -> {"sync_local_history": true};
+# Gated by <nest>/agents/<host>/settings.json -> {"sync_local_history": true};
 # the gate is enforced inside sync-local-history.py so this wrapper stays thin.
 #
 # Called at SessionEnd (directly by Claude, detached by Codex).

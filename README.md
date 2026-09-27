@@ -16,7 +16,7 @@
 
 Version: v0.6.0 | Protocol: 3.1
 
-[![Protocol](https://img.shields.io/badge/protocol-3.1-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Kimi%20%7C%20Hermes%20%7C%20OpenClaw-green)](#supported-tools) [![Storage](https://img.shields.io/badge/storage-git-orange)](#how-it-works)
+[![Protocol](https://img.shields.io/badge/protocol-3.1-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Kimi%20%7C%20Hermes%20%7C%20OpenClaw%20%7C%20Doubao-green)](#supported-tools) [![Storage](https://img.shields.io/badge/storage-git-orange)](#how-it-works)
 
 **nestwork is a git-native memory protocol for AI coding agents: persistent memory and shared context that live in your own git repo.** Your AI agent memory follows you across sessions, machines, and tools.
 
@@ -75,7 +75,13 @@ Codex (Windows):
 .\nestwork\scripts\install\codex.ps1
 ```
 
-Gemini CLI / Kimi Code / OpenClaw / Hermes follow the same pattern, swap `claude` for the tool name. See [Supported tools](#supported-tools) for the full list.
+Gemini CLI / Kimi Code / OpenClaw / Hermes follow the same pattern, swap `claude` for the tool name. Doubao Work is a conversational client; one line installs it too:
+
+```bash
+bash scripts/install/doubao.sh
+```
+
+See [Supported tools](#supported-tools) for the full list.
 
 Run once per machine. Same queen, different agent IDs, one shared brain.
 
@@ -107,7 +113,7 @@ bash ~/nestwork/scripts/uninstall/claude.sh     # macOS / Linux
 .\nestwork\scripts\uninstall\claude.ps1         # Windows
 ```
 
-Same pattern for `codex` / `gemini` / `kimi` / `hermes` / `openclaw`; `generic` takes the same `<prefix> <config-path>` arguments you installed it with. Pass `--purge-identity` (PowerShell: `-PurgeIdentity`) if you also want to drop that tool's agent id, so a future install starts as a brand-new agent.
+Same pattern for `codex` / `gemini` / `kimi` / `hermes` / `openclaw` / `doubao`; `generic` takes the same `<prefix> <config-path>` arguments you installed it with. Pass `--purge-identity` (PowerShell: `-PurgeIdentity`) if you also want to drop that tool's agent id, so a future install starts as a brand-new agent.
 
 ---
 
@@ -178,7 +184,7 @@ portable context, not secrets or unreviewed employer-confidential material.
 | [Compile shared memory](#compile-shared-memory-distillation) | `compile.sh` concat vs `distill.py` LLM distillation, non-destructive merge into `shared/` |
 | [Agent mailbox](#agent-mailbox-inter-agent-messaging) | git-native inter-agent messaging: single-writer outbox, available on demand, zero external deps |
 | [Directory structure](#directory-structure) / [Line limits](#file-size-limits-and-split-protocol) | Repo layout + file split protocol |
-| [Supported tools](#supported-tools) | Claude Code / Codex / Gemini / Kimi Code / Hermes / OpenClaw / generic any markdown-config CLI + IDE plugin symlinks |
+| [Supported tools](#supported-tools) | Claude Code / Codex / Gemini / Kimi Code / Hermes / OpenClaw / Doubao Work / generic any markdown-config CLI + IDE plugin symlinks |
 | [Staying up to date](#staying-up-to-date) | GitHub Action auto-PR or `update.sh` manual sync, never touches your private data |
 | [FAQ](#faq) / [Troubleshooting](#troubleshooting) | Common questions and debugging recipes |
 | [Non-goals](#non-goals) | What nestwork explicitly will not do |
@@ -492,13 +498,14 @@ Split mechanics and worked examples: [AGENTS.md](AGENTS.md) §6.
 | Kimi Code | Moonshot AI | `~/.kimi-code/AGENTS.md` + hooks | `bash scripts/install/kimi.sh` | Entry exists, untested by author |
 | OpenClaw | Open source | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install/openclaw.sh` | Entry exists, untested by author |
 | Hermes Agent | Open source | `~/.hermes/SOUL.md` | `bash scripts/install/hermes.sh` | Entry exists, untested by author |
+| Doubao Work | ByteDance (Doubao) | `~/.doubao/nestwork.md` | `bash scripts/install/doubao.sh` | Adopted, verified with Doubao Work |
 
 Hook coverage differs by tool:
 
 - **Claude Code**: SessionStart, PreToolUse / PostToolUse (Write|Edit), Stop, and SessionEnd (claude-mem export + optional local history sync).
 - **Kimi Code**: SessionStart pull, PreToolUse / PostToolUse (Write|Edit), and Stop. Kimi Code hooks cannot inject context, so the bootstrap in `AGENTS.md` tells the agent what to read.
 - **Codex**: a SessionEnd hook for optional local-history snapshots, via `~/.codex/config.toml` + `~/.codex/hooks.json`. Codex memory edits still follow the manual commit/push steps in the bootstrap.
-- **Gemini CLI, OpenClaw, Hermes, and `generic.sh` tools**: no hooks; they follow the bootstrap protocol and commit at session end.
+- **Gemini CLI, OpenClaw, Hermes, Doubao Work, and `generic.sh` tools**: no hooks; they follow the bootstrap protocol and commit at session end. Doubao Work has no CLI config file of its own, so `install/doubao.sh` writes the protocol into `~/.doubao/nestwork.md` and the agent follows it inside the conversation.
 
 ### Optional: capture local tool history
 
@@ -609,7 +616,7 @@ No. Only if you explicitly create a `nestwork.config.json` at the project root a
 
 ### Can tools other than Claude Code use nestwork?
 
-Yes. Any "reads a markdown file as system prompt at startup" CLI can use `install/generic.sh`. Claude Code and Kimi Code have per-write sync hooks; tools without them rely on "commit on session end", with a slightly larger race window but rarely an issue in practice.
+Yes. Any "reads a markdown file as system prompt at startup" CLI can use `install/generic.sh`. Claude Code and Kimi Code have per-write sync hooks; tools without them rely on "commit on session end", with a slightly larger race window but rarely an issue in practice. Doubao Work is in the latter camp — it has no local CLI entry, so `install/doubao.sh` writes the protocol into `~/.doubao/nestwork.md`, and the Doubao agent follows it inside the conversation (pull / commit / push).
 
 ### Do multiple agents writing concurrently cause conflicts?
 

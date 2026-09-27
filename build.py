@@ -19,7 +19,7 @@ BASE = "https://songth1ef.github.io/nestwork/"
 REPO = "https://github.com/songth1ef/nestwork"
 PROTOCOL = "3.1"
 VERSION = "0.6.0"
-UPDATED = "2026-09-27"
+UPDATED = "2026-09-27"  # bump when page content changes
 
 PAGES = {
     "en": {
@@ -35,6 +35,7 @@ PAGES = {
         "nav_label": "Primary",
         "term_label": "Example session start: the agent loads two resident files and lists the rest as on-demand.",
         "tree_label": "Repository layout of a nestwork memory repo",
+        "bars_label": "Tokens loaded per session: 69.6k for a 2.x full startup, 3.6k for a 3.x git task, 640 for a 3.x startup.",
         "chain_label": "Authority chain from highest to lowest",
         "tools_label": "Supported tools",
         "copy": "COPY", "copied": "COPIED",
@@ -52,6 +53,7 @@ PAGES = {
         "nav_label": "主导航",
         "term_label": "会话启动示例：agent 只加载两个常驻文件，其余列为按需读取。",
         "tree_label": "nestwork 记忆仓库的目录结构",
+        "bars_label": "每次会话读入的 token：2.x 全量启动 69.6k，3.x 做一次 git 操作 3.6k，3.x 启动 640。",
         "chain_label": "从高到低的权威链",
         "tools_label": "支持的工具",
         "copy": "复制", "copied": "已复制",
@@ -79,9 +81,9 @@ FAQ = [
     },
     {
         "en": ("Won't loading all that memory bloat my context window?",
-               "<p>No — that is exactly what the protocol avoids. At startup an agent reads only a small resident tier (core rules plus two short summaries, about 10 KB, checked by script). Everything else is on demand: <code>memory.md</code> is a generated index of topic files, each with a one-line description of when to read it, and the agent opens only the files that match the current task.</p>"),
+               "<p>No — that is exactly what the protocol avoids. At startup an agent reads only a small resident tier: core rules plus two short summaries, about 640 tokens on the author's nest versus roughly 69,600 for a load-everything startup. Everything else is on demand: <code>memory.md</code> is a generated index of topic files, each with a one-line description of when to read it, and the agent opens only the files that match the current task.</p>"),
         "zh": ("记忆越攒越多，会不会把上下文窗口撑爆？",
-               "<p>不会，协议正是为此设计的。启动时 agent 只读很小的常驻层（核心规则加两份简短摘要，约 10 KB，由脚本检查）。其余都按需读取：<code>memory.md</code> 是自动生成的主题索引，每个主题文件都有一行「什么时候该读」的描述，agent 只打开与当前任务匹配的文件。</p>"),
+               "<p>不会，协议正是为此设计的。启动时 agent 只读很小的常驻层：核心规则加两份简短摘要，在作者的仓库上约 640 token，而全量加载要约 69,600 token。其余都按需读取：<code>memory.md</code> 是自动生成的主题索引，每个主题文件都有一行「什么时候该读」的描述，agent 只打开与当前任务匹配的文件。</p>"),
     },
     {
         "en": ("Is nestwork a vector database or a RAG system?",

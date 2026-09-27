@@ -324,6 +324,16 @@ img, svg { max-width: 100%; }
 .index-card .hit { background: var(--teal); color: #000; }
 .index-card .dim { color: #5c5c5c; }
 
+.bars { margin-top: 26px; border-top: 1px solid #262626; padding-top: 20px; }
+.bar-row { display: grid; grid-template-columns: 150px 1fr 56px; align-items: center; gap: 12px; margin-bottom: 10px; font-family: var(--mono); font-size: 12.5px; color: #cfcfcf; }
+.bar-row b { text-align: right; color: #fff; }
+.bt { height: 14px; background: #0d0d0d; border: 1px solid #262626; position: relative; }
+.bt i { position: absolute; left: 0; top: 0; bottom: 0; min-width: 3px; background: var(--red); }
+.bt i.t { background: var(--teal); }
+.bars-note { font-family: var(--mono); font-size: 11.5px; color: #7a7a7a; margin: 12px 0 0; line-height: 1.6; }
+.bars-note code { font-size: 1em; }
+@media (max-width: 480px) { .bar-row { grid-template-columns: 110px 1fr 46px; } }
+
 /* stats */
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid #262626; border-left: 1px solid #262626; margin-top: 10px; }
 @media (max-width: 760px) { .stats { grid-template-columns: repeat(2, 1fr); } }
@@ -584,13 +594,20 @@ nestwork context bundle for <span class="t-teal">laptop/claude-a7k2</span><br>
         <p class="lede" lang="en" style="margin-top:28px">More context is not better context: a model's effective attention is far smaller than its advertised window. So nestwork never dumps your whole history into the prompt.</p>
         <p class="lede" lang="zh" style="margin-top:28px">上下文不是越多越好：模型真正能用好的注意力，远小于标称的上下文窗口。所以 nestwork 从不把你的全部历史一股脑塞进提示词。</p>
         <ul class="ticks">
-          <li lang="en"><b>Resident tier, ~10 KB.</b> At startup an agent reads only the core rules and two short summaries — byte budgets are checked by script.</li>
-          <li lang="zh"><b>常驻层，约 10 KB。</b> 启动时只读核心规则和两份简短摘要，字节预算由脚本检查。</li>
+          <li lang="en"><b>Resident tier, ~640 tokens.</b> At startup an agent reads only the core rules and two short summaries — byte budgets are checked by script.</li>
+          <li lang="zh"><b>常驻层，约 640 token。</b> 启动时只读核心规则和两份简短摘要，字节预算由脚本检查。</li>
           <li lang="en"><b>Topic index.</b> Memory is split into topic files, each with a one-line <code>description</code> saying when to read it. <code>memory.md</code> is a generated routing table.</li>
           <li lang="zh"><b>主题索引。</b> 记忆拆成一个个主题文件，每个都带一行 <code>description</code>，写明什么时候该读；<code>memory.md</code> 是自动生成的路由表。</li>
           <li lang="en"><b>Open only what matches.</b> Doing a git operation? The agent opens <code>git-discipline.md</code> and nothing else. Your memory can grow for years without bloating a single session.</li>
           <li lang="zh"><b>只打开命中的。</b> 要做 git 操作？agent 只打开 <code>git-discipline.md</code>。记忆可以积累好几年，单次会话依然轻快。</li>
         </ul>
+        <div class="bars" role="img" aria-label="{{bars_label}}">
+          <div class="bar-row"><span class="bl"><span lang="en">2.x full startup</span><span lang="zh">2.x 全量启动</span></span><span class="bt"><i style="width:100%"></i></span><b>69.6k</b></div>
+          <div class="bar-row"><span class="bl"><span lang="en">3.x task: git op</span><span lang="zh">3.x 做一次 git 操作</span></span><span class="bt"><i class="t" style="width:5.1%"></i></span><b>3.6k</b></div>
+          <div class="bar-row"><span class="bl"><span lang="en">3.x startup</span><span lang="zh">3.x 启动</span></span><span class="bt"><i class="t" style="width:0.9%"></i></span><b>640</b></div>
+          <p class="bars-note" lang="en">Tokens per session on the author's nest (180 memory files, ~369k tokens in total — more than most context windows). Measured with <code>scripts/maintenance/measure-context.py</code>, o200k_base.</p>
+          <p class="bars-note" lang="zh">作者记忆仓库每次会话读入的 token（共 180 个记忆文件、约 36.9 万 token，已超过多数模型的上下文窗口）。用 <code>scripts/maintenance/measure-context.py</code> 实测，o200k_base 计数。</p>
+        </div>
       </div>
       <div class="index-card">
         <div class="bar"><span>shared/memory.md</span><span>generated · 18 topics</span></div>

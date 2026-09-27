@@ -77,8 +77,17 @@ git cat-file -p HEAD:shared/memory.md | head -c 12 | od -c   # expect \0 G I T C
 The patterns in step 4 assume single-file memory. If a scope uses topic memory
 (protocol 3.1, `AGENTS.md` §6), its `memory.md` is only a generated index and the
 facts live in topic files such as `shared/<topic>.md` — which those patterns
-leave in plaintext. Add patterns that cover the topic files you want encrypted,
-then re-run the step 6 check on one of them.
+leave in plaintext. Cover the whole scope directory instead:
+
+```gitattributes
+shared/** filter=git-crypt diff=git-crypt
+agents/** filter=git-crypt diff=git-crypt
+```
+
+`**` matches every depth, so `shared/tooling/mailbox.md` and each agent's
+`outbox/` are covered too (verified with git-crypt 0.8.0: every file under both
+directories is stored as `GITCRYPT` ciphertext, files outside them stay
+plaintext). Then re-run the step 6 check on one topic file.
 
 Two consequences follow. Topic filenames and the `description` lines copied into
 the index are visible unless the index is encrypted too (see the filename

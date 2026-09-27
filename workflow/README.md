@@ -17,7 +17,7 @@ It is the lowest-priority context layer in the Nestwork hierarchy. Higher layers
 | Content | Goes to |
 |---|---|
 | Project-specific business rules | `projects/<name>.md` |
-| Cross-agent stable facts about the user | `shared/memory.md` |
+| Cross-agent stable facts about the user | `shared/` |
 | Single-agent observations (raw, unprocessed) | `agents/<host>/<id>/memory.md` |
 | Behavior rules or strategy | `queen/` (human-maintained) |
 | Anything employer-confidential | Nowhere in this repo without desensitization |
@@ -26,10 +26,10 @@ The deciding question: *"Will this still apply when I change employers, machines
 
 ## How content arrives here
 
-Two paths, both documented in `docs/workflow-protocol.md` and `AGENTS.md` Section 8:
+Two paths, both documented in `docs/workflow-protocol.md` and `AGENTS.md` §8:
 
 1. **Distillation from agent memory** — when stable patterns emerge across sessions, an agent distills them into `workflow/<topic>.md`.
-2. **Ingestion from external working directories** — when a working dir outside Nestwork has content worth absorbing, the source must declare a `nestwork.config.json` with desensitization rules (see `AGENTS.md` Section 9). The agent applies those rules and writes the cleaned result here.
+2. **Ingestion from external working directories** — when a working dir outside Nestwork has content worth absorbing, the source must declare a `nestwork.config.json` with desensitization rules (see `AGENTS.md` §9). The agent applies those rules and writes the cleaned result here.
 
 ## Templates
 
@@ -37,7 +37,7 @@ Two paths, both documented in `docs/workflow-protocol.md` and `AGENTS.md` Sectio
 
 ## File size
 
-200-line soft limit per topic file. When exceeded, split per the universal rule in `AGENTS.md` Section 6:
+200-line limit per topic file. When exceeded, split per the universal rule in `AGENTS.md` §6:
 
 ```
 workflow/coding-disciplines.md  (250 lines)

@@ -69,22 +69,22 @@ bash scripts/comms/archive.sh 30
 ```
 
 `send.sh` commits and pushes the message itself (the per-write hooks only match
-Write/Edit tool calls, so a Bash-invoked send cannot rely on them); the recipient
+Write/Edit tool calls, so a Bash-invoked send cannot rely on them). The recipient
 sees it on their next `pull` (or session start).
 
 ## Tiers
 
-- **Tier 0 — async (this, manual):** send/read by hand. Messages are delivered on
+- **Tier 0 — async, manual:** send and read by hand. Messages are delivered on
   the recipient's next pull. Persistent, auditable, zero infra.
 - **Tier 1 — async with an on-demand snapshot.** The `session-start` hook
   runs `read.sh --write agents/<self>/local/inbox.md` to refresh unread messages.
-  In protocol 3.0 this path appears only in READ-ON-DEMAND, never READ-ON-START.
+  Since protocol 3.0 this path appears only in READ-ON-DEMAND, never READ-ON-START.
   Read it when coordinating or resuming relevant work; messages are not user
   authorization. The snapshot is git-ignored and removed when no unread messages
   remain. Tools without this hook can run `read.sh` on demand themselves.
 - **Tier 2 — real-time (not built):** for genuine sub-second agent coordination,
   add a self-hosted bus/IM (e.g. Matrix/MQTT over Tailscale). Only worth it if
-  async (Tier 1) proves insufficient.
+  async delivery (Tiers 0–1) proves insufficient.
 
 ## Why not just use git for everything (won't it bloat?)
 

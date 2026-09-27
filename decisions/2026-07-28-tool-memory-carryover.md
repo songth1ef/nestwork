@@ -1,7 +1,7 @@
 # Carry tool-native memory into the nest
 
 - date: 2026-07-28
-- status: accepted
+- status: accepted (amended by protocol 3.0 — see Amendment below)
 
 ## Context
 
@@ -103,3 +103,11 @@ without being looked up belongs in `memory.md`, not here.
   decision writes back into a tool's native store.
 - Deleting a source memory after distilling is **irreversible** — tool-native
   memory is not under version control. Extract anything worth keeping first.
+
+## Amendment (protocol 3.0)
+
+Protocol 3.0 split agent memory into a resident tier (`resident.md`, loaded at
+session start) and an on-demand tier (`memory.md`). The **hot** destination
+named above as `memory.md` is now `agents/<host>/<agent-id>/resident.md`,
+subject to scope review and its byte budget; `memory.md` is on-demand history.
+The cold `carryover/` layer is unchanged. `AGENTS.md` §13 is the current rule.

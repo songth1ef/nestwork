@@ -1,7 +1,7 @@
 # Keep GEO doc duplication; control drift with consistency tests
 
 - date: 2026-06-11
-- status: proposed
+- status: accepted
 - supersedes: —
 
 ## Context

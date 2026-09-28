@@ -112,6 +112,49 @@ thead th { background: var(--bg-soft); color: var(--muted); font-size: 12.5px; f
 .site-footer { border-top: 1px solid var(--line); color: var(--muted); padding: 32px 0 44px; font-size: 13.5px; }
 .site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
 .site-footer a { color: var(--text); text-decoration: none; margin-left: 18px; }
+
+/* ---------- liquid glass (same recipes as the homepage / apixo-web glass-surface.ts) ---------- */
+body { background: #eef4fa; }
+body::before { content: ""; position: fixed; inset: -10vmax; z-index: -1; background:
+  radial-gradient(38vmax 30vmax at 12% 8%, rgba(14, 165, 233, 0.38), transparent 62%),
+  radial-gradient(34vmax 28vmax at 88% 14%, rgba(236, 72, 153, 0.26), transparent 62%),
+  radial-gradient(36vmax 30vmax at 70% 62%, rgba(45, 212, 191, 0.30), transparent 62%),
+  radial-gradient(30vmax 26vmax at 18% 78%, rgba(251, 191, 36, 0.26), transparent 62%),
+  linear-gradient(160deg, #e9f6ff 0%, #f6f0ff 50%, #eafaf6 100%); }
+.site-header { top: 12px; margin: 12px auto 0; max-width: 1140px; padding: 0 12px; background: none; border: 0; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.header-inner { height: 58px; padding: 0 10px 0 18px; border-radius: 999px; background: rgba(255, 255, 255, 0.55); -webkit-backdrop-filter: blur(40px) saturate(1.5); backdrop-filter: blur(40px) saturate(1.5); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 10px 30px -12px rgba(15, 23, 42, 0.18); }
+.nav { gap: 4px; }
+.nav a { padding: 8px 12px; border-radius: 999px; }
+.nav a:hover { background: rgba(255, 255, 255, 0.55); }
+.nav .gh { margin-left: 6px; }
+.art-hero { background: none; border: 0; padding: 56px 0 30px; }
+.art-meta span { background: rgba(255, 255, 255, 0.3); border: 0; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.78); -webkit-backdrop-filter: blur(24px) saturate(1.5); backdrop-filter: blur(24px) saturate(1.5); }
+.art-meta .kind { background: linear-gradient(135deg, rgba(0, 194, 255, 0.16), rgba(0, 194, 255, 0.28)); color: #0369a1; }
+.layout { padding-top: 12px; }
+.prose, .toc, .cards a, .table-wrap, .prose blockquote {
+  background: rgba(255, 255, 255, 0.55); border: 1px solid rgba(255, 255, 255, 0.55);
+  -webkit-backdrop-filter: blur(40px) saturate(1.5); backdrop-filter: blur(40px) saturate(1.5);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55), 0 1px 2px rgba(15, 23, 42, 0.04), 0 18px 48px -24px rgba(15, 23, 42, 0.22);
+}
+.prose { max-width: none; border-radius: 28px; padding: 40px 48px 44px; background: rgba(255, 255, 255, 0.72); }
+.prose > :first-child { margin-top: 0; }
+@media (max-width: 620px) { .prose { padding: 26px 20px 30px; border-radius: 22px; } }
+.wide .prose { background: rgba(255, 255, 255, 0.5); }
+.toc { border-left: 0; border-radius: 22px; padding: 18px 20px; top: 94px; }
+.prose blockquote { background: rgba(255, 255, 255, 0.6); border-radius: 18px; }
+.table-wrap { border-radius: 20px; }
+thead th { background: rgba(255, 255, 255, 0.4); }
+th, td { border-bottom-color: rgba(15, 23, 42, 0.07); }
+.prose pre.code { background: rgba(15, 23, 42, 0.88); border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 24px 60px -28px rgba(15, 23, 42, 0.55); border-radius: 18px; }
+.prose code { background: rgba(255, 255, 255, 0.75); border: 0; box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08); }
+.prose img { border-radius: 18px; }
+.cta { background: radial-gradient(500px 240px at 90% 0%, rgba(236, 72, 153, 0.35), transparent 60%), radial-gradient(600px 300px at 0% 100%, rgba(14, 165, 233, 0.4), transparent 60%), rgba(15, 23, 42, 0.9); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 30px 80px -30px rgba(15, 23, 42, 0.6); border-radius: 26px; }
+.btn { border-radius: 999px; }
+.btn-ghost { background: rgba(255, 255, 255, 0.1); border: 0; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.2); }
+.more { background: none; border: 0; }
+.cards a { border-radius: 20px; }
+.cards a:hover { background: rgba(255, 255, 255, 0.72); }
+.site-footer { border: 0; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } html { scroll-behavior: auto; } }
 </style>
 </head>

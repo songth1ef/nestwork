@@ -2,8 +2,9 @@
 # -----------------------------------------------------------------------------
 # nestwork hook remover for Codex CLI (inverse of scripts/install/_codex_hooks.py)
 #
-# Deletes the nestwork hook from Stop or SessionEnd, matching with the installer's
-# own predicate so any command the installer would supersede gets removed.
+# Deletes nestwork's PreToolUse / PostToolUse / Stop / SessionEnd entries,
+# matching with the installer's own predicate so any command the installer
+# would supersede gets removed. Entries that are not nestwork's are kept.
 # `hooksPath` in config.toml is left in place: it is a generic pointer to
 # hooks.json, which may still hold the user's own hooks.
 #
@@ -17,7 +18,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                 os.pardir, "install"))
-from _codex_hooks import is_nestwork_hook  # noqa: E402
+from _codex_hooks import NESTWORK_EVENTS, is_nestwork_hook  # noqa: E402
 
 
 def main() -> int:
@@ -35,7 +36,7 @@ def main() -> int:
 
     removed = 0
     events = data.get("hooks") or {}
-    for event in ("Stop", "SessionEnd"):
+    for event in NESTWORK_EVENTS:
         kept = []
         for entry in events.get(event, []):
             commands = [

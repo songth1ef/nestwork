@@ -365,7 +365,7 @@ Codex 启动时读 `~/.codex/AGENTS.md`，里面已经被 installer 注入了 ne
 - pull 你的 queen
 - 读取核心规则和共享/实例的 `resident.md`，再按当前任务检索历史
 - 知道你的偏好、过去决策、当前项目状态
-- 启用时通过 `~/.codex/config.toml` + `~/.codex/hooks.json` 的 SessionEnd hook 同步可选的本地 history 快照
+- 启用时通过 `~/.codex/hooks.json` 里的 Codex SessionEnd hook 同步可选的本地 history 快照
 
 记忆不在厂商，在你的 git 仓。换工具的成本接近零。
 
@@ -509,7 +509,7 @@ nestwork/
 
 - **Claude Code**：SessionStart、PreToolUse / PostToolUse（Write|Edit）、Stop，以及 SessionEnd（claude-mem export + 可选本地 history 同步）。
 - **Kimi Code**：SessionStart 拉取、PreToolUse / PostToolUse（Write|Edit）与 Stop。Kimi Code 的 hook 无法注入上下文，所以由 `AGENTS.md` 里的启动块告诉 agent 该读什么。
-- **Codex**：通过 `~/.codex/config.toml` + `~/.codex/hooks.json` 注册一个 SessionEnd hook，用于可选的本地 history 快照。Codex 的记忆编辑仍按启动块里的手动 commit/push 步骤处理。
+- **Codex**：在它的文件编辑工具（`apply_patch`，匹配规则 `^(apply_patch|Edit|Write)$`）上注册 PreToolUse / PostToolUse，外加 Stop，运行与 Claude Code 相同的 `nestwork.sh` 逐次写入同步；另有一个 SessionEnd hook 用于可选的本地 history 快照。注册在 `~/.codex/hooks.json`（`~/.codex/config.toml` 里有 `hooksPath`）。Codex 要求对新 hook 确认一次信任：安装后运行 `/hooks`。
 - **Gemini CLI、OpenClaw、Hermes、Doubao Work 以及经 `generic.sh` 接入的工具**：不注册 hook，按启动块协议在会话结束时提交。Doubao Work 没有自己的 CLI 配置文件，`install/doubao.sh` 会把协议写入 `~/.doubao/nestwork.md`，由豆包在会话内遵守。
 
 ### 可选：捕获本地工具历史
@@ -621,7 +621,7 @@ Fork 默认公开，且与上游强关联：`git merge upstream/main` 会与你�
 
 ### Claude Code 之外的工具能用 nestwork 吗？
 
-能。任何"启动时读 markdown 作为 system prompt"的 CLI 都能用 `install/generic.sh` 接入。Claude Code 和 Kimi Code 有逐次写入同步 hooks；没有这些 hooks 的工具靠"会话结束提交"协议，竞态窗口稍大但实际很少出问题。Doubao Work 属于后者——豆包没有本地 CLI 入口，`install/doubao.sh` 会把协议写入 `~/.doubao/nestwork.md`，会话内由豆包按协议执行 pull / commit / push。
+能。任何"启动时读 markdown 作为 system prompt"的 CLI 都能用 `install/generic.sh` 接入。Claude Code、Kimi Code 和 Codex 有逐次写入同步 hooks；没有这些 hooks 的工具靠"会话结束提交"协议，竞态窗口稍大但实际很少出问题。Doubao Work 属于后者——豆包没有本地 CLI 入口，`install/doubao.sh` 会把协议写入 `~/.doubao/nestwork.md`，会话内由豆包按协议执行 pull / commit / push。
 
 ### 多 agent 同时写会冲突吗？
 

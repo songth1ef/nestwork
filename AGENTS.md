@@ -86,8 +86,8 @@ Ask a narrow question only if missing context blocks the task.
 
 ## 3. Session End
 
-**If your tool has per-write sync hooks installed** (Claude Code or Kimi Code),
-memory sync is automatic: every Write/Edit under `agents/<host>/<agent-id>/`
+**If your tool has per-write sync hooks installed** (Claude Code, Kimi Code or
+Codex), memory sync is automatic: every write (Write/Edit, or Codex `apply_patch`) under `agents/<host>/<agent-id>/`
 triggers `pull --rebase` before the write (a conflict blocks the write) and
 `commit + push` after it. The Stop hook repeats the commit + push once per turn
 as a safety net (a no-op when nothing changed). Claude Code also registers a
@@ -95,8 +95,8 @@ SessionEnd hook for the claude-mem export (§4) and the optional local history
 sync (§12). **Do not duplicate automatic memory sync.**
 
 **If per-write sync hooks are NOT installed** for your tool, sync manually at
-session end. A history-only hook (such as the Codex SessionEnd hook, which only
-runs the local history sync) does not replace this:
+session end. A history-only hook (such as a SessionEnd hook that only runs the
+local history sync) does not replace this:
 
 ```bash
 git -C $NESTWORK_PATH add agents/<host>/<agent-id>/

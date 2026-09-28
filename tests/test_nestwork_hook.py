@@ -92,6 +92,21 @@ class NestworkHookTests(unittest.TestCase):
             capture_output=True, text=True, input=stdin, env=GIT_ENV,
         )
 
+    def run_codex_hook(self, phase, patch, cwd):
+        """Codex apply_patch payload: patch text in tool_input.command, cwd at top level."""
+        stdin = json.dumps({
+            "hook_event_name": "PostToolUse" if phase == "post" else "PreToolUse",
+            "tool_name": "apply_patch", "cwd": str(cwd),
+            "tool_input": {"command": patch},
+        })
+        return subprocess.run(
+            ["bash", str(self.hook), phase, "h1", "a1"],
+            capture_output=True, text=True, input=stdin, env=GIT_ENV,
+        )
+
+    def codex_patch(self, path, header="Update File"):
+        return (f"*** Begin Patch\n*** {header}: {path}\n@@\n-baseline\n+from codex\n*** End Patch\n")
+
     def remote_change(self, content):
         """Another machine updates the agent's memory and pushes."""
         mem_b = self.b / "agents" / "h1" / "a1" / "memory.md"
@@ -203,6 +218,36 @@ class NestworkHookTests(unittest.TestCase):
         result = self.run_hook("stop")
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(git(self.a, "rev-parse", "HEAD").stdout.strip(), head_before)
+
+    def test_codex_patch_with_absolute_path_commits(self) -> None:
+        self.memory.write_text("# MEMORY -- h1/a1\n\nfrom codex\n", encoding="utf-8")
+        result = self.run_codex_hook("post", self.codex_patch(self.memory), cwd="/elsewhere")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(git(self.a, "log", "-1", "--format=%s").stdout.strip(), "memory: update h1/a1")
+
+    def test_codex_patch_with_relative_path_resolves_against_cwd(self) -> None:
+        self.memory.write_text("# MEMORY -- h1/a1\n\nrelative\n", encoding="utf-8")
+        result = self.run_codex_hook("post", self.codex_patch("agents/h1/a1/memory.md"), cwd=self.a)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(git(self.a, "log", "-1", "--format=%s").stdout.strip(), "memory: update h1/a1")
+
+    def test_codex_patch_outside_agent_dir_is_ignored(self) -> None:
+        head_before = git(self.a, "rev-parse", "HEAD").stdout.strip()
+        self.memory.write_text("# MEMORY -- h1/a1\n\nuncommitted\n", encoding="utf-8")
+        patch = self.codex_patch("projects/app.md", header="Add File")
+        # A header-looking line inside the hunk body must not count as a target.
+        patch = patch.replace("+from codex", "+*** Update File: agents/h1/a1/memory.md")
+        result = self.run_codex_hook("post", patch, cwd=self.a)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(git(self.a, "rev-parse", "HEAD").stdout.strip(), head_before)
+
+    def test_stop_keeps_stdout_empty_for_codex(self) -> None:
+        # Codex parses a Stop hook's stdout as JSON on exit 0; git chatter there
+        # would be reported as invalid hook output.
+        self.memory.write_text("# MEMORY -- h1/a1\n\nquiet\n", encoding="utf-8")
+        result = self.run_hook("stop")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, "")
 
 
 if __name__ == "__main__":

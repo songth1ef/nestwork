@@ -376,7 +376,7 @@ Codex starts up, reads `~/.codex/AGENTS.md` (the installer injected the nestwork
 - pull your queen
 - read core rules and optional shared/agent `resident.md`; retrieve history for the current task
 - know your preferences, past decisions, current project state
-- use a `~/.codex/config.toml` + `~/.codex/hooks.json` SessionEnd hook for optional local-history snapshots when enabled
+- use the Codex SessionEnd hook in `~/.codex/hooks.json` for optional local-history snapshots when enabled
 
 Memory isn't in any vendor; it's in your git repo. The cost of switching tools is near zero.
 
@@ -520,7 +520,7 @@ Hook coverage differs by tool:
 
 - **Claude Code**: SessionStart, PreToolUse / PostToolUse (Write|Edit), Stop, and SessionEnd (claude-mem export + optional local history sync).
 - **Kimi Code**: SessionStart pull, PreToolUse / PostToolUse (Write|Edit), and Stop. Kimi Code hooks cannot inject context, so the bootstrap in `AGENTS.md` tells the agent what to read.
-- **Codex**: a SessionEnd hook for optional local-history snapshots, via `~/.codex/config.toml` + `~/.codex/hooks.json`. Codex memory edits still follow the manual commit/push steps in the bootstrap.
+- **Codex**: PreToolUse / PostToolUse on its file-edit tool (`apply_patch`, matched as `^(apply_patch|Edit|Write)$`) and Stop, running the same `nestwork.sh` per-write sync as Claude Code; plus a SessionEnd hook for optional local-history snapshots. Registered in `~/.codex/hooks.json` (with `hooksPath` in `~/.codex/config.toml`). Codex asks you to trust new hooks once: run `/hooks` after installing.
 - **Gemini CLI, OpenClaw, Hermes, Doubao Work, and `generic.sh` tools**: no hooks; they follow the bootstrap protocol and commit at session end. Doubao Work has no CLI config file of its own, so `install/doubao.sh` writes the protocol into `~/.doubao/nestwork.md` and the agent follows it inside the conversation.
 
 ### Optional: capture local tool history
@@ -632,7 +632,7 @@ No. Only if you explicitly create a `nestwork.config.json` at the project root a
 
 ### Can tools other than Claude Code use nestwork?
 
-Yes. Any "reads a markdown file as system prompt at startup" CLI can use `install/generic.sh`. Claude Code and Kimi Code have per-write sync hooks; tools without them rely on "commit on session end", with a slightly larger race window but rarely an issue in practice. Doubao Work is in the latter camp — it has no local CLI entry, so `install/doubao.sh` writes the protocol into `~/.doubao/nestwork.md`, and the Doubao agent follows it inside the conversation (pull / commit / push).
+Yes. Any "reads a markdown file as system prompt at startup" CLI can use `install/generic.sh`. Claude Code, Kimi Code and Codex have per-write sync hooks; tools without them rely on "commit on session end", with a slightly larger race window but rarely an issue in practice. Doubao Work is in the latter camp — it has no local CLI entry, so `install/doubao.sh` writes the protocol into `~/.doubao/nestwork.md`, and the Doubao agent follows it inside the conversation (pull / commit / push).
 
 ### Do multiple agents writing concurrently cause conflicts?
 

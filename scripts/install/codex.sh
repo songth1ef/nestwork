@@ -48,9 +48,11 @@ python3 "$NESTWORK_PATH/scripts/install/_bootstrap.py" \
 python3 "$NESTWORK_PATH/scripts/install/_bootstrap.py" \
   "$CODEX_INSTRUCTIONS" "$NESTWORK_PATH" "$HOST" "$AGENT_ID"
 
-# 3. Register the Codex SessionEnd hook used for optional local-history snapshots.
-#    Current Codex reads config.toml + hooks.json; the old config.json
-#    session.end_hook entry is ignored by recent releases.
+# 3. Register the Codex hooks: PreToolUse / PostToolUse on apply_patch and Stop
+#    run scripts/hooks/nestwork.sh for per-write memory sync (bash required;
+#    on Windows that means Git Bash on PATH), SessionEnd takes the optional
+#    local-history snapshot. Current Codex reads config.toml + hooks.json; the
+#    old config.json session.end_hook entry is ignored by recent releases.
 python3 "$NESTWORK_PATH/scripts/install/_codex_hooks.py" \
   "$CODEX_CONFIG" "$CODEX_HOOKS" "$NESTWORK_PATH" "$HOST" "$AGENT_ID"
 

@@ -18,6 +18,8 @@
 
 ### 新增
 
+- **Codex CLI 支持逐次写入记忆同步。** Codex 安装脚本现在在 `^(apply_patch|Edit|Write)$` 上注册 PreToolUse / PostToolUse，外加 Stop，运行与 Claude Code、Kimi Code 相同的 `nestwork.sh`；`_match-file.py` 从 `apply_patch` 的补丁头（行首的 `*** Add/Update/Delete File:` / `Move to:`，相对路径按 payload 的 `cwd` 解析）读取目标路径。Codex 会把 Stop hook 的标准输出当 JSON 解析，所以 hook 保持标准输出为空。卸载会移除全部 4 类事件并保留用户自己的 hook。**已安装 Codex 的用户：重跑 `scripts/install/codex.sh`，然后在 Codex 里运行一次 `/hooks` 确认信任新 hook。**
+
 - 新增 `scripts/maintenance/measure-context.py`：以某个 agent 的视角，报告 2.x 式全量启动、常驻启动、常驻 + 索引 + 主题的任务、整个仓库四种情况的字节数与估算 token。零依赖；装了 tiktoken 就用它，否则用在中英混合仓库上校准过的字符类别估算（中位误差约 6%）。README 与 `docs/context-loading.md` 改为引用实测数字，而不只是字节预算。
 
 ### 协议一致性（3.1，澄清）——定时蒸馏需要下游动作

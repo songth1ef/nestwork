@@ -65,9 +65,11 @@ if ($LASTEXITCODE -ne 0) {
     throw "Codex instructions.md compatibility bootstrap injection failed (exit $LASTEXITCODE)"
 }
 
-# 3. Register the Codex SessionEnd hook used for optional local-history snapshots.
-#    Current Codex reads config.toml + hooks.json; the old config.json
-#    session.end_hook entry is ignored by recent releases.
+# 3. Register the Codex hooks: PreToolUse / PostToolUse on apply_patch and Stop
+#    run scripts/hooks/nestwork.sh for per-write memory sync (bash required;
+#    on Windows that means Git Bash on PATH), SessionEnd takes the optional
+#    local-history snapshot. Current Codex reads config.toml + hooks.json; the
+#    old config.json session.end_hook entry is ignored by recent releases.
 $env:NESTWORK_CODEX_PLATFORM = "windows"
 & $PythonCmd (Join-Path $NestworkPath "scripts\install\_codex_hooks.py") `
     "$CodexConfig" "$CodexHooks" $NestworkPath $NestHost $AgentId

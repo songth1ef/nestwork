@@ -2,10 +2,13 @@
 # -----------------------------------------------------------------------------
 # nestwork unified hook entry
 #
-# Usage (invoked by Claude Code settings.json hooks):
+# Usage (registered by the Claude Code, Kimi Code and Codex CLI installers):
 #   hook-nestwork.sh pre  <host> <agent-id>   -- PreToolUse
 #   hook-nestwork.sh post <host> <agent-id>   -- PostToolUse
 #   hook-nestwork.sh stop <host> <agent-id>   -- Stop safety-net
+#
+# Payload parsing (Claude/Kimi tool_input.file_path, Codex apply_patch patch
+# text) lives in _match-file.py.
 #
 # Design: atomic per-write sync.
 # - pre:  pull --rebase before memory write; abort write on conflict
@@ -23,6 +26,11 @@ MATCHER_SCRIPT="$NESTWORK_PATH/scripts/hooks/_match-file.py"
 [ -z "$PHASE" ] && exit 0
 [ -z "$HOST_ID" ] && exit 0
 [ -z "$AGENT_ID" ] && exit 0
+
+# Diagnostics only ever go to stderr. Codex parses a Stop hook's stdout as
+# JSON when it exits 0 and flags plain text as invalid output, so keep stdout
+# empty (git chatter included) for every host.
+exec 1>&2
 
 AGENT_REL_PATH="agents/$HOST_ID/$AGENT_ID"
 
@@ -130,7 +138,7 @@ case "$PHASE" in
     match_agent_file || exit 0
     pull_rebase || {
       echo "[!] nestwork[$HOST_ID/$AGENT_ID]: upstream has conflicting changes, resolve manually before writing memory" >&2
-      exit 2   # exit 2 blocks the Write/Edit tool in Claude Code
+      exit 2   # exit 2 blocks the write tool (Claude Write/Edit, Codex apply_patch)
     }
     ;;
   post)

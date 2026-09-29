@@ -18,6 +18,8 @@ Conventions:
 
 ### Added
 
+- **WorkBuddy AI installer/uninstaller** (`scripts/install/workbuddy.sh` / `.ps1`, `scripts/uninstall/workbuddy.sh` / `.ps1`). WorkBuddy AI (Tencent) is a conversational desktop agent with no CLI config or session hooks; the installer writes the nestwork startup protocol to `~/.workbuddy-ai/nestwork.md` (overridable via `WORKBUDDY_HOME` / `WORKBUDDY_NESTWORK_MD`), and the agent follows it inside the conversation (pull / commit / push). README (EN + zh), llms.txt updated.
+
 - **Codex CLI gets per-write memory sync.** The Codex installer now registers PreToolUse / PostToolUse on `^(apply_patch|Edit|Write)$` and Stop, running the same `nestwork.sh` flow as Claude Code and Kimi Code; `_match-file.py` reads target paths from `apply_patch` patch headers (column-0 `*** Add/Update/Delete File:` / `Move to:`, relative paths resolved against the payload `cwd`). The hook keeps stdout empty because Codex parses a Stop hook's stdout as JSON. Uninstall removes all four events and keeps user hooks. **Existing Codex users: rerun `scripts/install/codex.sh`, then run `/hooks` in Codex once to trust the new hooks.**
 
 - New `scripts/maintenance/measure-context.py`: reports bytes and estimated tokens for a 2.x-style full startup, the resident startup, a resident + index + topic task, and the whole nest, from one agent's point of view. Zero dependencies; uses tiktoken when installed, otherwise a character-class estimate calibrated on a bilingual nest (median error ~6%). README and `docs/context-loading.md` now cite measured numbers instead of the byte budget alone.

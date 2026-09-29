@@ -9,17 +9,17 @@ set -euo pipefail
 # into that file using the same marker-block convention as install-claude.
 #
 # Usage:
-#   bash install-generic.sh <tool-prefix> <config-path>
+#   bash generic.sh <tool-prefix> <config-path>
 #
 # Examples:
 #   # Qwen Code (based on Gemini CLI; confirm path with `qwen --help`)
-#   bash install-generic.sh qwen ~/.qwen/QWEN.md
+#   bash generic.sh qwen ~/.qwen/QWEN.md
 #
 #   # OpenCode (check tool docs for the exact rules file)
-#   bash install-generic.sh opencode ~/.config/opencode/prompt.md
+#   bash generic.sh opencode ~/.config/opencode/prompt.md
 #
 #   # Any other tool -- pass its rules/instructions path
-#   bash install-generic.sh <prefix> <path>
+#   bash generic.sh <prefix> <path>
 #
 # The script:
 #   - Generates a deterministic agent-id "<prefix>", rooted under agents/<host>/
@@ -39,11 +39,11 @@ CONFIG_PATH="${2:-}"
 
 if [ -z "$PREFIX" ] || [ -z "$CONFIG_PATH" ]; then
   cat >&2 <<USAGE
-usage: bash install-generic.sh <tool-prefix> <config-path>
+usage: bash generic.sh <tool-prefix> <config-path>
 
 example:
-  bash install-generic.sh qwen ~/.qwen/QWEN.md
-  bash install-generic.sh opencode ~/.config/opencode/prompt.md
+  bash generic.sh qwen ~/.qwen/QWEN.md
+  bash generic.sh opencode ~/.config/opencode/prompt.md
 
 <tool-prefix>: short identifier used in agent-id (e.g. qwen, opencode, trae)
 <config-path>: absolute or ~-relative path to the tool's prompt/rules file

@@ -34,7 +34,7 @@ class CodexHooksInstallerTests(unittest.TestCase):
         self.assertEqual(completed.returncode, 0, completed.stderr)
         return config, hooks
 
-    def test_registers_current_codex_hook_configuration(self) -> None:
+    def test_registers_per_write_sync_and_session_end(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             config, hooks = self.run_installer(Path(directory))
 
@@ -42,13 +42,25 @@ class CodexHooksInstallerTests(unittest.TestCase):
                 f'hooksPath = "{hooks.as_posix()}"',
                 config.read_text(encoding="utf-8"),
             )
-            data = json.loads(hooks.read_text(encoding="utf-8"))
-            self.assertNotIn("Stop", data["hooks"])
-            handler = data["hooks"]["SessionEnd"][0]["hooks"][0]
+            data = json.loads(hooks.read_text(encoding="utf-8"))["hooks"]
+            # Per-write sync: same nestwork.sh phases as Claude Code / Kimi Code,
+            # scoped to Codex's file-edit tool (apply_patch, Edit/Write aliases).
+            for event, phase in (("PreToolUse", "pre"), ("PostToolUse", "post")):
+                with self.subTest(event=event):
+                    (entry,) = data[event]
+                    self.assertEqual(entry["matcher"], "^(apply_patch|Edit|Write)$")
+                    command = entry["hooks"][0]["command"]
+                    self.assertIn("scripts/hooks/nestwork.sh", command)
+                    self.assertTrue(command.endswith(f" {phase} test-host codex"), command)
+            (stop,) = data["Stop"]
+            self.assertNotIn("matcher", stop)
+            self.assertTrue(stop["hooks"][0]["command"].endswith(" stop test-host codex"))
+            # Local-history snapshot stays on SessionEnd, within Codex's 3 s cap.
+            handler = data["SessionEnd"][0]["hooks"][0]
             self.assertIn("launch-local-history-sync.py", handler["command"])
             self.assertEqual(handler["timeout"], 3)
 
-    def test_reinstall_preserves_other_hooks_and_moves_nestwork_to_session_end(self) -> None:
+    def test_reinstall_is_idempotent_and_preserves_user_hooks(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             config = root / "config.toml"
@@ -87,8 +99,14 @@ class CodexHooksInstallerTests(unittest.TestCase):
             self.assertIn("[profiles.test]", updated_config)
             updated_hooks = json.loads(hooks.read_text(encoding="utf-8"))
             stops = updated_hooks["hooks"]["Stop"]
-            self.assertEqual(len(stops), 1)
-            self.assertEqual(stops[0]["hooks"][0]["command"], "keep-this")
+            # The user's hook survives, the legacy sync-local-history entry is
+            # gone, and two installs leave exactly one nestwork Stop entry.
+            self.assertEqual([s["hooks"][0]["command"] for s in stops][0], "keep-this")
+            self.assertEqual(len(stops), 2)
+            self.assertIn("nestwork.sh stop", stops[1]["hooks"][0]["command"])
+            self.assertFalse(any("sync-local-history.sh" in s["hooks"][0]["command"] for s in stops))
+            for event in ("PreToolUse", "PostToolUse"):
+                self.assertEqual(len(updated_hooks["hooks"][event]), 1, event)
             ends = updated_hooks["hooks"]["SessionEnd"]
             self.assertEqual(len(ends), 2)
             self.assertEqual(ends[0]["hooks"][0]["command"], "keep-end")
@@ -103,6 +121,14 @@ class CodexHooksInstallerTests(unittest.TestCase):
             ][0]["hooks"][0]["command"]
             self.assertIn("launch-local-history-sync.py", command)
             self.assertNotIn("bash -lc", command)
+
+    def test_windows_sync_hooks_run_through_bash(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            _, hooks = self.run_installer(Path(directory), platform="windows")
+            data = json.loads(hooks.read_text(encoding="utf-8"))["hooks"]
+            command = data["PreToolUse"][0]["hooks"][0]["command"]
+            self.assertTrue(command.startswith("bash "), command)
+            self.assertIn("scripts/hooks/nestwork.sh pre test-host codex", command)
 
 
 if __name__ == "__main__":

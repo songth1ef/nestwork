@@ -1,14 +1,14 @@
 # -----------------------------------------------------------------------------
 # nestwork x generic markdown-config installer (Windows)
 #
-# See install-generic.sh for full docs.
+# See generic.sh for full docs.
 #
 # Usage:
-#   .\install-generic.ps1 <tool-prefix> <config-path>
+#   .\generic.ps1 <tool-prefix> <config-path>
 #
 # Examples:
-#   .\install-generic.ps1 qwen  "$env:USERPROFILE\.qwen\QWEN.md"
-#   .\install-generic.ps1 trae  "$env:USERPROFILE\.trae\system.md"
+#   .\generic.ps1 qwen  "$env:USERPROFILE\.qwen\QWEN.md"
+#   .\generic.ps1 trae  "$env:USERPROFILE\.trae\system.md"
 # -----------------------------------------------------------------------------
 
 param(

@@ -22,6 +22,13 @@ changes. It checks every resident file and never truncates content. Budgets are
 maintenance checks, not runtime permission to discard essential rules. An
 oversize file must be reviewed and moved/summarized, not silently ignored.
 
+To see what a session actually loads, run
+`python3 scripts/maintenance/measure-context.py [--agent HOST/ID] [--task shared/<topic>.md]`.
+It compares a 2.x-style full startup, the resident startup, a resident + index
++ topic task, and the whole nest. On the author's nest (180 memory files,
+~369k tokens in total) resident startup was ~640 tokens against ~69.6k for a
+2.x-style full startup, and a git task with one topic file was ~3.6k.
+
 ## Retrieval
 
 Start from the user's current task. Search headings or keywords in relevant
@@ -58,7 +65,8 @@ on-demand, which is now the index.
 After the split, distill with `scripts/maintenance/distill.py`. It detects the
 index markers and switches to topic mode: agent topic files become input, and
 in its run modes (`--run-claude` / `--run-codex`) it writes only the `shared/`
-topic files that change, then regenerates the index. Its prompt forbids
+topic files that change, then regenerates the index, and leaves the result
+uncommitted for review unless you pass `--commit`. Its prompt forbids
 renaming, merging or deleting topics; that stays a reviewed human decision.
 `scripts/maintenance/compile.sh` refuses to run on a topic-mode `shared/`,
 because concatenating agent memory into `memory.md` would undo the split.

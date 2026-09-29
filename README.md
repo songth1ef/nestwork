@@ -152,6 +152,21 @@ Retention and loading are separate. Since protocol 3.0, startup loads core rules
 shared/agent resident summaries. Historical memory, strategy, projects and
 workflows are searched for the current task, not loaded in full at startup.
 
+How much this saves, measured on the author's own nest (10 machines, 30+ agent
+instances, 2026-09; tokens estimated with `o200k_base`):
+
+| Scenario | Files | Size | Tokens |
+|---|---|---|---|
+| 2.x-style full startup (rules, strategy, all shared + agent memory, workflows) | 37 | 224 KB | ~69,600 |
+| 3.x startup (resident tier only) | 2 | 2.6 KB | **~640** |
+| 3.x task: a git operation (resident + index + one topic) | 4 | 11.8 KB | ~3,600 |
+| Every memory file in the nest | 180 | 1.2 MB | ~369,000 |
+
+The whole nest no longer fits in most context windows, which is why loading
+has to be selective. Measure your own nest with
+`python3 scripts/maintenance/measure-context.py` (bytes are exact; tokens use
+tiktoken if installed, otherwise a calibrated estimate).
+
 Keep decisions, lessons and methods with lasting value in the on-demand tier,
 organized for retrieval (optionally as topic files behind a generated index). Promote only reviewed, stable facts and essential
 boundaries needed across tasks into resident summaries.
@@ -361,7 +376,7 @@ Codex starts up, reads `~/.codex/AGENTS.md` (the installer injected the nestwork
 - pull your queen
 - read core rules and optional shared/agent `resident.md`; retrieve history for the current task
 - know your preferences, past decisions, current project state
-- use a `~/.codex/config.toml` + `~/.codex/hooks.json` SessionEnd hook for optional local-history snapshots when enabled
+- use the Codex SessionEnd hook in `~/.codex/hooks.json` for optional local-history snapshots when enabled
 
 Memory isn't in any vendor; it's in your git repo. The cost of switching tools is near zero.
 
@@ -390,10 +405,11 @@ bash ~/nestwork/scripts/maintenance/compile.sh
 # Vendor-agnostic: prints a distillation prompt for you to feed any agent session
 python3 ~/nestwork/scripts/maintenance/distill.py
 
-# One-shot runner: aggregate, write back to shared/, commit, push
-# (--dry-run previews without writing; --no-commit / --no-push stop earlier)
+# Runner: aggregate and write shared/ for you to review; it does not commit
+# (--dry-run only prints; add --commit to commit + push, --no-push to keep it local)
 python3 ~/nestwork/scripts/maintenance/distill.py --run-claude
 python3 ~/nestwork/scripts/maintenance/distill.py --run-codex --profile <your-profile>
+git -C ~/nestwork diff -- shared/        # review, then commit as `memory: distill shared`
 ```
 
 `--run-claude` (`claude -p`) and `--run-codex` (`codex exec`) are mutually exclusive; `--profile` applies to Codex only. None of these modify the original agent memory — distillation reads private memory and writes only `shared/`, with commit message `memory: distill shared`. Every agent picks up the result on its next `git pull`.
@@ -454,7 +470,7 @@ nestwork/
     ├── uninstall/              Per-tool uninstallers (unbind only; memory & identity kept)
     ├── hooks/                  Runtime hooks (pre/post/stop, session-start, optional sync)
     ├── comms/                  Agent mailbox (send / read / archive)
-    └── maintenance/            compile.sh · distill.py · memory-index.py · check-resident.py
+    └── maintenance/            compile.sh · distill.py · memory-index.py · check-resident.py · measure-context.py
                                 update.sh · sync-claude-md.sh · migrate-v2.sh
 ```
 
@@ -504,7 +520,7 @@ Hook coverage differs by tool:
 
 - **Claude Code**: SessionStart, PreToolUse / PostToolUse (Write|Edit), Stop, and SessionEnd (claude-mem export + optional local history sync).
 - **Kimi Code**: SessionStart pull, PreToolUse / PostToolUse (Write|Edit), and Stop. Kimi Code hooks cannot inject context, so the bootstrap in `AGENTS.md` tells the agent what to read.
-- **Codex**: a SessionEnd hook for optional local-history snapshots, via `~/.codex/config.toml` + `~/.codex/hooks.json`. Codex memory edits still follow the manual commit/push steps in the bootstrap.
+- **Codex**: PreToolUse / PostToolUse on its file-edit tool (`apply_patch`, matched as `^(apply_patch|Edit|Write)$`) and Stop, running the same `nestwork.sh` per-write sync as Claude Code; plus a SessionEnd hook for optional local-history snapshots. Registered in `~/.codex/hooks.json` (with `hooksPath` in `~/.codex/config.toml`). Codex asks you to trust new hooks once: run `/hooks` after installing.
 - **Gemini CLI, OpenClaw, Hermes, Doubao Work, and `generic.sh` tools**: no hooks; they follow the bootstrap protocol and commit at session end. Doubao Work has no CLI config file of its own, so `install/doubao.sh` writes the protocol into `~/.doubao/nestwork.md` and the agent follows it inside the conversation.
 
 ### Optional: capture local tool history
@@ -616,7 +632,7 @@ No. Only if you explicitly create a `nestwork.config.json` at the project root a
 
 ### Can tools other than Claude Code use nestwork?
 
-Yes. Any "reads a markdown file as system prompt at startup" CLI can use `install/generic.sh`. Claude Code and Kimi Code have per-write sync hooks; tools without them rely on "commit on session end", with a slightly larger race window but rarely an issue in practice. Doubao Work is in the latter camp — it has no local CLI entry, so `install/doubao.sh` writes the protocol into `~/.doubao/nestwork.md`, and the Doubao agent follows it inside the conversation (pull / commit / push).
+Yes. Any "reads a markdown file as system prompt at startup" CLI can use `install/generic.sh`. Claude Code, Kimi Code and Codex have per-write sync hooks; tools without them rely on "commit on session end", with a slightly larger race window but rarely an issue in practice. Doubao Work is in the latter camp — it has no local CLI entry, so `install/doubao.sh` writes the protocol into `~/.doubao/nestwork.md`, and the Doubao agent follows it inside the conversation (pull / commit / push).
 
 ### Do multiple agents writing concurrently cause conflicts?
 

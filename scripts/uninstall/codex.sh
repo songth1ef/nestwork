@@ -5,7 +5,8 @@ set -e
 # nestwork x Codex uninstaller
 #
 # Unbinds only: removes the bootstrap block from ~/.codex/AGENTS.md and
-# instructions.md, and the nestwork Stop hook from hooks.json. `hooksPath`
+# instructions.md, and the nestwork hooks (PreToolUse / PostToolUse / Stop /
+# SessionEnd) from hooks.json. `hooksPath`
 # in config.toml is left alone (generic pointer; hooks.json may still hold
 # user hooks). Memory and identity files are never deleted.
 #
@@ -27,7 +28,7 @@ echo "-> agent id       : ${AGENT_ID:-<unknown>}"
 python3 "$NESTWORK_PATH/scripts/uninstall/_unbootstrap.py" "$CODEX_DIR/AGENTS.md"
 python3 "$NESTWORK_PATH/scripts/uninstall/_unbootstrap.py" "$CODEX_DIR/instructions.md"
 
-# 2. Remove the nestwork Stop hook from hooks.json (user hooks preserved)
+# 2. Remove the nestwork hooks from hooks.json (user hooks preserved)
 python3 "$NESTWORK_PATH/scripts/uninstall/_codex_unhooks.py" "$CODEX_DIR/hooks.json"
 
 # 3. Optionally purge this tool's identity file

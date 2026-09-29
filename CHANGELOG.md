@@ -16,6 +16,18 @@ Conventions:
 
 ## Unreleased
 
+### Added
+
+- **Codex CLI gets per-write memory sync.** The Codex installer now registers PreToolUse / PostToolUse on `^(apply_patch|Edit|Write)$` and Stop, running the same `nestwork.sh` flow as Claude Code and Kimi Code; `_match-file.py` reads target paths from `apply_patch` patch headers (column-0 `*** Add/Update/Delete File:` / `Move to:`, relative paths resolved against the payload `cwd`). The hook keeps stdout empty because Codex parses a Stop hook's stdout as JSON. Uninstall removes all four events and keeps user hooks. **Existing Codex users: rerun `scripts/install/codex.sh`, then run `/hooks` in Codex once to trust the new hooks.**
+
+- New `scripts/maintenance/measure-context.py`: reports bytes and estimated tokens for a 2.x-style full startup, the resident startup, a resident + index + topic task, and the whole nest, from one agent's point of view. Zero dependencies; uses tiktoken when installed, otherwise a character-class estimate calibrated on a bilingual nest (median error ~6%). README and `docs/context-loading.md` now cite measured numbers instead of the byte budget alone.
+
+### Protocol consistency (3.1, clarifications) — action needed for scheduled distillation
+
+- **`distill.py --run-claude/--run-codex` no longer commits by default.** It writes `shared/` and prints a review hint, matching §7 steps 3–4 (review, then human confirmation). Pass `--commit` to commit and push in the same run (`--no-push` keeps it local). `--no-commit` is still accepted as a no-op. **If a cron or scheduled job runs the distiller unattended, add `--commit`**, or it will keep writing an uncommitted working tree and shared memory will silently stop updating.
+- Resolved five contradictions in `AGENTS.md`: §1 skips the manual pull when a SessionStart hook already ran it (matching the installed bootstraps); §2 now says extend the file that covers the topic instead of preferring new files (matching §6); §6 limits agent-added leaf topics to the agent's own directory, while every `shared/` change happens in distillation; §7 drops "automatic at session end" — agents record candidates in their own directory instead; §13 calls restore the one deliberate, manual reverse step of an otherwise one-way flow.
+- Script comments corrected: `send.sh` (a failed push is not retried by the Stop hook; it goes out with the next push), `sync-local-history.sh` (the switch lives in `agents/<host>/settings.json`), `generic.sh` / `generic.ps1` (old `install-generic` name).
+
 ### Protocol v3.1 — topic memory
 
 - A memory scope (`shared/` or `agents/<host>/<agent-id>/`) can opt in to topic storage: `memory.md` becomes an index generated from each topic file's `description` / `updated` front matter, and agents open only the files whose description matches the task — the same routing pattern as skills. The split rule in §6 existed since v2 but never held in practice: a line-count limit is bypassed by long lines (one private instance reached 114 KB in 430 lines), and `distill.py` / `compile.sh` rewrote everything back into one file.

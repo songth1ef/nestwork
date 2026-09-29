@@ -18,14 +18,16 @@ auto-sync on it.
 
 ## 1. Session Start
 
-Run before doing anything else:
+Run before doing anything else, unless a SessionStart hook already ran it for
+this session:
 
 ```bash
 git -C $NESTWORK_PATH pull --rebase
 ```
 
-If the pull fails, note the reason and continue. Where a SessionStart hook is
-installed (Claude Code, Kimi Code), the hook runs this pull automatically.
+Where a SessionStart hook is installed (Claude Code, Kimi Code), it runs this
+pull automatically and prints the READ-ON-START manifest; do not pull again.
+If the pull fails, note the reason and continue.
 
 Load only the resident tier:
 
@@ -78,14 +80,14 @@ Ask a narrow question only if missing context blocks the task.
 - **NEVER** write to `queen/` — read-only, human-managed only
 - **NEVER** write to another host's folder (`agents/<other-host>/...`)
 - `shared/` (including `shared/memory.md`) is read-only for agents **except during distillation** (see §7)
-- When saving memory, prefer creating new files over editing existing ones
+- When saving memory, extend the file that already covers the topic; create a new file only when none does (see §6, Topic memory)
 
 ---
 
 ## 3. Session End
 
-**If your tool has per-write sync hooks installed** (Claude Code or Kimi Code),
-memory sync is automatic: every Write/Edit under `agents/<host>/<agent-id>/`
+**If your tool has per-write sync hooks installed** (Claude Code, Kimi Code or
+Codex), memory sync is automatic: every write (Write/Edit, or Codex `apply_patch`) under `agents/<host>/<agent-id>/`
 triggers `pull --rebase` before the write (a conflict blocks the write) and
 `commit + push` after it. The Stop hook repeats the commit + push once per turn
 as a safety net (a no-op when nothing changed). Claude Code also registers a
@@ -93,8 +95,8 @@ SessionEnd hook for the claude-mem export (§4) and the optional local history
 sync (§12). **Do not duplicate automatic memory sync.**
 
 **If per-write sync hooks are NOT installed** for your tool, sync manually at
-session end. A history-only hook (such as the Codex SessionEnd hook, which only
-runs the local history sync) does not replace this:
+session end. A history-only hook (such as a SessionEnd hook that only runs the
+local history sync) does not replace this:
 
 ```bash
 git -C $NESTWORK_PATH add agents/<host>/<agent-id>/
@@ -247,9 +249,10 @@ Rules:
   16 KB), or nesting deeper than `<topic>/<subtopic>.md`.
 - **Reuse before creating.** Read the index first; write into the topic whose
   description already covers the fact. Create a new file only when none does.
-- **Agents may add leaf topics; only distillation reshapes.** Renaming, merging,
-  deleting topics or adding a new top-level folder in `shared/` happens during
-  distillation with human review (§7), so 30 agents do not grow
+- **Agents shape only their own scope; `shared/` changes only in distillation.**
+  An agent may add leaf topics inside `agents/<host>/<agent-id>/`. In `shared/`,
+  every change — a new topic, a rename, a merge, a deletion or a new folder —
+  happens during distillation with human review (§7), so 30 agents do not grow
   `owner.md`, `user.md` and `identity.md` side by side.
 - **Split by when it is needed, not by who wrote it.** A topic is the unit an
   agent loads for one kind of task. Project state stays in `projects/`, portable
@@ -272,8 +275,11 @@ mode (§6). Only agents explicitly triggered for distillation may write to
 
 ### When to trigger
 
-- Manually: when the human asks an agent to distill
-- Automatically: at session end, if the agent detects new memory worth sharing
+- Only when explicitly triggered: the human asks an agent to distill, or runs a
+  scheduled job they configured for it.
+- An agent that notices memory worth sharing at session end does **not** write
+  `shared/`. It records the candidate in its own directory, where the next
+  distillation picks it up.
 
 ### What goes into shared
 
@@ -296,9 +302,11 @@ mode (§6). Only agents explicitly triggered for distillation may write to
 
 `scripts/maintenance/distill.py` prints a ready-made merge prompt (topic-aware)
 by default; `--run-claude` / `--run-codex` run the merge through a local CLI
-agent, then write, commit and push the result (`--dry-run`, `--no-commit` and
-`--no-push` stop earlier). The script does not perform steps 3–4 (sub-agent
-review and human confirmation).
+agent and write the result to the working tree **without committing**, so a
+human can review `git diff -- shared/` (steps 3–4) before step 8. `--commit`
+commits and pushes in the same run (`--no-push` keeps it local); use it only
+when the human has already accepted skipping review, e.g. for a scheduled job
+they configured. `--dry-run` prints the candidate without writing.
 
 ### Rules
 
@@ -605,7 +613,7 @@ On restore, recompute the directory name from the new machine's repository path 
 ### Notes
 
 - Carryover is low-churn markdown, so it lives on `main`; the §12 orphan-branch rule does not apply.
-- The direction is one-way: tool memory flows into the nest. Nothing flows back into a tool's native store.
+- Routine flow is one-way: tool memory flows into the nest, and nothing syncs back into a tool's native store automatically. Restoring onto a new machine (above) is the only reverse step, and it is a deliberate, manual one.
 - **Deleting a source memory after distilling is irreversible** — tool-native memory is not under version control. Extract anything worth keeping first.
 - An instance that prefers a live mirror over periodic distillation can point a tool's memory directory into its agent folder where the tool supports it (for example Claude Code's `autoMemoryDirectory`). That is a local choice, not the protocol default: only some tools offer it, every write becomes a commit, and it drops the review step.
 

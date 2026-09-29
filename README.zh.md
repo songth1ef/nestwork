@@ -150,6 +150,17 @@ git 同步、优先级链、hook 全自动运行。想了解机制看 [工作原
 
 保存与加载是两件事。自协议 3.0 起，启动只读核心规则和共享/实例常驻摘要；历史记忆、战略、项目和工作流按当前任务检索，不追求开场全量读取。
 
+实际能省多少？以作者自己的记忆仓库实测（10 台机器、30 多个 agent 实例，2026-09；token 用 `o200k_base` 估算）：
+
+| 场景 | 文件数 | 大小 | token |
+|---|---|---|---|
+| 2.x 式全量启动（规则、战略、全部共享与本 agent 记忆、工作流） | 37 | 224 KB | 约 69,600 |
+| 3.x 启动（只读常驻层） | 2 | 2.6 KB | **约 640** |
+| 3.x 做一次 git 操作（常驻 + 索引 + 一个主题） | 4 | 11.8 KB | 约 3,600 |
+| 仓库里全部记忆文件 | 180 | 1.2 MB | 约 369,000 |
+
+全部记忆已经超过大多数模型的上下文窗口，所以加载必须有选择。用 `python3 scripts/maintenance/measure-context.py` 可以量自己的仓库（字节数精确；token 装了 tiktoken 就精确计数，否则用校准过的估算）。
+
 有长期价值的决策、经验和方法仍值得记录。先保存到按需层，按主题保持可检索（可选用主题文件 + 生成索引）；只有每类任务都需要的稳定事实和必要边界，才经过复核进入常驻摘要。
 
 摘要缺失不回退加载整份历史，摘要中的链接也不是递归读取要求。维护时遵守文件拆分和常驻字节预算，见[加载与迁移指南](docs/context-loading.md)。Nestwork 保存可携带上下文，不存密钥或未经审查的雇主机密。
@@ -354,7 +365,7 @@ Codex 启动时读 `~/.codex/AGENTS.md`，里面已经被 installer 注入了 ne
 - pull 你的 queen
 - 读取核心规则和共享/实例的 `resident.md`，再按当前任务检索历史
 - 知道你的偏好、过去决策、当前项目状态
-- 启用时通过 `~/.codex/config.toml` + `~/.codex/hooks.json` 的 SessionEnd hook 同步可选的本地 history 快照
+- 启用时通过 `~/.codex/hooks.json` 里的 Codex SessionEnd hook 同步可选的本地 history 快照
 
 记忆不在厂商，在你的 git 仓。换工具的成本接近零。
 
@@ -383,10 +394,11 @@ bash ~/nestwork/scripts/maintenance/compile.sh
 # 不绑厂商：打印一段蒸馏提示词，喂给任意 agent 会话
 python3 ~/nestwork/scripts/maintenance/distill.py
 
-# 一把过的 runner：聚合、写回 shared/、commit、push
-#（--dry-run 只预览不写；--no-commit / --no-push 提前停下）
+# runner：聚合并写入 shared/ 供你审阅，不自动提交
+#（--dry-run 只打印；加 --commit 才提交并推送，--no-push 只提交不推送）
 python3 ~/nestwork/scripts/maintenance/distill.py --run-claude
 python3 ~/nestwork/scripts/maintenance/distill.py --run-codex --profile <你的-profile>
+git -C ~/nestwork diff -- shared/        # 审阅后以 `memory: distill shared` 提交
 ```
 
 `--run-claude`（`claude -p`）与 `--run-codex`（`codex exec`）二选一；`--profile` 只对 Codex 生效。这些方式都不改动各 agent 的原始记忆——蒸馏只读私有记忆、只写 `shared/`，commit message 为 `memory: distill shared`。其他 agent 下次 `git pull` 就能拿到。
@@ -447,7 +459,7 @@ nestwork/
     ├── uninstall/              按工具卸载器（只解绑，记忆与身份保留）
     ├── hooks/                  运行时 hook（pre/post/stop、session-start、可选同步）
     ├── comms/                  Agent 邮箱（send / read / archive）
-    └── maintenance/            compile.sh · distill.py · memory-index.py · check-resident.py
+    └── maintenance/            compile.sh · distill.py · memory-index.py · check-resident.py · measure-context.py
                                 update.sh · sync-claude-md.sh · migrate-v2.sh
 ```
 
@@ -497,7 +509,7 @@ nestwork/
 
 - **Claude Code**：SessionStart、PreToolUse / PostToolUse（Write|Edit）、Stop，以及 SessionEnd（claude-mem export + 可选本地 history 同步）。
 - **Kimi Code**：SessionStart 拉取、PreToolUse / PostToolUse（Write|Edit）与 Stop。Kimi Code 的 hook 无法注入上下文，所以由 `AGENTS.md` 里的启动块告诉 agent 该读什么。
-- **Codex**：通过 `~/.codex/config.toml` + `~/.codex/hooks.json` 注册一个 SessionEnd hook，用于可选的本地 history 快照。Codex 的记忆编辑仍按启动块里的手动 commit/push 步骤处理。
+- **Codex**：在它的文件编辑工具（`apply_patch`，匹配规则 `^(apply_patch|Edit|Write)$`）上注册 PreToolUse / PostToolUse，外加 Stop，运行与 Claude Code 相同的 `nestwork.sh` 逐次写入同步；另有一个 SessionEnd hook 用于可选的本地 history 快照。注册在 `~/.codex/hooks.json`（`~/.codex/config.toml` 里有 `hooksPath`）。Codex 要求对新 hook 确认一次信任：安装后运行 `/hooks`。
 - **Gemini CLI、OpenClaw、Hermes、Doubao Work 以及经 `generic.sh` 接入的工具**：不注册 hook，按启动块协议在会话结束时提交。Doubao Work 没有自己的 CLI 配置文件，`install/doubao.sh` 会把协议写入 `~/.doubao/nestwork.md`，由豆包在会话内遵守。
 
 ### 可选：捕获本地工具历史
@@ -609,7 +621,7 @@ Fork 默认公开，且与上游强关联：`git merge upstream/main` 会与你�
 
 ### Claude Code 之外的工具能用 nestwork 吗？
 
-能。任何"启动时读 markdown 作为 system prompt"的 CLI 都能用 `install/generic.sh` 接入。Claude Code 和 Kimi Code 有逐次写入同步 hooks；没有这些 hooks 的工具靠"会话结束提交"协议，竞态窗口稍大但实际很少出问题。Doubao Work 属于后者——豆包没有本地 CLI 入口，`install/doubao.sh` 会把协议写入 `~/.doubao/nestwork.md`，会话内由豆包按协议执行 pull / commit / push。
+能。任何"启动时读 markdown 作为 system prompt"的 CLI 都能用 `install/generic.sh` 接入。Claude Code、Kimi Code 和 Codex 有逐次写入同步 hooks；没有这些 hooks 的工具靠"会话结束提交"协议，竞态窗口稍大但实际很少出问题。Doubao Work 属于后者——豆包没有本地 CLI 入口，`install/doubao.sh` 会把协议写入 `~/.doubao/nestwork.md`，会话内由豆包按协议执行 pull / commit / push。
 
 ### 多 agent 同时写会冲突吗？
 

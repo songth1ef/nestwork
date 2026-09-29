@@ -2,7 +2,8 @@
 # nestwork x Codex uninstaller (Windows)
 #
 # Unbinds only: removes the bootstrap block from AGENTS.md / instructions.md
-# and the nestwork Stop hook from hooks.json. `hooksPath` in config.toml is
+# and the nestwork hooks (PreToolUse / PostToolUse / Stop / SessionEnd) from
+# hooks.json. `hooksPath` in config.toml is
 # left alone. Memory and identity files are never deleted.
 #
 # Usage:
@@ -45,7 +46,7 @@ if ($LASTEXITCODE -ne 0) { throw "AGENTS.md bootstrap removal failed (exit $LAST
     "$CodexDir\instructions.md"
 if ($LASTEXITCODE -ne 0) { throw "instructions.md bootstrap removal failed (exit $LASTEXITCODE)" }
 
-# 2. Remove the nestwork Stop hook from hooks.json (user hooks preserved)
+# 2. Remove the nestwork hooks from hooks.json (user hooks preserved)
 & $PythonCmd (Join-Path $NestworkPath "scripts\uninstall\_codex_unhooks.py") `
     "$CodexDir\hooks.json"
 if ($LASTEXITCODE -ne 0) { throw "Codex hook removal failed (exit $LASTEXITCODE)" }

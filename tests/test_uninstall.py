@@ -136,7 +136,7 @@ class CodexUnhooksTests(unittest.TestCase):
         self.config.unlink(missing_ok=True)
         self.hooks.unlink(missing_ok=True)
 
-    def test_removes_session_end_hook_and_keeps_user_hooks(self) -> None:
+    def test_removes_all_nestwork_hooks_and_keeps_user_hooks(self) -> None:
         user_entry = {
             "hooks": [{"type": "command", "command": "echo user-stop", "timeout": 5}]
         }
@@ -148,16 +148,19 @@ class CodexUnhooksTests(unittest.TestCase):
             CODEX_HOOKS, self.config, self.hooks, "/tmp/nestwork", "hosta", "codex"
         )
         self.assertEqual(completed.returncode, 0, completed.stderr)
-        installed = json.loads(self.hooks.read_text(encoding="utf-8"))
-        self.assertEqual(installed["hooks"]["Stop"], [user_entry])
-        self.assertEqual(len(installed["hooks"]["SessionEnd"]), 1)
+        installed = json.loads(self.hooks.read_text(encoding="utf-8"))["hooks"]
+        self.assertEqual(installed["Stop"][0], user_entry)
+        self.assertEqual(len(installed["Stop"]), 2)
+        for event in ("PreToolUse", "PostToolUse", "SessionEnd"):
+            self.assertEqual(len(installed[event]), 1, event)
 
         completed = run(CODEX_UNHOOKS, self.hooks)
         self.assertEqual(completed.returncode, 0, completed.stderr)
 
-        cleaned = json.loads(self.hooks.read_text(encoding="utf-8"))
-        self.assertEqual(cleaned["hooks"]["Stop"], [user_entry])
-        self.assertNotIn("SessionEnd", cleaned["hooks"])
+        cleaned = json.loads(self.hooks.read_text(encoding="utf-8"))["hooks"]
+        self.assertEqual(cleaned["Stop"], [user_entry])
+        for event in ("PreToolUse", "PostToolUse", "SessionEnd"):
+            self.assertNotIn(event, cleaned)
 
     def test_noop_on_missing_hooks_file(self) -> None:
         completed = run(CODEX_UNHOOKS, TMP_ROOT / "no-hooks.json")

@@ -186,7 +186,7 @@ git 同步、优先级链、hook 全自动运行。想了解机制看 [工作原
 | [自定义你的 nest](#自定义你的-nest) | 编辑 `queen/` `projects/` `workflow/` 各层 |
 | [上下文层](#上下文层workflow-与外部目录吸收) | `workflow/` 跨项目知识层 + `nestwork.config.json` 外部目录脱敏吸收契约 |
 | [真实工作流示例](#真实工作流示例) | 多机协作 / 跨工具迁移 / 雇主项目知识沉淀 |
-| [编译共享记忆](#编译共享记忆distillation) | `compile.sh` 拼接 vs `distill.py` LLM 蒸馏，非破坏性合并到 `shared/` |
+| [编译共享记忆](#编译共享记忆distillation) | `distill.py` LLM 蒸馏，经审阅、非破坏性合并到 `shared/` |
 | [Agent 邮箱](#agent-邮箱agent-间通信) | git 原生的 agent 间通信：单写者发件箱、按需读取、零外部依赖 |
 | [目录结构](#目录结构) / [行数限制](#文件行数限制与拆分协议) | 仓库布局 + 文件拆分协议 |
 | [支持的工具](#支持的工具) | Claude Code / Codex / Gemini / Kimi Code / Hermes / OpenClaw / Doubao Work / WorkBuddy AI / generic 任何 markdown-config CLI + IDE 插件软链接 |
@@ -389,9 +389,6 @@ Codex 启动时读 `~/.codex/AGENTS.md`，里面已经被 installer 注入了 ne
 当各 agent 积累了足够记忆，合并进 `shared/memory.md`：
 
 ```bash
-# 纯拼接：把 agents/*/memory.md 拼起来，commit、push
-bash ~/nestwork/scripts/maintenance/compile.sh
-
 # 不绑厂商：打印一段蒸馏提示词，喂给任意 agent 会话
 python3 ~/nestwork/scripts/maintenance/distill.py
 
@@ -404,7 +401,7 @@ git -C ~/nestwork diff -- shared/        # 审阅后以 `memory: distill shared`
 
 `--run-claude`（`claude -p`）与 `--run-codex`（`codex exec`）二选一；`--profile` 只对 Codex 生效。这些方式都不改动各 agent 的原始记忆——蒸馏只读私有记忆、只写 `shared/`，commit message 为 `memory: distill shared`。其他 agent 下次 `git pull` 就能拿到。
 
-如果 `shared/` 启用了主题记忆，`distill.py` 只写有变化的主题文件并重建索引；`compile.sh` 会拒绝运行，因为拼接会把拆分合回去。
+如果 `shared/` 启用了主题记忆，`distill.py` 只写有变化的主题文件并重建索引。
 
 让这件事安全的那几条规则——shared 是并集不是交集、永不删除、子 agent 审查后由人确认——在 [AGENTS.md](AGENTS.md) §7。
 
@@ -461,8 +458,8 @@ nestwork/
     ├── uninstall/              按工具卸载器（只解绑，记忆与身份保留）
     ├── hooks/                  运行时 hook（pre/post/stop、session-start、可选同步）
     ├── comms/                  Agent 邮箱（send / read / archive）
-    └── maintenance/            compile.sh · distill.py · memory-index.py · check-resident.py · measure-context.py · recent-digest.py
-                                update.sh · sync-claude-md.sh · migrate-v2.sh
+    └── maintenance/            distill.py · memory-index.py · check-resident.py · measure-context.py · recent-digest.py
+                                update.sh · sync-claude-md.sh
 ```
 
 ---
@@ -634,7 +631,7 @@ Fork 默认公开，且与上游强关联：`git merge upstream/main` 会与你�
 |---|---|---|
 | `queen/` | 你（人工） | 不会（你只有一双手） |
 | `agents/<host>/<agent-id>/` | 仅该 agent | 正常记忆写入不会 |
-| `shared/` | 仅显式 `compile.sh` / `distill.py` | 正常 agent 写记忆时不会 |
+| `shared/` | 仅显式运行 `distill.py` | 正常 agent 写记忆时不会 |
 | `projects/` | agent 或人工 | 多 agent 同时写理论上可能，PreToolUse hook 的 `git pull --rebase` 大幅降低 |
 | `workflow/` | agent 或人工 | 同上 |
 
@@ -644,8 +641,7 @@ PreToolUse hook 在每次写入前 `git pull --rebase`，把竞态窗口压到�
 
 不是自动来的。需要你显式触发蒸馏：
 
-- `compile.sh`：纯拼接所有 agent memory
-- `distill.py`：LLM 蒸馏（推荐）；可打印提示词交给任意 agent，或用 `--run-claude` / `--run-codex` 一把跑完
+- `distill.py`：LLM 蒸馏；可打印提示词交给任意 agent，或用 `--run-claude` / `--run-codex` 一把跑完
 
 蒸馏过程会调用 sub-agent review，标记敏感数据、事实矛盾、过期项，最后由你确认合并。设计目标是非破坏性：每个 agent 私有 memory 不变。
 

@@ -112,8 +112,6 @@ in its run modes (`--run-claude` / `--run-codex`) it writes only the `shared/`
 topic files that change, then regenerates the index, and leaves the result
 uncommitted for review unless you pass `--commit`. Its prompt forbids
 renaming, merging or deleting topics; that stays a reviewed human decision.
-`scripts/maintenance/compile.sh` refuses to run on a topic-mode `shared/`,
-because concatenating agent memory into `memory.md` would undo the split.
 
 ## Migration from 3.1
 

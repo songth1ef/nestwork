@@ -63,20 +63,17 @@ class DocsConsistencyTests(unittest.TestCase):
         self.assertNotIn("agents/<tool>-<hostname>/", readme)
 
     def test_project_context_exists_in_template(self) -> None:
-        project_context = REPO_ROOT / "projects" / "nestwork.md"
+        template = REPO_ROOT / "projects" / "_template.md"
 
-        self.assertTrue(project_context.exists())
-        self.assertIn("git 原生的 AI agent 上下文协议", project_context.read_text(encoding="utf-8"))
+        self.assertTrue(template.exists())
+        text = template.read_text(encoding="utf-8")
+        for field in ("Current Goal", "Current State", "Next Action", "Do Not", "Last Verified"):
+            self.assertIn(f"## {field}", text)
 
     def test_bootstrap_manual_commit_checks_only_agent_path(self) -> None:
         bootstrap = (REPO_ROOT / "scripts" / "install" / "_bootstrap.py").read_text(encoding="utf-8")
 
         self.assertIn("git -C {hp} diff --cached --quiet -- agents/{host}/{aid}/", bootstrap)
-
-    def test_compile_commit_checks_only_shared_memory(self) -> None:
-        compile_script = (REPO_ROOT / "scripts" / "maintenance" / "compile.sh").read_text(encoding="utf-8")
-
-        self.assertIn("git diff --cached --quiet -- shared/memory.md", compile_script)
 
     def test_geo_content_assets_exist(self) -> None:
         required_paths = [

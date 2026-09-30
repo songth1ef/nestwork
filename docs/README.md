@@ -25,6 +25,7 @@ Current protocol: **3.2**. Startup loads core rules, optional resident summaries
 - [Workflow protocol (`workflow/` and `nestwork.config.json` ingestion)](workflow-protocol.md)
 - [Desensitization prompt template](desensitization-prompt.md)
 - [File size limits: override example](limits-override-example.md)
+- [Tool memory carryover: entry format and restore](tool-memory-carryover.md)
 
 ## Comparisons
 

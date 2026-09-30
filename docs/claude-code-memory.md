@@ -49,6 +49,22 @@ of topic files, and the agent opens only the topics whose description matches
 the task. Existing installations must refresh their bootstrap and open a new session;
 see [context loading and migration](context-loading.md).
 
+## Optional: claude-mem export
+
+If [claude-mem](https://github.com/thedotmack/claude-mem) is installed and its
+worker is running on `localhost:37777`, the Claude Code SessionEnd hook
+exports a digest of today's observations (once per session, not every turn):
+
+```
+agents/<host>/<agent-id>/claude-mem-digest.md
+```
+
+The export does not commit; the next memory sync (a per-write or Stop hook)
+commits and pushes it with the rest of the agent's memory, giving claude-mem's
+observations cross-machine reach through git. No configuration is needed, and
+the export is skipped without error when the worker is unreachable. Override
+the worker URL with `export CLAUDE_MEM_URL=http://localhost:37777`.
+
 ## Related docs
 
 - [AI agent memory](ai-agent-memory.md)

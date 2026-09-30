@@ -16,6 +16,18 @@ Conventions:
 
 ## Unreleased
 
+### Changed — protocol text slimmed (no behavior change, protocol stays 3.2)
+
+- `AGENTS.md` 649 → ~530 lines. Section numbers are unchanged, so existing `§N` references still resolve. Moved out, with a one-line pointer left behind: §4 claude-mem export details → `docs/claude-code-memory.md`; §9 `nestwork.config.json` field table and flow → `docs/workflow-protocol.md` (the rules stay in §9); §10 per-repo doc list and the inline project template → `projects/_template.md` reference; §13 carryover entry format and restore steps → new `docs/tool-memory-carryover.md`.
+- §6 no longer shows a hand-written memory index. It predated topic memory and contradicted the 3.1 rule that memory indexes are generated; memory scopes now split through topic memory, other files keep the manual folder + index split.
+- Dropped per-heading version annotations such as "(protocol v2.4+)"; version history lives in this changelog.
+
+### Removed
+
+- `scripts/maintenance/compile.sh`: plain concatenation into `shared/memory.md`, superseded by the reviewed `distill.py` flow and already refused on topic-mode nests. `update.sh` does not delete files, so existing instances keep an unused copy; delete it by hand if you like.
+- `scripts/maintenance/migrate-v2.sh`: the protocol 1.x → 2.0 layout migration from 2026-04.
+- `projects/nestwork.md`: a stale example snapshot (from 2026-04) that every new template instance inherited; `projects/_template.md` remains the reference.
+
 ### Protocol v3.2 — resident orientation (additive)
 
 - **Resident context now orients, not just routes.** `shared/resident.md` may carry a short owner profile and a summary of current goals, priorities and non-goals from `queen/strategy.md` (with its review date; strategy stays authoritative). 3.0 kept resident context routing-only, which left agents starting every session without knowing who they work for or what the goals are.

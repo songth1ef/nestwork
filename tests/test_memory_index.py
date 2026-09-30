@@ -205,14 +205,6 @@ class DistillTopicModeTests(unittest.TestCase):
         changed = self.git("show", "--name-only", "--format=", "HEAD").split()
         self.assertEqual(sorted(changed), ["shared/env.md", "shared/memory.md"])
 
-    def test_compile_refuses_to_flatten_topic_mode(self):
-        (self.root / "scripts/maintenance").mkdir(parents=True)
-        compile_sh = self.root / "scripts/maintenance/compile.sh"
-        compile_sh.write_bytes((ROOT / "scripts/maintenance/compile.sh").read_bytes())
-        result = subprocess.run(["bash", str(compile_sh)], capture_output=True, text=True)
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("topic files", result.stderr)
-        self.assertIn(memory_index.BEGIN, (self.root / "shared/memory.md").read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

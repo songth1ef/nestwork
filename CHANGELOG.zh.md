@@ -16,6 +16,12 @@
 
 ## Unreleased
 
+### 修复
+
+- **`update.sh` 把 `upstream` 远端改成只拉不推。** 私有实例如果能推送到公开上游，只要推一个基于实例 `main` 的分支，整段历史就公开了；之后删掉分支，GitHub 上仍能按 SHA 访问这些提交。`update.sh` 现在会把 upstream 的推送地址设为一个禁用占位符，拉取不受影响。公开仓库的维护者请用单独的 clone 开发。
+- **`update.sh` 和同步 workflow 现在会同步 `tests/`。** 以前实例里的测试停在旧版，脚本更新后就会失败。
+- `test_no_private_names` 在私有实例里自动跳过，实例里本来就会有真实的主机名和 agent 名。
+
 ### 变更 —— 协议正文瘦身（行为不变，协议仍为 3.2）
 
 - `AGENTS.md` 从 649 行减到约 530 行。章节编号不变，已有的「§N」引用仍然有效。搬出去的内容原处留一行指针：§4 claude-mem 导出细节 → `docs/claude-code-memory.md`；§9 `nestwork.config.json` 字段表与流程 → `docs/workflow-protocol.md`（规则仍留在 §9）；§10 各仓库文档清单和内联项目模板 → 改为引用 `projects/_template.md`；§13 carryover 条目格式与恢复步骤 → 新文档 `docs/tool-memory-carryover.md`。

@@ -112,6 +112,18 @@ class UpdateShTests(unittest.TestCase):
         log = git(self.nest, "log", "-1", "--format=%s")
         self.assertEqual(log.stdout.strip(), "chore: update nestwork protocol from upstream")
 
+    def test_upstream_becomes_fetch_only(self) -> None:
+        result = self.run_update(answer="n\n")  # applies even when declining
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        push = git(self.nest, "remote", "get-url", "--push", "upstream").stdout.strip()
+        self.assertTrue(push.startswith("DISABLED"), push)
+        fetch = git(self.nest, "remote", "get-url", "upstream").stdout.strip()
+        self.assertEqual(fetch, str(self.upstream))
+        pushed = git(self.nest, "push", "upstream", "HEAD:refs/heads/leak")
+        self.assertNotEqual(pushed.returncode, 0)
+        self.assertEqual(git(self.upstream, "branch", "--list", "leak").stdout.strip(), "")
+
     def test_declining_makes_no_changes(self) -> None:
         head_before = git(self.nest, "rev-parse", "HEAD").stdout.strip()
         result = self.run_update(answer="n\n")

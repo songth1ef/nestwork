@@ -16,6 +16,12 @@ Conventions:
 
 ## Unreleased
 
+### Fixed
+
+- **`update.sh` makes the `upstream` remote fetch-only.** A private nest that can push to the public upstream can publish its entire history with one push of a branch based on its `main`; deleting the branch afterwards leaves the commits reachable by SHA on GitHub. `update.sh` now sets upstream's push URL to a disabled placeholder (fetching is unaffected). Maintainers of the public repo should work from a separate clone.
+- **`update.sh` and the sync workflow now carry `tests/`.** Instances kept stale tests, which then failed against updated scripts.
+- `test_no_private_names` skips inside private instances, where real host and agent names are expected.
+
 ### Changed — protocol text slimmed (no behavior change, protocol stays 3.2)
 
 - `AGENTS.md` 649 → ~530 lines. Section numbers are unchanged, so existing `§N` references still resolve. Moved out, with a one-line pointer left behind: §4 claude-mem export details → `docs/claude-code-memory.md`; §9 `nestwork.config.json` field table and flow → `docs/workflow-protocol.md` (the rules stay in §9); §10 per-repo doc list and the inline project template → `projects/_template.md` reference; §13 carryover entry format and restore steps → new `docs/tool-memory-carryover.md`.

@@ -28,6 +28,7 @@ UPSTREAM_BRANCH="main"
 # .github/workflows/ — GITHUB_TOKEN cannot push workflow files).
 PROTOCOL_FILES=(
   scripts/
+  tests/
   .github/workflows/
   AGENTS.md
   CLAUDE.md
@@ -61,6 +62,15 @@ if ! git remote get-url upstream > /dev/null 2>&1; then
   echo "[ok] added upstream: $UPSTREAM_URL"
 else
   echo "[ok] upstream: $(git remote get-url upstream)"
+fi
+
+# A private nest must never push to the public upstream: one push of a branch
+# based on the nest's main publishes its whole history, and deleting the branch
+# afterwards does not remove the objects from GitHub. Fetch keeps working.
+PUSH_BLOCK="DISABLED--private-nest-must-not-push-to-public-upstream"
+if [ "$(git remote get-url --push upstream 2>/dev/null)" != "$PUSH_BLOCK" ]; then
+  git remote set-url --push upstream "$PUSH_BLOCK"
+  echo "[ok] disabled pushing to upstream (fetch-only)"
 fi
 
 # -- 2. Fetch upstream --------------------------------------------------------

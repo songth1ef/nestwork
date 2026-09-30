@@ -156,43 +156,89 @@ liquid-glass.lg-pill .btn-ghost:hover { background: rgba(255, 255, 255, 0.15); }
 .meta-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; font-size: 13px; color: var(--muted); }
 .meta-row span { border-radius: 999px; padding: 5px 13px; }
 .meta-row b { color: var(--accent-ink); font-weight: 700; }
-.hero-art { position: relative; min-height: 560px; }
-.hero-art::before { content: ""; position: absolute; inset: 70px 10px 60px; border-radius: 40px; background: rgba(255, 255, 255, 0.22); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.7); -webkit-backdrop-filter: blur(12px) saturate(1.4); backdrop-filter: blur(12px) saturate(1.4); }
-.hero-art svg.net { position: absolute; inset: 60px 0 60px 0; width: 100%; height: calc(100% - 120px); overflow: visible; }
-.net .route { fill: none; stroke: #0ea5e9; stroke-width: 1.6; stroke-dasharray: 5 6; opacity: 0.8; animation: route 2s linear infinite; }
-.net .route.t { stroke: #db2777; opacity: 0.6; animation-duration: 2.6s; }
-@keyframes route { to { stroke-dashoffset: -22; } }
-.net .dev { fill: none; stroke: #334155; stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
-.net .dev-fill { fill: rgba(255, 255, 255, 0.75); stroke: #334155; stroke-width: 1.5; }
-.net .lbl { font-family: var(--mono); font-size: 13px; fill: #475569; }
-.net .ring { fill: none; stroke: rgba(14, 165, 233, 0.4); stroke-width: 1; stroke-dasharray: 2 6; transform-origin: 280px 280px; animation: spin 40s linear infinite; }
-.net .pulse { fill: none; stroke: rgba(14, 165, 233, 0.5); stroke-width: 1.5; transform-origin: 280px 280px; animation: pulse 3s ease-out infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes pulse { from { transform: scale(0.7); opacity: 0.8; } to { transform: scale(1.7); opacity: 0; } }
-.net .hub { fill: rgba(255, 255, 255, 0.85); filter: drop-shadow(0 12px 24px rgba(14, 165, 233, 0.3)); }
-.net .hub-ring { fill: none; stroke: url(#hubgrad); stroke-width: 2; }
-.net .hub-t { font-family: var(--mono); font-size: 17px; font-weight: 700; fill: var(--ink); }
-.net .hub-s { font-family: var(--sans); font-size: 11px; letter-spacing: 0.16em; fill: var(--accent-ink); font-weight: 700; }
-.net .node { fill: #fff; stroke: #0ea5e9; stroke-width: 1.5; }
-.pcard { position: absolute; width: 236px; border-radius: 22px; background: var(--glass-tone-bg); box-shadow: var(--glass-tone-shadow); -webkit-backdrop-filter: var(--glass-tone-filter); backdrop-filter: var(--glass-tone-filter); color: var(--text); font-size: 13px; animation: float 7s ease-in-out infinite; }
-.pcard > .pc-in { display: block; padding: 14px 16px; }
-.pcard.a { left: 0; top: 0; }
-.pcard.b { right: 0; bottom: 0; animation-delay: -3.5s; }
+.hero-art { position: relative; display: grid; place-items: center; padding: 58px 0 62px; }
+.nest-app { display: block; width: 100%; max-width: 470px; min-width: 0; border-radius: 28px; background: var(--glass-tone-bg); box-shadow: var(--glass-tone-shadow), 0 30px 70px -30px rgba(15, 23, 42, 0.35); -webkit-backdrop-filter: var(--glass-tone-filter); backdrop-filter: var(--glass-tone-filter); }
+.app { padding: 16px 16px 18px; }
+.app-bar { display: flex; align-items: center; gap: 12px; padding: 2px 4px 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.55); }
+.dots { display: inline-flex; gap: 6px; }
+.dots i { width: 11px; height: 11px; border-radius: 50%; background: #ff5f57; box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.15); }
+.dots i:nth-child(2) { background: #febc2e; }
+.dots i:nth-child(3) { background: #28c840; }
+.app-title { flex: 1; font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--ink); }
+.app-title em { font-style: normal; color: var(--muted); font-weight: 500; }
+.sync { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #047857; background: rgba(16, 185, 129, 0.14); border-radius: 999px; padding: 3px 10px 3px 8px; }
+.sync i { width: 7px; height: 7px; border-radius: 50%; background: #10b981; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); animation: breathe 2.4s ease-out infinite; }
+@keyframes breathe { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); } 80%, 100% { box-shadow: 0 0 0 7px rgba(16, 185, 129, 0); } }
+.agents { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 14px 0 16px; }
+.ag { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 16px; background: rgba(255, 255, 255, 0.42); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.8); min-width: 0; }
+.ag .av { width: 32px; height: 32px; border-radius: 10px; font-size: 14px; }
+.ag-t { flex: 1; min-width: 0; line-height: 1.2; }
+.ag-t b { display: block; font-size: 13px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ag-t small { font-size: 11.5px; color: var(--muted); }
+.st { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.st i { width: 7px; height: 7px; border-radius: 50%; background: #94a3b8; }
+.st.ok { color: #047857; } .st.ok i { background: #10b981; }
+.st.busy { color: #0369a1; } .st.busy i { background: #0ea5e9; animation: breathe-b 1.2s ease-out infinite; }
+@keyframes breathe-b { 0% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.6); } 80%, 100% { box-shadow: 0 0 0 6px rgba(14, 165, 233, 0); } }
+.av-k { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+.av-h { background: linear-gradient(135deg, #10b981, #0ea5e9); }
+.feed-h { display: flex; justify-content: space-between; align-items: baseline; padding: 0 4px 8px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.feed-src { font-family: var(--mono); font-size: 11px; letter-spacing: 0; text-transform: none; font-weight: 500; }
+.feed { height: 248px; overflow: hidden; border-radius: 18px; background: rgba(255, 255, 255, 0.34); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55); -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent); mask-image: linear-gradient(to bottom, #000 78%, transparent); }
+.feed-track { list-style: none; margin: 0; padding: 0; animation: feed 18s cubic-bezier(0.32, 0.72, 0, 1) infinite; }
+.fi { display: flex; align-items: flex-start; gap: 10px; height: 62px; padding: 10px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.5); }
+.vb { flex: none; margin-top: 1px; font-size: 10.5px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 7px; border-radius: 7px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7); }
+.vb-w { color: #0369a1; background: rgba(14, 165, 233, 0.16); }
+.vb-p { color: #047857; background: rgba(16, 185, 129, 0.16); }
+.vb-r { color: #6d28d9; background: rgba(139, 92, 246, 0.16); }
+.vb-m { color: #be185d; background: rgba(236, 72, 153, 0.15); }
+.vb-d { color: #b45309; background: rgba(245, 158, 11, 0.18); }
+.vb-c { color: #334155; background: rgba(100, 116, 139, 0.16); }
+.fi-t { flex: 1; min-width: 0; }
+.fi-t p { margin: 0; font-size: 12.8px; line-height: 1.35; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fi-t p b { color: var(--ink); font-family: var(--mono); font-size: 12px; }
+.fi-t p code { font-size: 11.5px; padding: 0 4px; }
+.fi-p { display: block; margin-top: 3px; background: none !important; box-shadow: none !important; padding: 0 !important; font-size: 11px !important; color: var(--muted) !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fi time { flex: none; font-size: 11px; color: var(--muted); margin-top: 2px; }
+@keyframes feed {
+  0.00% { transform: translateY(-0px); }
+  14.33% { transform: translateY(-0px); }
+  16.67% { transform: translateY(-62px); }
+  31.00% { transform: translateY(-62px); }
+  33.33% { transform: translateY(-124px); }
+  47.67% { transform: translateY(-124px); }
+  50.00% { transform: translateY(-186px); }
+  64.33% { transform: translateY(-186px); }
+  66.67% { transform: translateY(-248px); }
+  81.00% { transform: translateY(-248px); }
+  83.33% { transform: translateY(-310px); }
+  97.67% { transform: translateY(-310px); }
+  100.00% { transform: translateY(-372px); }
+}
+.meter { margin-top: 14px; padding: 12px 14px; border-radius: 16px; background: rgba(255, 255, 255, 0.42); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6); }
+.m-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 12.5px; color: var(--text); }
+.m-row b { font-family: var(--display); font-size: 22px; letter-spacing: -0.03em; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.m-row b small { font-size: 12px; }
+.m-bar { position: relative; height: 8px; margin: 8px 0 6px; border-radius: 999px; background: linear-gradient(90deg, rgba(239, 68, 68, 0.18), rgba(239, 68, 68, 0.32)); overflow: hidden; }
+.m-bar i { position: absolute; inset: 0 auto 0 0; width: 4%; min-width: 8px; border-radius: 999px; background: var(--grad); }
+.m-sub { font-size: 11.5px; color: var(--muted); }
+.float-card { position: absolute; display: block; border-radius: 18px; background: var(--glass-tone-bg); box-shadow: var(--glass-tone-shadow); -webkit-backdrop-filter: var(--glass-tone-filter); backdrop-filter: var(--glass-tone-filter); animation: float 7s ease-in-out infinite; }
+.fc { display: flex; align-items: center; gap: 10px; padding: 11px 14px 11px 11px; }
+.fc b { display: block; font-size: 13px; color: var(--ink); }
+.fc small { display: block; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.fc-ic { flex: none; width: 30px; height: 30px; border-radius: 10px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5); position: relative; }
+.ic-route { background: linear-gradient(135deg, #8b5cf6, #0ea5e9); }
+.ic-hand { background: linear-gradient(135deg, #ec4899, #f59e0b); }
+.fc-ic { display: grid; place-items: center; }
+.fc-ic svg { width: 17px; height: 17px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.fc-a { top: 0; right: 0; }
+.fc-b { bottom: 0; left: 0; animation-delay: -3.5s; }
 @keyframes float { 50% { translate: 0 -8px; } }
-.pc-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: var(--muted); }
-.pc-top b { font-size: 11px; letter-spacing: 0.04em; color: #047857; background: rgba(16, 185, 129, 0.14); border-radius: 999px; padding: 2px 8px; }
-.pcard.b .pc-top b { color: #be185d; background: rgba(236, 72, 153, 0.14); }
-.pc-body { display: flex; gap: 12px; align-items: center; }
+@media (max-width: 980px) { .hero-art { margin-top: 12px; } }
+@media (max-width: 520px) { .hero-art { padding: 8px 0 0; } .agents { grid-template-columns: 1fr; } .ag:nth-child(n+3) { display: none; } .float-card { display: none; } }
 .av { flex: none; width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; font-weight: 800; color: #fff; font-size: 16px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45); }
 .av-c { background: linear-gradient(135deg, #06b6d4, #3b82f6); }
 .av-x { background: linear-gradient(135deg, #ec4899, #8b5cf6); }
-.pc-rows { flex: 1; font-family: var(--mono); font-size: 12px; }
-.pc-rows div { display: flex; justify-content: space-between; padding: 2px 0; }
-.pc-rows div span:first-child { color: var(--muted); }
-.pc-rows div span:last-child { color: var(--ink); font-weight: 600; }
-.pc-bars { display: none; }
-@media (max-width: 980px) { .hero-art { min-height: 540px; margin-top: 8px; } }
-@media (max-width: 520px) { .pcard { width: 200px; } .hero-art { min-height: 500px; } }
 
 /* works-with strip */
 .ticker { margin: 0 auto; max-width: 1140px; padding: 0 24px; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
@@ -378,50 +424,28 @@ td.us { background: rgba(0, 194, 255, 0.08); color: var(--ink); font-weight: 600
         </div>
       </div>
       <div class="hero-art" role="img" aria-label="Illustration: a laptop, a desktop, a cloud server and a phone, each running an agent, all syncing to one private git repository.">
-        <svg class="net" viewBox="0 0 560 560" aria-hidden="true">
-          <circle class="ring" cx="280" cy="280" r="128"/>
-          <circle class="pulse" cx="280" cy="280" r="70"/>
-          <path class="route" d="M140 168 V250 H206"/>
-          <path class="route t" d="M420 168 V250 H354"/>
-          <path class="route t" d="M150 402 H186 V312 H206"/>
-          <path class="route" d="M410 402 H374 V312 H354"/>
-          <circle class="node" cx="140" cy="250" r="4"/>
-          <circle class="node" cx="420" cy="250" r="4"/>
-          <circle class="node" cx="186" cy="402" r="4"/>
-          <circle class="node" cx="374" cy="402" r="4"/>
-          <!-- laptop -->
-          <rect class="dev-fill" x="92" y="92" width="96" height="62" rx="3"/>
-          <path class="dev" d="M100 100 H180 V146 H100 Z M80 154 H200 L190 166 H90 Z"/>
-          <text class="lbl" x="86" y="190">laptop / claude</text>
-          <!-- desktop -->
-          <rect class="dev-fill" x="368" y="88" width="104" height="68" rx="2"/>
-          <path class="dev" d="M376 96 H464 V148 H376 Z M420 156 V170 M402 172 H438"/>
-          <text class="lbl" x="376" y="196">desk / codex</text>
-          <!-- server -->
-          <path class="dev" d="M96 380 H200 V402 H96 Z M96 406 H200 V428 H96 Z M96 432 H200 V454 H96 Z"/>
-          <circle cx="108" cy="391" r="3" fill="#10b981"/><circle cx="108" cy="417" r="3" fill="#10b981"/><circle cx="108" cy="443" r="3" fill="#10b981"/>
-          <path class="dev" d="M150 391 H188 M150 417 H188 M150 443 H188"/>
-          <text class="lbl" x="92" y="480">cloud / hermes</text>
-          <!-- phone -->
-          <rect class="dev-fill" x="412" y="366" width="48" height="84" rx="8"/>
-          <path class="dev" d="M428 438 H444 M420 378 H452 V430 H420 Z"/>
-          <text class="lbl" x="392" y="480">phone / kimi</text>
-          <!-- nest -->
-          <defs><linearGradient id="hubgrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0ea5b7"/><stop offset=".5" stop-color="#38bdf8"/><stop offset="1" stop-color="#ec4899"/></linearGradient></defs>
-          <rect class="hub" x="198" y="234" width="164" height="92" rx="20"/>
-          <rect class="hub-ring" x="198" y="234" width="164" height="92" rx="20"/>
-          <text class="hub-t" x="280" y="278" text-anchor="middle">your-nest.git</text>
-          <text class="hub-s" x="280" y="302" text-anchor="middle">SHARED MEMORY</text>
-        </svg>
-        <liquid-glass class="pcard a" aria-hidden="true" radius="22" lightness="66" alpha="0.58" frost="0.05" border-color="rgba(255,255,255,0.58)" scale="16" displace="1" blur="4" saturation="150" lens="rim" lens-strength="0.32"><div class="pc-in">
-          <div class="pc-top"><span>AGENT</span><b>SYNCED</b></div>
-          <div class="pc-body"><span class="av av-c">C</span><div class="pc-rows"><div><span>ID</span><span>claude-a7k2</span></div><div><span>HOST</span><span>laptop</span></div><div><span>MEM</span><span>18 topics</span></div></div></div>
-          <div class="pc-bars"><i></i><i></i><i></i></div>
+        <liquid-glass class="nest-app" aria-hidden="true" radius="28" lightness="66" alpha="0.58" frost="0.05" border-color="rgba(255,255,255,0.58)" scale="16" displace="1" blur="4" saturation="150" lens="rim" lens-strength="0.32"><div class="app">
+          <div class="app-bar">
+            <span class="dots"><i></i><i></i><i></i></span>
+            <span class="app-title">your-nest.git <em>· main</em></span>
+            <span class="sync"><i></i>Synced</span>
+          </div>
+          <div class="agents"><div class="ag"><span class="av av-c">C</span><div class="ag-t"><b>Claude Code</b><small>laptop</small></div><span class="st ok" title=""><i></i>synced</span></div><div class="ag"><span class="av av-x">X</span><div class="ag-t"><b>Codex</b><small>desk</small></div><span class="st busy" title=""><i></i>writing</span></div><div class="ag"><span class="av av-k">K</span><div class="ag-t"><b>Kimi Code</b><small>phone</small></div><span class="st ok" title=""><i></i>synced</span></div><div class="ag"><span class="av av-h">H</span><div class="ag-t"><b>Hermes</b><small>cloud</small></div><span class="st idle" title=""><i></i>idle</span></div></div>
+          <div class="feed-h"><span>Live memory activity</span><span class="feed-src">git log</span></div>
+          <div class="feed"><ul class="feed-track"><li class="fi"><span class="vb vb-w">write</span><div class="fi-t"><p><b>claude-a7k2</b> new lesson: never run a bare <code>git stash</code></p><code class="fi-p">agents/3th/claude/git-discipline.md</code></div><time>now</time></li><li class="fi"><span class="vb vb-p">pull</span><div class="fi-t"><p><b>codex</b> picked up 3 updates from the laptop</p><code class="fi-p">pull --rebase · fast-forward</code></div><time>12s</time></li><li class="fi"><span class="vb vb-r">route</span><div class="fi-t"><p><b>codex</b> index matched one topic for this task</p><code class="fi-p">shared/memory.md → git-discipline.md</code></div><time>14s</time></li><li class="fi"><span class="vb vb-m">mail</span><div class="fi-t"><p><b>hermes</b> left a note for Codex: deploy finished</p><code class="fi-p">outbox/2026-09-29-deploy.md</code></div><time>3m</time></li><li class="fi"><span class="vb vb-d">distill</span><div class="fi-t"><p><b>distill</b> merged 2 facts into shared memory</p><code class="fi-p">shared/engineering.md</code></div><time>1h</time></li><li class="fi"><span class="vb vb-c">commit</span><div class="fi-t"><p><b>kimi-9c73</b> updated project status</p><code class="fi-p">projects/app.md</code></div><time>2h</time></li><li class="fi"><span class="vb vb-w">write</span><div class="fi-t"><p><b>claude-a7k2</b> new lesson: never run a bare <code>git stash</code></p><code class="fi-p">agents/3th/claude/git-discipline.md</code></div><time>now</time></li><li class="fi"><span class="vb vb-p">pull</span><div class="fi-t"><p><b>codex</b> picked up 3 updates from the laptop</p><code class="fi-p">pull --rebase · fast-forward</code></div><time>12s</time></li><li class="fi"><span class="vb vb-r">route</span><div class="fi-t"><p><b>codex</b> index matched one topic for this task</p><code class="fi-p">shared/memory.md → git-discipline.md</code></div><time>14s</time></li><li class="fi"><span class="vb vb-m">mail</span><div class="fi-t"><p><b>hermes</b> left a note for Codex: deploy finished</p><code class="fi-p">outbox/2026-09-29-deploy.md</code></div><time>3m</time></li></ul></div>
+          <div class="meter">
+            <div class="m-row"><span>Session start reads</span><b>640 <small>tok</small></b></div>
+            <div class="m-bar"><i></i></div>
+            <div class="m-sub">instead of 69.6k when every file is loaded</div>
+          </div>
         </div></liquid-glass>
-        <liquid-glass class="pcard b" aria-hidden="true" radius="22" lightness="66" alpha="0.58" frost="0.05" border-color="rgba(255,255,255,0.58)" scale="16" displace="1" blur="4" saturation="150" lens="rim" lens-strength="0.32"><div class="pc-in">
-          <div class="pc-top"><span>AGENT</span><b>1 NEW MSG</b></div>
-          <div class="pc-body"><span class="av av-x">X</span><div class="pc-rows"><div><span>ID</span><span>codex</span></div><div><span>HOST</span><span>desk</span></div><div><span>LOAD</span><span>~640 tok</span></div></div></div>
-          <div class="pc-bars"><i></i><i></i><i></i></div>
+        <liquid-glass class="float-card fc-a" aria-hidden="true" radius="18" lightness="66" alpha="0.58" frost="0.05" border-color="rgba(255,255,255,0.58)" scale="16" displace="1" blur="4" saturation="150" lens="rim" lens-strength="0.32"><div class="fc">
+          <span class="fc-ic ic-route"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 14h6M13 12l2 2-2 2"/></svg></span>
+          <div><b>Topic index hit</b><small>memory.md → git-discipline.md</small></div>
+        </div></liquid-glass>
+        <liquid-glass class="float-card fc-b" aria-hidden="true" radius="18" lightness="66" alpha="0.58" frost="0.05" border-color="rgba(255,255,255,0.58)" scale="16" displace="1" blur="4" saturation="150" lens="rim" lens-strength="0.32"><div class="fc">
+          <span class="fc-ic ic-hand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h11l-3-3"/><path d="M17 17H6l3 3"/></svg></span>
+          <div><b>Handoff across tools</b><small>Claude wrote it · Codex read it</small></div>
         </div></liquid-glass>
       </div>
     </div>

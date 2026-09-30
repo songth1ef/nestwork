@@ -16,6 +16,18 @@
 
 ## Unreleased
 
+### 变更 —— 协议正文瘦身（行为不变，协议仍为 3.2）
+
+- `AGENTS.md` 从 649 行减到约 530 行。章节编号不变，已有的「§N」引用仍然有效。搬出去的内容原处留一行指针：§4 claude-mem 导出细节 → `docs/claude-code-memory.md`；§9 `nestwork.config.json` 字段表与流程 → `docs/workflow-protocol.md`（规则仍留在 §9）；§10 各仓库文档清单和内联项目模板 → 改为引用 `projects/_template.md`；§13 carryover 条目格式与恢复步骤 → 新文档 `docs/tool-memory-carryover.md`。
+- §6 删掉手写记忆索引示例。它早于主题记忆，与 3.1「记忆索引只能生成、不许手改」的规则矛盾；记忆作用域改为通过主题记忆拆分，其他文件仍按「文件夹 + 索引」手动拆分。
+- 去掉各标题上「(protocol v2.4+)」之类的版本标注；版本历史以本更新日志为准。
+
+### 移除
+
+- `scripts/maintenance/compile.sh`：纯拼接生成 `shared/memory.md`，已被经审阅的 `distill.py` 流程取代，在主题记忆模式下本来就会拒绝运行。`update.sh` 不删除文件，已有实例会留一份不再使用的副本，可手动删除。
+- `scripts/maintenance/migrate-v2.sh`：2026-04 的协议 1.x → 2.0 目录迁移脚本。
+- `projects/nestwork.md`：停在 2026-04 的过时示例，每个新建的模板实例都会继承它；参考模板仍是 `projects/_template.md`。
+
 ### 协议 v3.2 —— 常驻态势（增量兼容）
 
 - **常驻层从「只路由」变成「先定向」。** `shared/resident.md` 可以写一小段使用者简介，以及从 `queen/strategy.md` 摘出的当前目标、优先级和 Non-Goals（注明复核日期，strategy 仍是权威来源）。3.0 的常驻层只放路由，agent 每次开场都不知道在为谁工作、目标是什么。

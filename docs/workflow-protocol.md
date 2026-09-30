@@ -133,6 +133,18 @@ When the agent prompts the user to create a config, the default content is:
 
 `custom_rules` ships with placeholder entries to **force** the user to think about what's confidential before ingesting anything.
 
+### Field semantics
+
+| Field | Values | Meaning |
+|---|---|---|
+| `ingest.target` | `projects` / `workflow` / `null` | Which Nestwork category receives content. `null` = not ingestable. |
+| `ingest.name` | string | Destination filename or subfolder under the target. |
+| `desensitize.level` | `none` / `weak` / `strong` | How aggressively content must be desensitized before ingestion. |
+| `desensitize.custom_rules` | string[] | User-defined rules specific to this directory (employer names, internal codenames, etc.). Layered on top of the global methodology. |
+| `desensitize.placeholder_overrides` | object (term → placeholder), optional | Mapping from sensitive term to preferred placeholder. Overrides the default placeholder vocabulary in `docs/desensitization-prompt.md`. |
+
+The config governs the **source side** only; it does not constrain what your private instance does with the artifact afterwards.
+
 ---
 
 ## Desensitization levels
@@ -208,6 +220,6 @@ When the user changes `custom_rules` (e.g., joins a new company), all future ing
 
 - `AGENTS.md` Section 7 — Memory Distillation Protocol (parallel mechanism for `shared/`)
 - `AGENTS.md` Section 8 — Workflow Protocol (canonical rules)
-- `AGENTS.md` Section 9 — `nestwork.config.json` Contract (canonical schema)
+- `AGENTS.md` Section 9 — `nestwork.config.json` Contract (canonical rules; this page holds the flow and field details)
 - `docs/desensitization-prompt.md` — AI prompt template for `strong` desensitization
 - `schemas/nestwork.config.schema.json` — JSON Schema for `nestwork.config.json`

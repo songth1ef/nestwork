@@ -49,7 +49,7 @@ Load only the resident tier:
 1. `queen/agent-rules.md` — core behavior rules
 2. `shared/resident.md` — small, current cross-agent facts and retrieval pointers, if present
 3. `agents/<host>/<agent-id>/resident.md` — small instance-specific facts and pointers, if present
-4. `local/recent.md` — generated recent-activity digest, if present (protocol 3.2+)
+4. `local/recent.md` — generated recent-activity digest, if present
 
 Resident files orient the agent before any lookup: who the owner is, what they
 are currently aiming for, and what moved recently. `shared/resident.md` may
@@ -77,7 +77,7 @@ Residency controls loading, not authority (see Priority Rules). Verify dated
 project state before acting on it.
 See [loading and migration](docs/context-loading.md) when maintaining context.
 
-**Directory layout** (protocol v2.0+): agents are grouped by host.
+**Directory layout**: agents are grouped by host.
 `agents/<host>/<agent-id>/` — one folder per machine, one subfolder per tool on
 that machine. Example: `agents/workstation/claude-a7k2/`.
 
@@ -141,20 +141,11 @@ details or one-off debugging notes.
 
 ## 4. claude-mem Integration (optional)
 
-For Claude Code: if [claude-mem](https://github.com/thedotmack/claude-mem) is installed and its worker is running on `localhost:37777`, nestwork automatically exports a digest of today's observations at the end of each session:
-
-```
-agents/<host>/<agent-id>/claude-mem-digest.md   ← today's observations from claude-mem
-```
-
-The export itself does not commit; the next memory sync (a per-write or Stop hook in a later session) commits and pushes the digest with the rest of your agent memory, giving claude-mem's observations cross-machine reach via git.
-
-**No configuration needed.** The export runs in the Claude Code SessionEnd hook (once per session, not every turn) and is skipped without error when the claude-mem worker is not reachable.
-
-To override the worker URL:
-```bash
-export CLAUDE_MEM_URL=http://localhost:37777
-```
+If [claude-mem](https://github.com/thedotmack/claude-mem) runs locally, the
+Claude Code SessionEnd hook exports today's observations to
+`agents/<host>/<agent-id>/claude-mem-digest.md`; the next memory sync commits
+it. It is skipped silently when the worker is unreachable. Details:
+[Claude Code memory](docs/claude-code-memory.md#optional-claude-mem-export).
 
 ---
 
@@ -171,41 +162,17 @@ If `git pull` finds conflicts:
 
 ### Universal rule
 
-**Any markdown file in a Nestwork repository** — memory, plans, projects,
-workflow, drafts, ad-hoc notes — must be split when it grows too large. The
-pattern is always the same: the original filename becomes a folder, content is
-split into topic files inside it, and the original file (or `index.md` inside
-the folder) becomes a pure index — links only, no content.
+Any markdown file in a Nestwork repository must be split before it grows past
+its limit. **Memory scopes** (`shared/`, `agents/<host>/<agent-id>/`) split
+into topic files with a generated index (Topic memory, below). **Other files**
+(projects, workflow, plans, notes) split the same way by hand: the file becomes
+a folder of topic files, and the original file (or `index.md` inside the
+folder) becomes a links-only index.
 
-```
-plan-all.md  (1200 lines)
-  ↓ split
-plan-all.md  (now an index pointing into plan-all/)
-plan-all/plan-a.md
-plan-all/plan-b.md
-plan-all/plan-c.md
-```
-
-An index looks like this:
-
-```markdown
-# MEMORY — claude-macbook
-
-## Index
-
-- [User Profile](user_profile.md) — role, stack, preferences
-- [Collaboration](feedback_collab.md) — working style, corrections
-- [Project: nestwork](project_nestwork.md) — goals, decisions
-```
-
-Each linked file is a standalone topic file. Agents read the index first and
-follow a link only when its topic is relevant.
-
-**Agent rule**: before writing to or extending a Nestwork context markdown file
-(not unrelated project artifacts), check its current line count against its
-limit (specific or default, below). If the file is approaching the hard limit,
-split it first, then write to the appropriate topic file. Resident files also
-have byte budgets; see `docs/context-loading.md`.
+**Agent rule**: before extending a Nestwork context markdown file (not
+unrelated project artifacts), check it against its limit below. Near the hard
+limit, split first, then write to the right topic file. Resident files have
+byte budgets instead; see `docs/context-loading.md`.
 
 ### Default thresholds
 
@@ -220,8 +187,8 @@ For files not listed under Specific limits:
 |---|---|---|
 | `queen/agent-rules.md` | 80 | `queen/rules/<topic>.md` |
 | `queen/strategy.md` | 80 | `queen/strategy/<topic>.md` |
-| `agents/<host>/<agent-id>/memory.md` | 200 | `agents/<host>/<agent-id>/<topic>.md` |
-| `shared/memory.md` | 500 | `shared/<topic>.md` |
+| `agents/<host>/<agent-id>/memory.md` | 200 | topic memory in `agents/<host>/<agent-id>/` |
+| `shared/memory.md` | 500 | topic memory in `shared/` |
 | `projects/<name>.md` | 150 | `projects/<name>/<topic>.md` |
 | `workflow/<topic>.md` | 200 | `workflow/<topic>/<subtopic>.md` |
 
@@ -240,7 +207,7 @@ A larger model window does not justify proportionally larger files: attention
 still degrades with token count, and selective loading stays sharper with
 focused, topic-split files.
 
-### Topic memory (protocol v3.1+)
+### Topic memory
 
 A **memory scope** is `shared/` or `agents/<host>/<agent-id>/`. A scope opts in
 to topic storage by putting the index markers `<!-- nestwork:topic-index:begin -->`
@@ -290,8 +257,6 @@ Rules:
   `outbox/`, `local/`, `carryover/`, `comms/`, `inbox/` or `archive/`; any
   path component starting with `_` or `.`.
 - Scopes without markers keep single-file memory; nothing migrates automatically.
-  `compile.sh` refuses to run on a topic-mode `shared/`, because concatenation
-  would undo the split.
 
 ---
 
@@ -363,7 +328,7 @@ they configured. `--dry-run` prints the candidate without writing.
 
 1. **Distillation from agent memory**: when an agent observes a stable user-level pattern across multiple sessions, it may distill it into `workflow/<topic>.md`. The §7 distillation rules apply, with `workflow/` as the target instead of `shared/`.
 
-2. **Ingestion from external source dirs**: when content from a working directory outside Nestwork (e.g. an employer project repo) is worth absorbing, the source dir must declare a `nestwork.config.json` (see §9). The agent reads that config, applies its desensitization rules, and writes the cleaned result into `workflow/<topic>.md` or `projects/<name>.md`.
+2. **Ingestion from external source dirs**: content from a working directory outside Nestwork (e.g. an employer repo) is ingested only under that directory's `nestwork.config.json` and its desensitization rules (§9).
 
 ### Direction is one-way
 
@@ -372,124 +337,52 @@ they configured. `--dry-run` prints the candidate without writing.
 
 Whether any artifact is later promoted to public sharing (blog, upstream template, etc.) is always a **separate human decision**, not protocol-driven.
 
-### File size
-
-200-line limit per topic file (§6). Split by subtopic when exceeded.
-
 ---
 
 ## 9. `nestwork.config.json` Contract
 
-`nestwork.config.json` is a **directory-level metadata file** declaring whether and how content from a working directory may be ingested into a Nestwork repository.
+A source working directory (never the nest) may declare `nestwork.config.json`
+to allow ingestion into `projects/` or `workflow/`. Rules:
 
-### Where it lives
+- No config → do not ingest; ask the user to create one, defaulting to
+  `desensitize.level: "strong"`.
+- Ingestion is always agent-proposed and human-confirmed, never automatic.
+- Specific names to redact live only in the user's `custom_rules`, never upstream.
 
-In the **source working directory**, NOT inside Nestwork. Example:
-
-```
-~/code/<some-project>/nestwork.config.json
-```
-
-When an agent operating in that directory detects content worth ingesting into Nestwork's `projects/` or `workflow/` category, it reads this config to determine ingestion behavior.
-
-### When config is missing
-
-- Agent **must** remind the user to create one before ingesting anything from that directory.
-- Default template **must** set `desensitize.level: "strong"`.
-- Agent **never** silently proceeds without a config.
-
-### Schema
-
-See `schemas/nestwork.config.schema.json`. Minimum example:
-
-```json
-{
-  "$schema": "https://github.com/songth1ef/nestwork/schemas/nestwork.config.schema.json",
-  "version": "1.0",
-  "ingest": {
-    "target": "projects",
-    "name": "my-app"
-  },
-  "desensitize": {
-    "level": "strong",
-    "custom_rules": []
-  }
-}
-```
-
-### Field semantics
-
-| Field | Values | Meaning |
-|---|---|---|
-| `ingest.target` | `projects` / `workflow` / `null` | Which Nestwork category receives content. `null` = not ingestable. |
-| `ingest.name` | string | Destination filename or subfolder under the target. |
-| `desensitize.level` | `none` / `weak` / `strong` | How aggressively content must be desensitized before ingestion. |
-| `desensitize.custom_rules` | string[] | User-defined rules specific to this directory (employer names, internal codenames, etc.). Layered on top of the global methodology. |
-| `desensitize.placeholder_overrides` | object (term → placeholder), optional | Mapping from sensitive term to preferred placeholder. Overrides the default placeholder vocabulary in `docs/desensitization-prompt.md`. |
-
-### Desensitization levels
-
-- `none` — no transformation (only valid when content is verifiably non-confidential)
-- `weak` — pattern-based redaction following `custom_rules`
-- `strong` — AI-driven semantic desensitization following the methodology in `docs/desensitization-prompt.md`, plus all `custom_rules`
-
-### Constraints
-
-- Ingestion is **always agent-driven and manually triggered**; never automatic.
-- The config governs the **source side** only. It does not constrain what your private instance does with the artifact afterwards.
-- Upstream `nestwork` provides only the methodology and prompt template for desensitization. Specific blacklists (employer names, project codenames) live in each user's `custom_rules` — never in upstream.
+Schema: `schemas/nestwork.config.schema.json`. Flow, fields and
+desensitization levels: [workflow protocol](docs/workflow-protocol.md).
 
 ---
 
 ## 10. Layer Boundary: Nestwork vs Per-Repo Docs
 
-Each working repository should maintain its own 5-doc skeleton (protocol v2.3+):
-
-| File (in repo root or `docs/`) | Purpose |
-|---|---|
-| `AGENT.md` | Per-repo agent behavior directives (entry file pointing to the others) |
-| `docs/conventions.md` | Coding standards: naming, directory layout, component patterns, git rules |
-| `docs/domain.md` | Business description: core concepts, glossary, business rules |
-| `docs/architecture.md` | System architecture: module boundaries, data flow, tech-stack rationale |
-| `docs/lessons.md` | Lessons learned: bugs hit, validated decisions, mistakes not to repeat |
+Each working repository keeps its own deep docs (for example `AGENT.md` plus
+`docs/conventions.md`, `domain.md`, `architecture.md`, `lessons.md`).
 
 Nestwork is the **cross-repo coordination layer** sitting *above* the per-repo docs. The boundary:
 
 | Layer | Lives in | Scope |
 |---|---|---|
-| **Per-repo 5-doc** | `<repo>/AGENT.md` + `<repo>/docs/*.md` | Project-internal deep knowledge, travels with the repo |
+| **Per-repo docs** | `<repo>/AGENT.md` + `<repo>/docs/*.md` | Project-internal deep knowledge, travels with the repo |
 | **Nestwork `projects/<name>.md`** | this repo | Project **snapshot + collaboration state** (see §10.1), shared across machines |
 | **Nestwork `decisions/`** | this repo | **Protocol-level** ADRs (see §10.2). Project-level ADRs stay in the repo. |
 | **Nestwork `workflow/<topic>.md`** | this repo | Cross-project portable methodology (see §8) |
 | **Nestwork `queen/`** | this repo | Global behavior rules and strategy |
 | **Nestwork `agents/<host>/<id>/`** | this repo | Single-agent private memory |
 
-Rule of thumb: **if it changes when you switch employers, it belongs in the repo's 5-doc; if it survives the switch, it belongs in nestwork's `workflow/`**. State that helps an agent resume work goes in nestwork's `projects/<name>.md`.
+Rule of thumb: **if it changes when you switch employers, it belongs in the repo's docs; if it survives the switch, it belongs in nestwork's `workflow/`**. State that helps an agent resume work goes in nestwork's `projects/<name>.md`.
 
 ### 10.1. `projects/<name>.md` recommended fields
 
-When writing a project status file, the following five fields are recommended (not strictly required — agents may keep additional notes if useful, but should preserve these as the minimum readable snapshot):
+Five fields are the recommended minimum for a project status file:
+**Current Goal**, **Current State**, **Next Action** (one concrete step),
+**Do Not** (scope limits, traps, blockers) and **Last Verified** (date + what
+was verified). Copy
+`projects/_template.md`. The recent-activity digest reads Current Goal,
+Next Action and Last Verified, so keep them current on active projects.
 
-```markdown
-## Current Goal
-The single most important goal for this project right now.
-
-## Current State
-What's been done so far; where work is paused.
-
-## Next Action
-The recommended next step (single concrete action, not a plan).
-
-## Do Not
-Things explicitly out of scope, or known traps. Includes blockers if applicable.
-
-## Last Verified
-Date + what was last verified working. So later sessions know how stale the file is.
-```
-
-A reference template ships at `projects/_template.md`.
-
-Deeper project knowledge (architecture, domain, conventions, full ADRs) belongs in the repo's own 5-doc files, not duplicated here.
+Deeper project knowledge (architecture, domain, conventions, full ADRs) belongs
+in the repo's own docs, not here.
 
 ### 10.2. `decisions/` — protocol-level ADRs only
 
@@ -497,17 +390,15 @@ Deeper project knowledge (architecture, domain, conventions, full ADRs) belongs 
 
 A reference template ships at `decisions/_template.md`; `decisions/README.md` indexes upstream's ADRs with their status.
 
-Reasoning: capturing **why** is the highest-leverage form of memory. ADR format (Context / Decision / Consequence) is industry-standard; nestwork uses it for protocol evolution so future maintainers don't relitigate settled choices.
-
 ### 10.3. `workflow/lessons.md` — cross-repo lessons
 
-The repo-level `docs/lessons.md` (5-doc #5) captures lessons specific to that codebase. When a lesson is transferable across repos (e.g. "Git Bash on Windows has no `hostname -s`"), distill it into `workflow/lessons.md` (single file at first; split into `workflow/lessons/<topic>.md` if it exceeds the 200-line limit per §6).
+The repo-level `docs/lessons.md` captures lessons specific to that codebase. When a lesson is transferable across repos (e.g. "Git Bash on Windows has no `hostname -s`"), distill it into `workflow/lessons.md` (single file at first; split into `workflow/lessons/<topic>.md` if it exceeds the 200-line limit per §6).
 
 This file is **not shipped by upstream** — each user creates their own as lessons accumulate. `update.sh` does not touch it.
 
 ---
 
-## 11. Upstream Protocol Check (session start, protocol v2.3+)
+## 11. Upstream Protocol Check
 
 The SessionStart hook (`scripts/hooks/session-start.sh`) compares the local `protocol-version` marker with upstream `nestwork`'s `AGENTS.md`, with a 3-second network timeout that never blocks startup. If upstream is newer, the hook appends a one-line advisory to its output. The agent relays the advisory to the user and asks whether to run `bash scripts/maintenance/update.sh`.
 
@@ -521,7 +412,7 @@ The user remains in control: the hook only emits an advisory; nothing is applied
 
 ---
 
-## 12. High-churn artefacts: per-agent orphan branches (protocol v2.4+)
+## 12. High-churn artefacts: per-agent orphan branches
 
 > [!CAUTION]
 > `sync_local_history` is recommended **off** for now (it is off by default;
@@ -574,7 +465,7 @@ For any future high-churn, poorly compressing artefact: **default to a per-agent
 
 ---
 
-## 13. Tool-native memory carryover (protocol v2.5+)
+## 13. Tool-native memory carryover
 
 Every coding agent keeps its own memory, and as of 2026-07 **all of it is machine-local**:
 
@@ -624,20 +515,10 @@ The resident/on-demand split is the one people get wrong. Ask whether the entry 
 
 ### Restoring onto another machine
 
-Some tools derive their project directory name from the repository's **absolute path**, so the same repository produces a different name on a machine with a different drive or checkout location. Every carryover entry therefore records both the original directory name and the repository it referred to:
-
-```markdown
-## <one-line title>
-
-- **source**: `~/.claude/projects/<project-dir>/memory/<file>.md`
-- **original project dir**: `<project-dir>` (repository: `<repo path>`)
-- **carried on**: YYYY-MM-DD
-- **criterion**: cold — needed only on restore
-
-<body, keeping the original Why / How-to-apply structure>
-```
-
-On restore, recompute the directory name from the new machine's repository path and write the content back there.
+Every carryover entry records its source path, the original project directory
+name and the repository it referred to, because some tools derive that
+directory name from the repository's absolute path. Entry format and restore
+steps: [tool memory carryover](docs/tool-memory-carryover.md).
 
 ### Notes
 

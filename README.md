@@ -197,7 +197,7 @@ portable context, not secrets or unreviewed employer-confidential material.
 | [Customize your nest](#customize-your-nest) | Edit `queen/` `projects/` `workflow/` layers |
 | [Context layers](#context-layers-workflow-and-external-ingestion) | `workflow/` cross-project knowledge layer + `nestwork.config.json` ingestion contract for external dirs |
 | [Real workflow examples](#real-workflow-examples) | Multi-machine collaboration / tool migration / employer-project knowledge ingestion |
-| [Compile shared memory](#compile-shared-memory-distillation) | `compile.sh` concat vs `distill.py` LLM distillation, non-destructive merge into `shared/` |
+| [Compile shared memory](#compile-shared-memory-distillation) | `distill.py` LLM distillation, reviewed, non-destructive merge into `shared/` |
 | [Agent mailbox](#agent-mailbox-inter-agent-messaging) | git-native inter-agent messaging: single-writer outbox, available on demand, zero external deps |
 | [Directory structure](#directory-structure) / [Line limits](#file-size-limits-and-split-protocol) | Repo layout + file split protocol |
 | [Supported tools](#supported-tools) | Claude Code / Codex / Gemini / Kimi Code / Hermes / OpenClaw / Doubao Work / WorkBuddy AI / generic any markdown-config CLI + IDE plugin symlinks |
@@ -400,9 +400,6 @@ The employer name never appears in the nest repo; the methodology is preserved. 
 When agents have accumulated enough memory, merge it into `shared/memory.md`:
 
 ```bash
-# Pure concat: concatenate agents/*/memory.md, commit, push
-bash ~/nestwork/scripts/maintenance/compile.sh
-
 # Vendor-agnostic: prints a distillation prompt for you to feed any agent session
 python3 ~/nestwork/scripts/maintenance/distill.py
 
@@ -415,7 +412,7 @@ git -C ~/nestwork diff -- shared/        # review, then commit as `memory: disti
 
 `--run-claude` (`claude -p`) and `--run-codex` (`codex exec`) are mutually exclusive; `--profile` applies to Codex only. None of these modify the original agent memory — distillation reads private memory and writes only `shared/`, with commit message `memory: distill shared`. Every agent picks up the result on its next `git pull`.
 
-If `shared/` uses topic memory, `distill.py` writes only the topic files that changed and regenerates the index; `compile.sh` refuses to run, because concatenation would undo the split.
+If `shared/` uses topic memory, `distill.py` writes only the topic files that changed and regenerates the index.
 
 The rules that make this safe — shared is a union and not an intersection, never delete, sub-agent review followed by human confirmation — are in [AGENTS.md](AGENTS.md) §7.
 
@@ -472,8 +469,8 @@ nestwork/
     ├── uninstall/              Per-tool uninstallers (unbind only; memory & identity kept)
     ├── hooks/                  Runtime hooks (pre/post/stop, session-start, optional sync)
     ├── comms/                  Agent mailbox (send / read / archive)
-    └── maintenance/            compile.sh · distill.py · memory-index.py · check-resident.py · measure-context.py · recent-digest.py
-                                update.sh · sync-claude-md.sh · migrate-v2.sh
+    └── maintenance/            distill.py · memory-index.py · check-resident.py · measure-context.py · recent-digest.py
+                                update.sh · sync-claude-md.sh
 ```
 
 ---
@@ -645,7 +642,7 @@ Each agent owns a directory under `agents/<host>/<agent-id>/`; regular memory wr
 |---|---|---|
 | `queen/` | You (human) | Won't (you have only two hands) |
 | `agents/<host>/<agent-id>/` | Only that agent | Won't for regular memory writes |
-| `shared/` | Only explicit `compile.sh` / `distill.py` | Won't during regular agent memory writes |
+| `shared/` | Only explicit `distill.py` runs | Won't during regular agent memory writes |
 | `projects/` | Agent or human | Multiple agents writing theoretically can; PreToolUse hook's `git pull --rebase` greatly reduces this |
 | `workflow/` | Agent or human | Same as above |
 
@@ -655,8 +652,7 @@ PreToolUse hook does `git pull --rebase` before each write, shrinking the race w
 
 Not automatically. You explicitly trigger distillation:
 
-- `compile.sh`: pure concat of all agent memory
-- `distill.py`: LLM distillation (recommended); prints a prompt for any agent, or runs end-to-end with `--run-claude` / `--run-codex`
+- `distill.py`: LLM distillation; prints a prompt for any agent, or runs end-to-end with `--run-claude` / `--run-codex`
 
 The distillation calls a sub-agent for review (sensitive data, factual contradictions, outdated entries) and you confirm the merge. Goal: non-destructive. Each agent's private memory is unchanged.
 

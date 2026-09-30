@@ -51,7 +51,7 @@ Git gives nestwork:
 
 ## Conflict model
 
-Each agent writes only to `agents/<host>/<agent-id>/`. Normal memory writes stay isolated because no two agents should write to the same file. Shared memory is updated by distillation (`scripts/maintenance/distill.py`) or, for single-file nests, by the plain concatenation script `compile.sh` — not by every agent at once. `compile.sh` refuses to run on a topic-mode `shared/`, because concatenation would undo the split.
+Each agent writes only to `agents/<host>/<agent-id>/`. Normal memory writes stay isolated because no two agents should write to the same file. Shared memory is updated only by reviewed distillation (`scripts/maintenance/distill.py`), not by every agent at once.
 
 ## Related docs
 

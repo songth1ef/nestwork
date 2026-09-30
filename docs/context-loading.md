@@ -1,22 +1,66 @@
-# Resident and on-demand context (protocol 3.1)
+# Resident and on-demand context (protocol 3.2)
 
 There are two loading tiers. Project context is part of the on-demand tier,
 not a third tier. Location and authority are independent of loading frequency.
 
 | Tier | Files | Read when |
 |---|---|---|
-| Resident | `queen/agent-rules.md`, `shared/resident.md`, `agents/<host>/<agent-id>/resident.md` | Once at startup; skip optional missing summaries |
+| Resident | `queen/agent-rules.md`, `shared/resident.md`, `agents/<host>/<agent-id>/resident.md`, generated `local/recent.md` | Once at startup; skip optional missing summaries |
 | On demand | Strategy, memory history, project files, workflows, carryover, inbox | The current task needs their information |
 
-Resident summaries contain only current, broadly useful facts, essential
-boundaries and a few retrieval pointers. Record source, applicability and
-review date. A link is a route, not a command to load its destination.
-Do not copy project backlogs, incident narratives, old status, or generic
-instructions that the host already supplies into resident context.
+Resident context answers three questions before any lookup: **who** the owner
+is, **what** they are currently aiming for, and **what moved** recently.
+Resident summaries contain current, broadly useful facts, essential
+boundaries, a short orientation, and a few retrieval pointers. Record source,
+applicability and review date. A link is a route, not a command to load its
+destination. Do not copy project backlogs, incident narratives, old status, or
+generic instructions that the host already supplies into resident context.
+
+### Orientation (3.2)
+
+Protocol 3.0 kept resident context to routing only. In practice an agent that
+starts without knowing who it works for or what the current goals are gives
+generic answers until it happens to look things up. Since 3.2,
+`shared/resident.md` may carry:
+
+- **Owner**: a few lines on who the user is and what they mainly work on.
+- **Current goals**: a summary of `queen/strategy.md` — the goals, current
+  priorities and non-goals — with its review date. The strategy file stays
+  authoritative and on demand; the summary is refreshed when it changes.
+
+Keep both short; they share the shared-resident budget below.
+
+### Recent-activity digest (3.2)
+
+"What moved recently" goes stale too fast to maintain by hand, so it is
+generated. At every session start the hook runs
+`scripts/maintenance/recent-digest.py`, which writes
+`local/recent.md` from git history:
+
+- `projects/*.md` touched in the last 30 days, with their Current Goal,
+  Next Action and Last Verified fields (AGENTS.md §10.1);
+- memory, workflow and topic files touched in the last 7 days, each with its
+  `description` front matter (or first heading). A commit that touches many
+  topics at once (a split or distillation) collapses into one line.
+
+It is one nest-level file shared by every agent, not a per-agent copy: its
+only input is synced git history, so every machine computes the same content.
+It is deliberately not committed — regenerating it each session would produce
+a commit per session start and cross-machine conflicts. The file is
+git-ignored (`/local/`), written atomically, capped at 2048 bytes, and marked as
+orientation only: dated state still needs verification, and past work is not a
+current assignment. Run the script by hand to preview it; `--days`,
+`--project-days` and `--max-bytes` tune the window. Tools without a
+SessionStart hook simply have no digest, and startup proceeds without it.
+
+The digest is only as good as its sources: keep the five fields of active
+`projects/<name>.md` files current, and give topic files trigger-style
+descriptions.
 
 Default maintenance budgets (UTF-8 bytes, not tokens): rules 4096, shared
-resident 4096, each agent resident 2048. The total for one startup is at most
-10240 bytes under these defaults, excluding the host's own instructions.
+resident 4096, each agent resident 2048, generated digest 2048 (enforced by
+the generator). The total for one startup is at most 12288 bytes under these
+defaults, excluding the host's own instructions.
 Run `python3 scripts/maintenance/check-resident.py` before committing context
 changes. It checks every resident file and never truncates content. Budgets are
 maintenance checks, not runtime permission to discard essential rules. An
@@ -71,6 +115,14 @@ renaming, merging or deleting topics; that stays a reviewed human decision.
 `scripts/maintenance/compile.sh` refuses to run on a topic-mode `shared/`,
 because concatenating agent memory into `memory.md` would undo the split.
 
+## Migration from 3.1
+
+Additive. `update.sh` brings the new hook and `recent-digest.py`; the next
+session start generates the digest. Optionally rerun each tool's installer so
+bootstraps for hookless tools list the digest path too. Add an owner/goals
+section to `shared/resident.md` when you are ready (see the example below);
+nothing breaks without it.
+
 ## Migration from 2.x
 
 This changes the startup contract, so the protocol major version is 3.0.
@@ -96,13 +148,22 @@ and updated protocol files remain encrypted in Git.
    a manifest, inspect the installed bootstrap for the same resident-only list.
    Missing summaries must not cause full-history loading. Check budgets.
 
-Shared routing-only example (paths relative to `shared/`):
+Shared example with orientation (paths relative to `shared/`):
 
 ```markdown
 # Shared resident context
 
+## Owner
+- Full-stack developer; main work: <product>; side goal: <goal>. Source: owner.md, reviewed 2026-09-30.
+
+## Current goals (summary of queen/strategy.md, updated 2026-09-22)
+1. <goal one, with its deadline>
+2. <goal two>
+- Now: <current priority>. Not now: <non-goals>.
+
+## Routing
 - Historical cross-agent knowledge: [memory](memory.md); search by task.
-- Current direction, when relevant: [strategy](../queen/strategy.md).
+- Full direction and rationale: [strategy](../queen/strategy.md).
 - Project state: `../projects/`; portable methods: `../workflow/`.
 ```
 

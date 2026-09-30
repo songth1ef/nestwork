@@ -1,6 +1,6 @@
 # NESTWORK BOOTSTRAP
 
-<!-- protocol-version: 3.1 -->
+<!-- protocol-version: 3.2 -->
 
 Every agent that loads this file returns context to the same shared nest.
 Follow this protocol exactly in every session.
@@ -34,9 +34,23 @@ Load only the resident tier:
 1. `queen/agent-rules.md` — core behavior rules
 2. `shared/resident.md` — small, current cross-agent facts and retrieval pointers, if present
 3. `agents/<host>/<agent-id>/resident.md` — small instance-specific facts and pointers, if present
+4. `local/recent.md` — generated recent-activity digest, if present (protocol 3.2+)
+
+Resident files orient the agent before any lookup: who the owner is, what they
+are currently aiming for, and what moved recently. `shared/resident.md` may
+therefore carry a short owner profile and a summary of current goals and
+priorities (source and review date noted; `queen/strategy.md` stays
+authoritative). `local/recent.md` is one nest-level file shared by all
+agents, rebuilt at every session start by `scripts/maintenance/recent-digest.py`
+from git history (recently touched `projects/*.md` fields and topic
+descriptions); it is git-ignored, capped at 2048 bytes and never edited by
+hand. It orients; it does not assign work.
 
 Where installed, the SessionStart hook prints these paths as a READ-ON-START
-manifest and the on-demand paths below as READ-ON-DEMAND.
+manifest and the on-demand paths below as READ-ON-DEMAND. If the nest is not
+checked out on its default branch, the hook skips the pull and prints a `[!]`
+warning instead: the files may not be this instance's context, so tell the user
+before relying on them.
 
 Everything else is **on demand**, including `queen/strategy.md`, historical
 `shared/memory.md`, agent `memory.md`, topic files, projects, workflows,

@@ -6,6 +6,7 @@
 #   session-start.sh <host> <agent-id>
 #
 # Emits resident file paths only, keeping stdout independent of memory size.
+# Resident = rules, shared/agent summaries and a generated recent-activity digest.
 # History, strategy, projects, workflows and inbox contents are on demand.
 # Missing resident summaries never fall back to loading historical memory.
 # Always exits 0 so unavailable context does not block the host application.
@@ -31,8 +32,38 @@ else
   NESTWORK_PATH_NATIVE="$NESTWORK_PATH"
 fi
 
-# Refresh, but never block on failure (offline, conflict, etc.)
-git pull --rebase --autostash -q 2>/dev/null || git rebase --abort 2>/dev/null || true
+# Branch guard: the nest must be on its default branch, otherwise every agent
+# silently reads another branch's context (e.g. an upstream feature branch left
+# checked out in a private instance) and the pull below rebases that branch.
+# Warn and skip the pull; never switch branches on the user's behalf.
+BRANCH_WARNING=""
+CURRENT_BRANCH="$(git symbolic-ref -q --short HEAD 2>/dev/null || true)"
+DEFAULT_BRANCH="$(git symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null || true)"
+DEFAULT_BRANCH="${DEFAULT_BRANCH#origin/}"
+if [ -n "$DEFAULT_BRANCH" ] && [ "$CURRENT_BRANCH" != "$DEFAULT_BRANCH" ]; then
+  BRANCH_WARNING="[!] Nestwork checkout is on '${CURRENT_BRANCH:-detached HEAD}', not '$DEFAULT_BRANCH': context below may not be this instance's; pull skipped. Tell the user; fix with: git -C $NESTWORK_PATH_NATIVE switch $DEFAULT_BRANCH"
+else
+  # Refresh, but never block on failure (offline, conflict, etc.)
+  git pull --rebase --autostash -q 2>/dev/null || git rebase --abort 2>/dev/null || true
+fi
+
+# Recent-activity digest (protocol 3.2): one nest-level file shared by every
+# agent. It is derived only from synced git history, so every machine computes
+# the same content; it stays git-ignored and is rebuilt each session instead of
+# being committed (no per-session commits, no cross-machine conflicts).
+RECENT_REL="local/recent.md"
+# Instances created before 3.2 lack `/local/` in .gitignore (update.sh does not
+# touch it), so ignore it via the repo-local exclude file; an untracked digest
+# would otherwise dirty the tree and block update.sh.
+EXCLUDE_FILE="$(git rev-parse --git-path info/exclude 2>/dev/null || true)"
+if [ -n "$EXCLUDE_FILE" ] && ! git check-ignore -q "$RECENT_REL" 2>/dev/null; then
+  mkdir -p "$(dirname "$EXCLUDE_FILE")" 2>/dev/null || true
+  printf '/local/\n' >> "$EXCLUDE_FILE" 2>/dev/null || true
+fi
+PYTHON_BIN="$(command -v python3 2>/dev/null || command -v python 2>/dev/null || true)"
+if [ -n "$PYTHON_BIN" ] && [ -f scripts/maintenance/recent-digest.py ]; then
+  "$PYTHON_BIN" scripts/maintenance/recent-digest.py --out "$RECENT_REL" >/dev/null 2>&1 || true
+fi
 
 # Agent mailbox (on demand): refresh this agent's unread-message snapshot into its
 # git-ignored local/ dir. List it only in READ-ON-DEMAND; refreshing the snapshot
@@ -51,10 +82,12 @@ manifest_line() {
 }
 
 printf 'nestwork context bundle for %s/%s\n' "$HOST_ID" "$AGENT_ID"
+[ -n "$BRANCH_WARNING" ] && printf '%s\n' "$BRANCH_WARNING"
 printf '\n=== READ-ON-START (resident files only) ===\n'
 manifest_line "queen/agent-rules.md"
 manifest_line "shared/resident.md"
 manifest_line "agents/$HOST_ID/$AGENT_ID/resident.md"
+manifest_line "$RECENT_REL"
 if [ ! -f queen/agent-rules.md ]; then
   printf '[!] Missing queen/agent-rules.md; report missing rules, do not guess.\n'
 fi

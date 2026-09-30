@@ -34,11 +34,12 @@ Claude Code can read instruction files, but project rules and long-term context 
 
 ## What gets loaded at session start?
 
-Since protocol 3.0 (current: 3.1), startup reads only:
+Since protocol 3.0 (current: 3.2), startup reads only:
 
 - `queen/agent-rules.md`
-- `shared/resident.md`, if present
+- `shared/resident.md`, if present (since 3.2 it may include a short owner profile and a goals summary)
 - `agents/<host>/<agent-id>/resident.md`, if present
+- `local/recent.md`, a recent-activity digest the hook generates from git history (3.2)
 
 The SessionStart hook emits these paths in READ-ON-START; the agent reads the
 files. Strategy, historical `memory.md`, projects, workflows and the inbox are

@@ -16,6 +16,13 @@
 
 ## Unreleased
 
+### 协议 v3.2 —— 常驻态势（增量兼容）
+
+- **常驻层从「只路由」变成「先定向」。** `shared/resident.md` 可以写一小段使用者简介，以及从 `queen/strategy.md` 摘出的当前目标、优先级和 Non-Goals（注明复核日期，strategy 仍是权威来源）。3.0 的常驻层只放路由，agent 每次开场都不知道在为谁工作、目标是什么。
+- **自动生成的最近动态。** 新增 `scripts/maintenance/recent-digest.py`，从 git 历史生成 `local/recent.md`：近 30 天改过的 `projects/*.md`（Current Goal / Next Action / Last Verified）和近 7 天改过的主题文件（取 `description`）；拆分之类的批量提交折叠成一行。上限 2048 字节，不进 git，由 SessionStart hook 每次重建并列入 READ-ON-START。启动块把它列为可选常驻文件，`measure-context.py` 也计入它。
+- **分支检查。** nest 不在默认分支（`origin/HEAD`）上时，SessionStart hook 跳过 `git pull` 并输出 `[!]` 警告和修复命令，不再悄悄 rebase 功能分支、把它的内容当成实例上下文。
+- 迁移：无需操作。`update.sh` 会带来新 hook 和脚本；重跑安装器可选（让无 hook 工具的启动块也列出最近动态）。见 `docs/context-loading.md`。
+
 ### 变更
 
 - **只用中性示例。** 文档、博客和测试改用虚构的主机名与 agent id（`laptop`、`workstation`、`cloud-vm`、`claude-a7k2`）以及通用项目名（`my-app`、`~/code/my-app`），不再使用从真实实例抄来的名称。新增 `tests/test_no_private_names.py`：发现真实主机、agent、雇主或私有仓库名就失败；名单只存被拦截词的 SHA-256 哈希，避免检查本身再次公开这些名称；本机存在 `~/.config/nestwork/private-names.txt` 时，也会读取其中的明文名单。

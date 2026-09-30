@@ -35,7 +35,7 @@
      no stored preference, so both URLs stay independently indexable. */
   try {
     var want = localStorage.getItem('nestwork_lang');
-    if (want && want !== 'en') location.replace(want === 'zh' ? 'https://songth1ef.github.io/nestwork/zh/' : 'https://songth1ef.github.io/nestwork/');
+    if (want && want !== 'en') location.replace('zh/');
   } catch (e) {}
 })();
 </script>
@@ -398,7 +398,7 @@ td.us { background: rgba(0, 194, 255, 0.08); color: var(--ink); font-weight: 600
       <a class="nav-hide" href="#compare">Compare</a>
       <a class="nav-hide" href="#quickstart">Install</a>
       <a class="nav-hide" href="#faq">FAQ</a>
-      <a href="https://songth1ef.github.io/nestwork/zh/" hreflang="zh-CN" data-lang-switch="zh">中文</a>
+      <a href="zh/" hreflang="zh-CN" data-lang-switch="zh">中文</a>
       <a class="nav-gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
     </nav>
   </div>
@@ -779,7 +779,7 @@ bash ~/nestwork/scripts/install/kimi.sh</code></pre>
       <a href="https://github.com/songth1ef/nestwork/blob/main/AGENTS.md" rel="noopener">Protocol</a>
       <a href="https://github.com/songth1ef/nestwork/blob/main/CHANGELOG.md" rel="noopener">Changelog</a>
       <a href="https://github.com/songth1ef/nestwork/issues" rel="noopener">Issues</a>
-      <a href="https://songth1ef.github.io/nestwork/zh/" hreflang="zh-CN" data-lang-switch="zh">中文</a>
+      <a href="zh/" hreflang="zh-CN" data-lang-switch="zh">中文</a>
     </span>
   </div>
 </footer>

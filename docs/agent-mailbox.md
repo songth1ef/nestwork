@@ -45,8 +45,8 @@ central component.
 ```
 ---
 id: 20260606T103000+0800-a0t3-a1b2c3d4   # globally unique (timestamp-agent-random)
-from: meizu21/claude-a0t3
-to:   vm-0-6-ubuntu/claude-va1k          # a host/agent, or "all" for broadcast
+from: phone/claude-p7q2
+to:   cloud-vm/claude-c3v9          # a host/agent, or "all" for broadcast
 type: task | message | broadcast
 thread: <thread id; the first message is its own thread>
 reply_to: <id being replied to, or empty>
@@ -74,7 +74,7 @@ cd <nestwork repo root>
 
 # send a task
 echo "please confirm receipt with a reply" | \
-  bash scripts/comms/send.sh vm-0-6-ubuntu/claude-va1k task "handshake test"
+  bash scripts/comms/send.sh cloud-vm/claude-c3v9 task "handshake test"
 
 # read unread messages addressed to me (view only)
 bash scripts/comms/read.sh

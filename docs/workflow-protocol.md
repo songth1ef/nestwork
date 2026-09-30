@@ -70,7 +70,7 @@ The boundary between Stage 2 and Stage 3 is a **human gate**. Protocol does not 
 |---|---|---|
 | "I prefer Vue 3 + TypeScript" | `shared/memory.md` (or a `shared/` topic file) | Stable user fact |
 | "Vue 3 components ≥ 1000 lines should be split by responsibility" | `workflow/coding-disciplines.md` | Methodology, portable |
-| "sign-mgt-web uses ant-design-vue@4.x with custom theme" | `projects/sign-mgt-web.md` | Project-specific |
+| "my-app uses ant-design-vue@4.x with custom theme" | `projects/my-app.md` | Project-specific |
 | "Today the agent observed user prefers `:loading` over spinning icons" | `agents/<host>/<id>/memory.md` | Single-session, may distill later |
 | "Hook architecture (PreToolUse + PostToolUse atomic write)" | `workflow/tooling-stack.md` | Methodology + setup guide |
 | "Strategy: prioritize small verifiable tools over platforms" | `queen/strategy.md` | Human-maintained direction |
@@ -88,7 +88,7 @@ The most common use case for `nestwork.config.json`: a working directory outside
 
 ### Trigger
 
-The agent is operating in some path (e.g., `F:/code/project/sign-mgt-web/`) and detects:
+The agent is operating in some path (e.g., `~/code/my-app/`) and detects:
 
 - Stable patterns the user follows in this codebase that aren't captured anywhere
 - Architectural decisions worth preserving across the user's career, not just this repo

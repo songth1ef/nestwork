@@ -63,6 +63,14 @@ def local_names():
     return {line.strip().lower() for line in path.read_text(encoding="utf-8").splitlines() if line.strip() and not line.startswith("#")}
 
 
+def is_private_instance():
+    """A nest created from this template holds real agent data; real names are
+    expected there, so this public-template guard does not apply."""
+    out = subprocess.run(["git", "-C", str(REPO_ROOT), "ls-files", "agents"],
+                         capture_output=True, text=True, check=True).stdout
+    return any(p and p != "agents/.gitkeep" for p in out.splitlines())
+
+
 def tracked_files():
     out = subprocess.run(["git", "-C", str(REPO_ROOT), "ls-files", "-z"], capture_output=True, text=True, check=True).stdout
     return [REPO_ROOT / p for p in out.split("\0") if p and not p.endswith(BINARY)]
@@ -90,6 +98,8 @@ class NoPrivateNamesTests(unittest.TestCase):
         self.assertEqual(violations("code at acme-corp/app", set(), {"acme"}), {"acme"})
 
     def test_tracked_files_contain_no_private_names(self):
+        if is_private_instance():
+            self.skipTest("private instance: real names are expected here")
         plain = local_names()
         report = []
         for path in tracked_files():

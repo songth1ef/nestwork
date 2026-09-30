@@ -51,7 +51,7 @@ jobs:
       # Workflow updates are synced via scripts/maintenance/update.sh
       # instead, which uses your local git auth that has workflow scope.
       PROTOCOL_PATHS: >-
-        scripts/ AGENTS.md CLAUDE.md SOUL.md README.md README.zh.md
+        scripts/ tests/ AGENTS.md CLAUDE.md SOUL.md README.md README.zh.md
         CHANGELOG.md CHANGELOG.zh.md VERSION llms.txt docs/ schemas/
         workflow/README.md workflow/_template.md projects/_template.md
         decisions/_template.md decisions/README.md

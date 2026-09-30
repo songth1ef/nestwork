@@ -15,6 +15,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 import articles as A
+import privacy_guard
 
 ROOT = Path(__file__).resolve().parent
 BASE = "https://songth1ef.github.io/nestwork/"
@@ -537,6 +538,9 @@ def main():
         page["out"].write_text(out, encoding="utf-8")
         print(f"wrote {page['out'].relative_to(ROOT)} ({len(out.encode())} bytes)")
     (ROOT / "sitemap.xml").write_text(sitemap(arts), encoding="utf-8")
+    for problem in privacy_guard.scan(ROOT):
+        print(f"FAIL {problem}")
+        failed = True
     print("wrote sitemap.xml")
     return int(failed)
 

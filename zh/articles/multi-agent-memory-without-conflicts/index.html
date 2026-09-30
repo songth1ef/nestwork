@@ -114,7 +114,7 @@ thead th { background: var(--bg-soft); color: var(--muted); font-size: 12.5px; f
 .site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
 .site-footer a { color: var(--text); text-decoration: none; margin-left: 18px; }
 
-/* ---------- liquid glass (same recipes as the homepage / apixo-web glass-surface.ts) ---------- */
+/* ---------- liquid glass (same recipes as the homepage) ---------- */
 body { background: #eef4fa; }
 body::before { content: ""; position: fixed; inset: -10vmax; z-index: -1; background:
   radial-gradient(38vmax 30vmax at 12% 8%, rgba(14, 165, 233, 0.38), transparent 62%),
@@ -189,7 +189,7 @@ th, td { border-bottom-color: rgba(15, 23, 42, 0.07); }
 <h2 id="一-写隔离-按主机-按-agent-分目录">一、写隔离：按主机、按 agent 分目录</h2>
 <p>每个 agent 实例只拥有一个目录：</p>
 <pre class="code"><code data-lang="text">agents/&lt;host&gt;/&lt;agent-id&gt;/
-agents/desktop-rkv5ls4/claude-a7k2/
+agents/workstation/claude-a7k2/
 agents/macbook/codex/</code></pre>
 <p>host 是小写的短主机名；agent-id 对需要区分实例的工具是 <code>&lt;工具名&gt;-&lt;4 位随机后缀&gt;</code>，否则就是工具名本身。安装脚本把它们存在 <code>~/.nestwork_host</code> 和 <code>~/.nestwork_id_&lt;tool&gt;</code> 里，所以同一台机器上装 Codex 不会改掉 Claude Code 的身份。</p>
 <p><a href="https://github.com/songth1ef/nestwork/blob/main/AGENTS.md" rel="noopener">AGENTS.md 第 2 节</a>的写入规则由此而来：</p>

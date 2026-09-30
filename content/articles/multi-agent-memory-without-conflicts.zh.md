@@ -25,7 +25,7 @@ date: 2026-09-27
 
 ```text
 agents/<host>/<agent-id>/
-agents/desktop-rkv5ls4/claude-a7k2/
+agents/workstation/claude-a7k2/
 agents/macbook/codex/
 ```
 

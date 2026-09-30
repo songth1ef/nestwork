@@ -114,7 +114,7 @@ thead th { background: var(--bg-soft); color: var(--muted); font-size: 12.5px; f
 .site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
 .site-footer a { color: var(--text); text-decoration: none; margin-left: 18px; }
 
-/* ---------- liquid glass (same recipes as the homepage / apixo-web glass-surface.ts) ---------- */
+/* ---------- liquid glass (same recipes as the homepage) ---------- */
 body { background: #eef4fa; }
 body::before { content: ""; position: fixed; inset: -10vmax; z-index: -1; background:
   radial-gradient(38vmax 30vmax at 12% 8%, rgba(14, 165, 233, 0.38), transparent 62%),
@@ -197,7 +197,7 @@ th, td { border-bottom-color: rgba(15, 23, 42, 0.07); }
 <h2 id="问题一-16-个-agent-一起写-不会打架吗">问题一：16 个 agent 一起写，不会打架吗</h2>
 <p>这是我最担心的。我现在手上是 Windows、macOS、好几台 Linux、还有一台安卓，加起来 16 个以上的 agent 实例。要是它们同时往一个仓里写，git 冲突不得满天飞。</p>
 <p>办法其实是物理隔离。每台机器、每个 agent，都只拥有自己的目录，也只写自己的目录。</p>
-<p>路径长这样：<code>agents/&lt;主机名&gt;/&lt;agent-id&gt;/</code>，比如 <code>agents/desktop-rkv5ls4/claude-i5bc/</code>。Windows 上的 Claude 写它那格，Mac 上的 Codex 写它那格，谁也不碰谁的私有记忆。冲突的前提是两个人改同一行，而这套布局让大家压根不写在同一个文件里。</p>
+<p>路径长这样：<code>agents/&lt;主机名&gt;/&lt;agent-id&gt;/</code>，比如 <code>agents/workstation/claude-e5f6/</code>。Windows 上的 Claude 写它那格，Mac 上的 Codex 写它那格，谁也不碰谁的私有记忆。冲突的前提是两个人改同一行，而这套布局让大家压根不写在同一个文件里。</p>
 <p>万一真撞上了呢？协议里写死了一条规则：自己目录里的冲突取本地，别人目录的冲突取远端，上游管理的公共部分，规则和共享记忆，取远端。谁拥有谁说了算，机器不用猜。</p>
 <h2 id="问题二-跨机器同步-会不会丢-会不会撞">问题二：跨机器同步，会不会丢、会不会撞</h2>
 <p>光分目录还不够。两台机器前后脚 push，中间那点时间差还是可能出岔子。</p>

@@ -114,7 +114,7 @@ thead th { background: var(--bg-soft); color: var(--muted); font-size: 12.5px; f
 .site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
 .site-footer a { color: var(--text); text-decoration: none; margin-left: 18px; }
 
-/* ---------- liquid glass (same recipes as the homepage / apixo-web glass-surface.ts) ---------- */
+/* ---------- liquid glass (same recipes as the homepage) ---------- */
 body { background: #eef4fa; }
 body::before { content: ""; position: fixed; inset: -10vmax; z-index: -1; background:
   radial-gradient(38vmax 30vmax at 12% 8%, rgba(14, 165, 233, 0.38), transparent 62%),
@@ -192,8 +192,8 @@ th, td { border-bottom-color: rgba(15, 23, 42, 0.07); }
 <p>每条消息是带 front matter 的 Markdown：</p>
 <pre class="code"><code data-lang="markdown">---
 id: 20260606T103000+0800-a0t3-a1b2c3d4
-from: meizu21/claude-a0t3
-to: vm-0-6-ubuntu/claude-va1k
+from: phone/claude-p7q2
+to: cloud-vm/claude-c3v9
 type: task
 thread: 20260606T103000+0800-a0t3-a1b2c3d4
 reply_to:
@@ -210,11 +210,11 @@ please confirm receipt with a reply</code></pre>
 
 # 发信：收件人、类型、主题；正文从标准输入读
 echo &quot;please confirm receipt with a reply&quot; | \
-  bash scripts/comms/send.sh vm-0-6-ubuntu/claude-va1k task &quot;handshake test&quot;
+  bash scripts/comms/send.sh cloud-vm/claude-c3v9 task &quot;handshake test&quot;
 
 # 在同一线程里回复：追加 thread id 和被回复的消息 id
 echo &quot;received, running now&quot; | \
-  bash scripts/comms/send.sh meizu21/claude-a0t3 message &quot;re: handshake test&quot; \
+  bash scripts/comms/send.sh phone/claude-p7q2 message &quot;re: handshake test&quot; \
   &lt;thread-id&gt; &lt;message-id&gt;
 
 # 查看发给我的未读消息（只看不标记）

@@ -32,8 +32,8 @@ Each message is Markdown with front matter:
 ```markdown
 ---
 id: 20260606T103000+0800-a0t3-a1b2c3d4
-from: meizu21/claude-a0t3
-to: vm-0-6-ubuntu/claude-va1k
+from: phone/claude-p7q2
+to: cloud-vm/claude-c3v9
 type: task
 thread: 20260606T103000+0800-a0t3-a1b2c3d4
 reply_to:
@@ -56,11 +56,11 @@ cd ~/nestwork
 
 # send: recipient, type, subject; the body comes from stdin
 echo "please confirm receipt with a reply" | \
-  bash scripts/comms/send.sh vm-0-6-ubuntu/claude-va1k task "handshake test"
+  bash scripts/comms/send.sh cloud-vm/claude-c3v9 task "handshake test"
 
 # reply in the same thread: add the thread id and the id you answer
 echo "received, running now" | \
-  bash scripts/comms/send.sh meizu21/claude-a0t3 message "re: handshake test" \
+  bash scripts/comms/send.sh phone/claude-p7q2 message "re: handshake test" \
   <thread-id> <message-id>
 
 # read unread mail addressed to me (view only)

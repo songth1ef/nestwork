@@ -16,7 +16,7 @@
 
 版本：v0.6.0 | 协议：3.1
 
-[![Protocol](https://img.shields.io/badge/protocol-3.1-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Kimi%20%7C%20Hermes%20%7C%20OpenClaw%20%7C%20Doubao-green)](#支持的工具) [![Storage](https://img.shields.io/badge/storage-git-orange)](#工作原理)
+[![Protocol](https://img.shields.io/badge/protocol-3.1-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Kimi%20%7C%20Hermes%20%7C%20OpenClaw%20%7C%20Doubao%20%7C%20WorkBuddy-green)](#支持的工具) [![Storage](https://img.shields.io/badge/storage-git-orange)](#工作原理)
 
 **nestwork 是面向 AI 编程 agent 的 git 原生记忆协议：持久记忆与共享上下文都存在你自己的 git 仓里。** 你的 AI agent 记忆跟着你跨 session、跨机器、跨工具。
 
@@ -75,10 +75,11 @@ Codex（Windows）：
 .\nestwork\scripts\install\codex.ps1
 ```
 
-Gemini CLI / Kimi Code / OpenClaw / Hermes 用法相同，把 `claude` 换成对应工具名。Doubao Work（豆包办公）是对话式客户端，安装同样一行：
+Gemini CLI / Kimi Code / OpenClaw / Hermes 用法相同，把 `claude` 换成对应工具名。Doubao Work（豆包办公）和 WorkBuddy AI 是对话式客户端，安装同样一行：
 
 ```bash
 bash scripts/install/doubao.sh
+bash scripts/install/workbuddy.sh
 ```
 
 完整列表见 [支持的工具](#支持的工具)。
@@ -113,7 +114,7 @@ bash ~/nestwork/scripts/uninstall/claude.sh     # macOS / Linux
 .\nestwork\scripts\uninstall\claude.ps1         # Windows
 ```
 
-`codex` / `gemini` / `kimi` / `hermes` / `openclaw` / `doubao` 同理换名；`generic` 需要带上安装时用的 `<prefix> <config-path>` 两个参数。若想连该工具的 agent id 一起清掉（下次安装作为全新 agent），加 `--purge-identity`（PowerShell 用 `-PurgeIdentity`）。
+`codex` / `gemini` / `kimi` / `hermes` / `openclaw` / `doubao` / `workbuddy` 同理换名；`generic` 需要带上安装时用的 `<prefix> <config-path>` 两个参数。若想连该工具的 agent id 一起清掉（下次安装作为全新 agent），加 `--purge-identity`（PowerShell 用 `-PurgeIdentity`）。
 
 ---
 
@@ -188,7 +189,7 @@ git 同步、优先级链、hook 全自动运行。想了解机制看 [工作原
 | [编译共享记忆](#编译共享记忆distillation) | `compile.sh` 拼接 vs `distill.py` LLM 蒸馏，非破坏性合并到 `shared/` |
 | [Agent 邮箱](#agent-邮箱agent-间通信) | git 原生的 agent 间通信：单写者发件箱、按需读取、零外部依赖 |
 | [目录结构](#目录结构) / [行数限制](#文件行数限制与拆分协议) | 仓库布局 + 文件拆分协议 |
-| [支持的工具](#支持的工具) | Claude Code / Codex / Gemini / Kimi Code / Hermes / OpenClaw / Doubao Work / generic 任何 markdown-config CLI + IDE 插件软链接 |
+| [支持的工具](#支持的工具) | Claude Code / Codex / Gemini / Kimi Code / Hermes / OpenClaw / Doubao Work / WorkBuddy AI / generic 任何 markdown-config CLI + IDE 插件软链接 |
 | [跟踪上游更新](#跟踪上游更新) | GitHub Action 自动 PR 或 `update.sh` 手动同步，不动你的私有数据 |
 | [FAQ](#faq) / [故障排查](#故障排查) | 常见疑问与排错清单 |
 | [不做什么](#不做什么non-goals) | nestwork 明确不解决的问题 |
@@ -504,6 +505,7 @@ nestwork/
 | OpenClaw | 开源 | `~/.openclaw/workspace/AGENTS.md` | `bash scripts/install/openclaw.sh` | 有入口，未亲测 |
 | Hermes Agent | 开源 | `~/.hermes/SOUL.md` | `bash scripts/install/hermes.sh` | 有入口，未亲测 |
 | Doubao Work | 字节跳动（豆包） | `~/.doubao/nestwork.md` | `bash scripts/install/doubao.sh` | 已适配，豆包办公亲测 |
+| WorkBuddy AI | 腾讯 | `~/.workbuddy-ai/nestwork.md` | `bash scripts/install/workbuddy.sh` | 已适配，WorkBuddy AI 亲测 |
 
 各工具的 hook 覆盖范围不同：
 
@@ -621,7 +623,7 @@ Fork 默认公开，且与上游强关联：`git merge upstream/main` 会与你�
 
 ### Claude Code 之外的工具能用 nestwork 吗？
 
-能。任何"启动时读 markdown 作为 system prompt"的 CLI 都能用 `install/generic.sh` 接入。Claude Code、Kimi Code 和 Codex 有逐次写入同步 hooks；没有这些 hooks 的工具靠"会话结束提交"协议，竞态窗口稍大但实际很少出问题。Doubao Work 属于后者——豆包没有本地 CLI 入口，`install/doubao.sh` 会把协议写入 `~/.doubao/nestwork.md`，会话内由豆包按协议执行 pull / commit / push。
+能。任何"启动时读 markdown 作为 system prompt"的 CLI 都能用 `install/generic.sh` 接入。Claude Code、Kimi Code 和 Codex 有逐次写入同步 hooks；没有这些 hooks 的工具靠"会话结束提交"协议，竞态窗口稍大但实际很少出问题。Doubao Work 和 WorkBuddy AI 属于后者——它们没有本地 CLI 入口，`install/doubao.sh` / `install/workbuddy.sh` 会把协议写入 `~/.doubao/nestwork.md` / `~/.workbuddy-ai/nestwork.md`，会话内由 agent 按协议执行 pull / commit / push。
 
 ### 多 agent 同时写会冲突吗？
 

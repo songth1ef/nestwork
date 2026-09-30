@@ -39,13 +39,13 @@ date: 2026-09-27
 - Helpful first, product second: explain the problem and the general approach, then how nestwork does it. No hype words ("revolutionary", "game-changing"), no fake urgency.
 
 ## Accuracy (hard rules)
-- nestwork facts must match the code and docs in `/Users/3th/Desktop/code/github/nestwork-measure` (the version about to land on main: protocol 3.1, topic memory, `distill.py` does not commit unless `--commit`, `measure-context.py`). Read the relevant `scripts/` and `docs/` before writing a claim.
+- nestwork facts must match the code and docs in a checkout of the nestwork repository at the commit being documented (the version about to land on main: protocol 3.1, topic memory, `distill.py` does not commit unless `--commit`, `measure-context.py`). Read the relevant `scripts/` and `docs/` before writing a claim.
 - Measured numbers you may use (author's own nest, 2026-09, o200k_base): 2.x-style full startup ~69,600 tokens (37 files, 224 KB); 3.x resident startup ~640 tokens; a git task (resident + index + one topic) ~3,600; the whole nest 180 memory files, ~369,000 tokens; 10 machines, 30+ agent instances, Windows/macOS/Linux/Android.
 - First-person experience only from `docs/blog/*.md` in that repo. Do not invent anecdotes, users, or numbers.
 - External claims (other products, benchmarks, vendor docs) must be checked with WebSearch/WebFetch and linked. If you cannot verify it, leave it out.
 - Claude Code / Codex / Kimi built-in memory is machine-local as of 2026 (per AGENTS.md §13 and vendor docs); verify before adding detail.
 - Installers: Claude Code and Codex are the author's daily drivers; Gemini, Kimi, Hermes, OpenClaw installers exist but are less battle-tested — say so where relevant.
-- **Never read `/Users/3th/Desktop/code/github/mynestwork`** or anything under `agents/` of any nest: that is private data.
+- **Never read a private nest** (anyone's own instance) or anything under `agents/`: that is private data. Use only the public template.
 
 ## All slugs (for cross-links)
 ai-agent-memory · agent-memory-benchmarks · agent-memory-tools-compared · agents-md-vs-claude-md-vs-memory ·

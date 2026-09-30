@@ -15,6 +15,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 import articles as A
+import privacy_guard
 
 ROOT = Path(__file__).resolve().parent
 BASE = "https://songth1ef.github.io/nestwork/"
@@ -33,7 +34,7 @@ PAGES = {
         "og_alt": "nestwork: your agents remember. One private git repo as shared memory for every AI coding agent.",
         "title": "nestwork — AI Agent Memory for Claude Code, Codex & Gemini",
         "description": "Git-native AI agent memory: give Claude Code, Codex, Gemini and Kimi one persistent memory across sessions, machines and tools. No server, no lock-in.",
-        "switch_href": BASE + "zh/", "switch_lang": "zh", "switch_hreflang": "zh-CN", "switch_label": "中文",
+        "switch_href": "zh/", "switch_lang": "zh", "switch_hreflang": "zh-CN", "switch_label": "中文",
         "nav_label": "Primary",
         "term_label": "Example session start: the agent loads two resident files and lists the rest as on-demand.",
         "tree_label": "Repository layout of a nestwork memory repo",
@@ -53,7 +54,7 @@ PAGES = {
         "og_alt": "nestwork：让你的 AI agent 记得住。一个私有 git 仓库，作为所有 AI 编程 agent 的共享记忆。",
         "title": "nestwork：AI Agent 记忆，让 Claude Code、Codex 共享长期记忆",
         "description": "git 原生的 AI agent 记忆：让 Claude Code、Codex、Gemini、Kimi 跨会话、跨机器、跨工具共享同一份长期记忆，无需服务器，不被厂商锁定。",
-        "switch_href": BASE, "switch_lang": "en", "switch_hreflang": "en", "switch_label": "EN",
+        "switch_href": "../", "switch_lang": "en", "switch_hreflang": "en", "switch_label": "EN",
         "nav_label": "主导航",
         "term_label": "会话启动示例：agent 只加载两个常驻文件，其余列为按需读取。",
         "tree_label": "nestwork 记忆仓库的目录结构",
@@ -453,7 +454,7 @@ def build_articles(arts):
                 "og_image": BASE + ("og-zh.png" if lang == "zh" else "og.png"),
                 "hreflang": hreflang_links(arts[slug]["en"]["url"], arts[slug]["zh"]["url"]),
                 "home_url": home_url, "index_url": "../",
-                "switch_url": other["url"], "switch_lang": other["lang"],
+                "switch_url": art["root"] + ("zh/" if other["lang"] == "zh" else "") + f"articles/{slug}/", "switch_lang": other["lang"],
                 "switch_hreflang": "zh-CN" if other["lang"] == "zh" else "en",
                 "kind": html.escape(ui["stories"] if is_story else ui["guides"]),
                 "minutes": str(A.reading_minutes(art["body"], lang)),
@@ -492,7 +493,7 @@ def build_articles(arts):
             "description": html.escape(ui["index_desc"], quote=True), "url": index_url, "root": root,
             "og_type": "website", "og_image": BASE + ("og-zh.png" if lang == "zh" else "og.png"),
             "hreflang": hreflang_links(BASE + "articles/", BASE + "zh/articles/"),
-            "home_url": "../", "index_url": "./", "switch_url": other_url,
+            "home_url": "../", "index_url": "./", "switch_url": root + ("zh/" if lang == "en" else "") + "articles/",
             "switch_lang": "en" if lang == "zh" else "zh", "switch_hreflang": "en" if lang == "zh" else "zh-CN",
             "kind": html.escape(ui["articles"]), "minutes": str(len(guides) + len(stories)),
             "min": "篇" if lang == "zh" else "articles", "date": UPDATED, "body": body,
@@ -537,6 +538,9 @@ def main():
         page["out"].write_text(out, encoding="utf-8")
         print(f"wrote {page['out'].relative_to(ROOT)} ({len(out.encode())} bytes)")
     (ROOT / "sitemap.xml").write_text(sitemap(arts), encoding="utf-8")
+    for problem in privacy_guard.scan(ROOT):
+        print(f"FAIL {problem}")
+        failed = True
     print("wrote sitemap.xml")
     return int(failed)
 

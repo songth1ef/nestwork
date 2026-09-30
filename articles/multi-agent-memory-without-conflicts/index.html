@@ -114,7 +114,7 @@ thead th { background: var(--bg-soft); color: var(--muted); font-size: 12.5px; f
 .site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
 .site-footer a { color: var(--text); text-decoration: none; margin-left: 18px; }
 
-/* ---------- liquid glass (same recipes as the homepage / apixo-web glass-surface.ts) ---------- */
+/* ---------- liquid glass (same recipes as the homepage) ---------- */
 body { background: #eef4fa; }
 body::before { content: ""; position: fixed; inset: -10vmax; z-index: -1; background:
   radial-gradient(38vmax 30vmax at 12% 8%, rgba(14, 165, 233, 0.38), transparent 62%),
@@ -165,7 +165,7 @@ th, td { border-bottom-color: rgba(15, 23, 42, 0.07); }
     <a class="badge" href="../../">nestwork</a>
     <nav class="nav" aria-label="Articles">
       <a href="../">Articles</a>
-      <a href="https://songth1ef.github.io/nestwork/zh/articles/multi-agent-memory-without-conflicts/" hreflang="zh-CN" data-lang-switch="zh">中文</a>
+      <a href="../../zh/articles/multi-agent-memory-without-conflicts/" hreflang="zh-CN" data-lang-switch="zh">中文</a>
       <a class="gh" href="https://github.com/songth1ef/nestwork" rel="noopener">GitHub ★</a>
     </nav>
   </div>
@@ -189,7 +189,7 @@ th, td { border-bottom-color: rgba(15, 23, 42, 0.07); }
 <h2 id="1-write-isolation-one-directory-per-host-and-agent">1. Write isolation: one directory per host and agent</h2>
 <p>Every agent instance owns exactly one directory:</p>
 <pre class="code"><code data-lang="text">agents/&lt;host&gt;/&lt;agent-id&gt;/
-agents/desktop-rkv5ls4/claude-a7k2/
+agents/workstation/claude-a7k2/
 agents/macbook/codex/</code></pre>
 <p>The host is the lowercased short hostname; the agent id is <code>&lt;tool&gt;-&lt;4-char suffix&gt;</code> for tools that run several instances, or just <code>&lt;tool&gt;</code>. The installer saves them in <code>~/.nestwork_host</code> and <code>~/.nestwork_id_&lt;tool&gt;</code>, so installing Codex never changes Claude Code's identity on the same machine.</p>
 <p>The write rules in <a href="https://github.com/songth1ef/nestwork/blob/main/AGENTS.md" rel="noopener">AGENTS.md §2</a> follow from that:</p>

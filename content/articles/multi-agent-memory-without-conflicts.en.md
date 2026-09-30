@@ -25,7 +25,7 @@ Every agent instance owns exactly one directory:
 
 ```text
 agents/<host>/<agent-id>/
-agents/desktop-rkv5ls4/claude-a7k2/
+agents/workstation/claude-a7k2/
 agents/macbook/codex/
 ```
 

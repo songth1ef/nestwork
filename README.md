@@ -24,10 +24,8 @@ clicks **Use this template** inherits a frontend project.
 - `articles/img/` — article images (1200px JPEG; keep them small).
 - `fonts/` — self-hosted OFL fonts (Inter Tight; VT323 is unused now) with their licenses.
 - `vendor/simple-liquid-glass-4.1.0.js` — the MIT `<liquid-glass>` web component
-  (license alongside), the same library apixo-web uses. Glass surfaces are plain
-  CSS using apixo-web's recipes (`components/apixo-ui/glass-surface.ts`,
-  `liquid-glass.tsx`); on fine-pointer desktop screens the component is imported
-  on idle to add rim refraction (Chromium) — the same policy as `ApixoLiquidGlass`.
+  (license alongside). Glass surfaces are plain CSS; on fine-pointer desktop
+  screens the component is imported on idle to add rim refraction (Chromium).
 - No third-party requests at runtime: fonts are self-hosted; no analytics, no CDN.
 
 ## Editing

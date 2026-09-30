@@ -16,6 +16,10 @@
 
 ## Unreleased
 
+### 变更
+
+- **只用中性示例。** 文档、博客和测试改用虚构的主机名与 agent id（`laptop`、`workstation`、`cloud-vm`、`claude-a7k2`）以及通用项目名（`my-app`、`~/code/my-app`），不再使用从真实实例抄来的名称。新增 `tests/test_no_private_names.py`：发现真实主机、agent、雇主或私有仓库名就失败；名单只存被拦截词的 SHA-256 哈希，避免检查本身再次公开这些名称；本机存在 `~/.config/nestwork/private-names.txt` 时，也会读取其中的明文名单。
+
 ### 新增
 
 - **Codex CLI 支持逐次写入记忆同步。** Codex 安装脚本现在在 `^(apply_patch|Edit|Write)$` 上注册 PreToolUse / PostToolUse，外加 Stop，运行与 Claude Code、Kimi Code 相同的 `nestwork.sh`；`_match-file.py` 从 `apply_patch` 的补丁头（行首的 `*** Add/Update/Delete File:` / `Move to:`，相对路径按 payload 的 `cwd` 解析）读取目标路径。Codex 会把 Stop hook 的标准输出当 JSON 解析，所以 hook 保持标准输出为空。卸载会移除全部 4 类事件并保留用户自己的 hook。**已安装 Codex 的用户：重跑 `scripts/install/codex.sh`，然后在 Codex 里运行一次 `/hooks` 确认信任新 hook。**

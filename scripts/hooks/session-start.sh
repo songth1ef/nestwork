@@ -23,7 +23,7 @@ cd "$NESTWORK_PATH" || exit 0
 
 # Native-format path for the manifest. On Git Bash / MSYS the pwd above yields
 # `/f/code/...`, which the agent's Read tool on Windows cannot resolve. cygpath
-# -m converts to mixed format (`F:/code/...`); on POSIX hosts cygpath is absent
+# -m converts to mixed format (`C:/code/...`); on POSIX hosts cygpath is absent
 # and we keep the original POSIX path.
 if command -v cygpath >/dev/null 2>&1; then
   NESTWORK_PATH_NATIVE="$(cygpath -m "$NESTWORK_PATH" 2>/dev/null || printf '%s' "$NESTWORK_PATH")"

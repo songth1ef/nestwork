@@ -36,7 +36,7 @@ This was my biggest worry. Right now I've got Windows, macOS, several Linux mach
 
 The answer, it turns out, is physical isolation. Every machine, every agent, owns only its own directory, and writes only to its own directory.
 
-The path looks like this: `agents/<host>/<agent-id>/`, for example `agents/desktop-rkv5ls4/claude-i5bc/`. Claude on Windows writes to its cell, Codex on the Mac writes to its cell, and nobody touches anybody else's private memory. A conflict requires two people editing the same line, and this layout means they aren't even writing in the same file to begin with.
+The path looks like this: `agents/<host>/<agent-id>/`, for example `agents/workstation/claude-e5f6/`. Claude on Windows writes to its cell, Codex on the Mac writes to its cell, and nobody touches anybody else's private memory. A conflict requires two people editing the same line, and this layout means they aren't even writing in the same file to begin with.
 
 And if there really is a collision? The protocol hardcodes a rule: in your own directory, conflicts take local; in someone else's directory, conflicts take remote; for the upstream-managed common parts, the rules and the shared memory, take remote. Whoever owns it decides. The machine doesn't have to guess.
 

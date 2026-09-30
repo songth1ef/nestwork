@@ -65,7 +65,7 @@ See [loading and migration](docs/context-loading.md) when maintaining context.
 
 **Directory layout** (protocol v2.0+): agents are grouped by host.
 `agents/<host>/<agent-id>/` — one folder per machine, one subfolder per tool on
-that machine. Example: `agents/desktop-rkv5ls4/claude-a7k2/`.
+that machine. Example: `agents/workstation/claude-a7k2/`.
 
 **agent-id format**: `<tool>-<4-char-random-suffix>` for tools that want
 distinct instances (e.g. `claude-a7k2`), or just `<tool>` for tools that
@@ -373,7 +373,7 @@ Whether any artifact is later promoted to public sharing (blog, upstream templat
 In the **source working directory**, NOT inside Nestwork. Example:
 
 ```
-F:/code/project/<some-project>/nestwork.config.json
+~/code/<some-project>/nestwork.config.json
 ```
 
 When an agent operating in that directory detects content worth ingesting into Nestwork's `projects/` or `workflow/` category, it reads this config to determine ingestion behavior.
@@ -394,7 +394,7 @@ See `schemas/nestwork.config.schema.json`. Minimum example:
   "version": "1.0",
   "ingest": {
     "target": "projects",
-    "name": "sign-mgt-web"
+    "name": "my-app"
   },
   "desensitize": {
     "level": "strong",

@@ -46,32 +46,32 @@ class IdentityTests(unittest.TestCase):
         TMP_ROOT.mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=TMP_ROOT) as tmp:
             home = Path(tmp)
-            (home / ".nestwork_host").write_text("desktop-rkv5ls4\n", encoding="utf-8")
-            (home / ".nestwork_id").write_text("claude-rb46\n", encoding="utf-8")
+            (home / ".nestwork_host").write_text("workstation\n", encoding="utf-8")
+            (home / ".nestwork_id").write_text("claude-b4d8\n", encoding="utf-8")
 
             identity = self.run_identity(home, "claude", "--with-suffix")
 
-            self.assertEqual(identity, ["desktop-rkv5ls4", "claude-rb46"])
+            self.assertEqual(identity, ["workstation", "claude-b4d8"])
             self.assertEqual(
                 (home / ".nestwork_id_claude").read_text(encoding="utf-8").strip(),
-                "claude-rb46",
+                "claude-b4d8",
             )
 
     def test_codex_install_does_not_replace_existing_claude_identity(self) -> None:
         TMP_ROOT.mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=TMP_ROOT) as tmp:
             home = Path(tmp)
-            (home / ".nestwork_host").write_text("desktop-rkv5ls4\n", encoding="utf-8")
-            (home / ".nestwork_id").write_text("claude-i5bc\n", encoding="utf-8")
+            (home / ".nestwork_host").write_text("workstation\n", encoding="utf-8")
+            (home / ".nestwork_id").write_text("claude-e5f6\n", encoding="utf-8")
 
             codex = self.run_identity(home, "codex")
             claude = self.run_identity(home, "claude", "--with-suffix")
 
-            self.assertEqual(codex, ["desktop-rkv5ls4", "codex"])
-            self.assertEqual(claude, ["desktop-rkv5ls4", "claude-i5bc"])
-            self.assertEqual((home / ".nestwork_id").read_text(encoding="utf-8").strip(), "claude-i5bc")
+            self.assertEqual(codex, ["workstation", "codex"])
+            self.assertEqual(claude, ["workstation", "claude-e5f6"])
+            self.assertEqual((home / ".nestwork_id").read_text(encoding="utf-8").strip(), "claude-e5f6")
             self.assertEqual((home / ".nestwork_id_codex").read_text(encoding="utf-8").strip(), "codex")
-            self.assertEqual((home / ".nestwork_id_claude").read_text(encoding="utf-8").strip(), "claude-i5bc")
+            self.assertEqual((home / ".nestwork_id_claude").read_text(encoding="utf-8").strip(), "claude-e5f6")
 
     @classmethod
     def tearDownClass(cls) -> None:

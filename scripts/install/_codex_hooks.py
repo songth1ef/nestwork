@@ -45,12 +45,15 @@ NESTWORK_EVENTS = ("PreToolUse", "PostToolUse", "Stop", "SessionEnd")
 
 
 def is_nestwork_hook(command: str) -> bool:
-    if "nestwork" not in command:
-        return False
+    # Match on nestwork's own script paths, like the Claude installer does. Do
+    # not require "nestwork" in the command: a nest cloned to ~/memory or
+    # ~/my-nest has no such substring, and re-installing would stack duplicate
+    # hooks instead of replacing them.
+    command = command.replace("\\", "/")
     return (
-        "sync-local-history.sh" in command
-        or "launch-local-history-sync.py" in command
-        or "scripts/hooks/nestwork.sh" in command
+        "scripts/hooks/nestwork.sh" in command
+        or "scripts/hooks/launch-local-history-sync.py" in command
+        or "scripts/hooks/sync-local-history.sh" in command
     )
 
 

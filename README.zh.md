@@ -1,6 +1,6 @@
 # nestwork
 
-> 协议 3.1：启动只读核心规则和少量共享/实例常驻摘要，历史与项目资料按需检索；记忆作用域还可选择拆成主题文件，由生成的索引路由。从 2.x 升级须刷新各工具的启动块，见[迁移指南](docs/context-loading.md)。
+> 协议 3.2：启动读核心规则、少量共享/实例常驻摘要（含使用者是谁与当前目标）和自动生成的最近动态，历史与项目资料按需检索；记忆作用域还可选择拆成主题文件，由生成的索引路由。从 2.x 升级须刷新各工具的启动块，见[迁移指南](docs/context-loading.md)。
 
 ```text
           ♕           //  _   __ ______ _____ ______ _       __ ____  ____  __ __
@@ -14,9 +14,9 @@
 
 [English](README.md) | 中文
 
-版本：v0.6.0 | 协议：3.1
+版本：v0.6.0 | 协议：3.2
 
-[![Protocol](https://img.shields.io/badge/protocol-3.1-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Kimi%20%7C%20Hermes%20%7C%20OpenClaw%20%7C%20Doubao%20%7C%20WorkBuddy-green)](#支持的工具) [![Storage](https://img.shields.io/badge/storage-git-orange)](#工作原理)
+[![Protocol](https://img.shields.io/badge/protocol-3.2-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Kimi%20%7C%20Hermes%20%7C%20OpenClaw%20%7C%20Doubao%20%7C%20WorkBuddy-green)](#支持的工具) [![Storage](https://img.shields.io/badge/storage-git-orange)](#工作原理)
 
 **nestwork 是面向 AI 编程 agent 的 git 原生记忆协议：持久记忆与共享上下文都存在你自己的 git 仓里。** 你的 AI agent 记忆跟着你跨 session、跨机器、跨工具。
 
@@ -213,7 +213,7 @@ Session 开始
   ↓
 git pull --rebase                          (SessionStart hook 自动)
   ↓
-只读规则和共享/实例 resident.md             (hook 提供路径)
+读规则、共享/实例 resident.md 与 local/recent.md (hook 提供路径)
   ↓
 围绕当前任务执行；需要续接/协调时再查历史和方向
   ↓
@@ -449,6 +449,7 @@ nestwork/
 ├── shared/
 │   ├── resident.md             少量共享常驻索引
 │   └── memory.md               跨 agent 编译后的记忆，或其主题索引
+├── local/recent.md             自动生成、所有 agent 共用的最近动态（不进 git）
 ├── projects/<project>.md       项目上下文
 ├── workflow/<topic>.md         跨项目可迁移知识
 ├── decisions/                  协议级 ADR
@@ -460,7 +461,7 @@ nestwork/
     ├── uninstall/              按工具卸载器（只解绑，记忆与身份保留）
     ├── hooks/                  运行时 hook（pre/post/stop、session-start、可选同步）
     ├── comms/                  Agent 邮箱（send / read / archive）
-    └── maintenance/            compile.sh · distill.py · memory-index.py · check-resident.py · measure-context.py
+    └── maintenance/            compile.sh · distill.py · memory-index.py · check-resident.py · measure-context.py · recent-digest.py
                                 update.sh · sync-claude-md.sh · migrate-v2.sh
 ```
 
@@ -583,7 +584,7 @@ bash scripts/install/generic.sh <prefix> <config-path>
 
 两条路径，都不碰你的私有数据（`agents/`、`queen/`、`shared/`、`projects/`、`workflow/<topic>.md`）。
 
-**从 2.x 升级还需刷新工具启动块。** `update.sh` 和同步 PR 只更新仓库文件，不会自动重写各机器的工具配置。同步到 3.x 后，在每台机器重跑已使用工具的安装器（或 `_bootstrap.py`），再开启新会话。不要因缺少 `resident.md` 而加载整份历史。3.0 → 3.1 无需刷新启动块，主题记忆按作用域自愿启用。见[迁移指南](docs/context-loading.md)。
+**从 2.x 升级还需刷新工具启动块。** `update.sh` 和同步 PR 只更新仓库文件，不会自动重写各机器的工具配置。同步到 3.x 后，在每台机器重跑已使用工具的安装器（或 `_bootstrap.py`），再开启新会话。不要因缺少 `resident.md` 而加载整份历史。3.0 → 3.1 → 3.2 无需刷新启动块，主题记忆与常驻态势均为自愿启用。见[迁移指南](docs/context-loading.md)。
 
 ### GitHub Action（走 PR）
 
@@ -658,7 +659,7 @@ PreToolUse hook 在每次写入前 `git pull --rebase`，把竞态窗口压到�
 
 ### 协议会经常 breaking change 吗？
 
-当前协议为 **3.1**（3.0 启动契约 + 可选主题记忆）。`protocol-version` 用 `MAJOR.MINOR`；MINOR 是增量兼容，MAJOR 可能需要迁移。2.x → 3.0 改变启动加载契约：同步协议后，须刷新每个工具的启动块并开启新会话。历史记忆保留，见[迁移指南](docs/context-loading.md)。仓库软件版本 `VERSION`（目前 v0.6.0）与协议版本独立编号。
+当前协议为 **3.2**（3.0 启动契约 + 可选主题记忆 + 常驻态势与自动生成的最近动态）。`protocol-version` 用 `MAJOR.MINOR`；MINOR 是增量兼容，MAJOR 可能需要迁移。2.x → 3.0 改变启动加载契约：同步协议后，须刷新每个工具的启动块并开启新会话。历史记忆保留，见[迁移指南](docs/context-loading.md)。仓库软件版本 `VERSION`（目前 v0.6.0）与协议版本独立编号。
 
 ### 跨语言 / 中英文混用怎么处理？
 
@@ -776,7 +777,8 @@ git remote set-url origin <你的私有 git>
 - v2.4（2026-05-08）：新增 §12 高频 artefact 的孤儿分支策略。`agents/*/*/local/` 默认 `.gitignore`，由 `agent-history-<host>-<agent-id>` 单 commit 滚动覆盖快照（force-push）。解决启用 `sync_local_history` 后 main 历史无界膨胀（实测 mynestwork 从 177 MB 降到 1.6 MB）。
 - v2.5（2026-07-28）：新增 §13 工具原生记忆结转。每个编码 agent 自己的记忆都是机器本地的（Claude Code / Codex / Kimi Code 一样），换机器即归零——而账号级记忆则随账号一起消失。新增保留冷路径 `agents/<host>/<agent-id>/carryover/<tool>.md`，接收经 §7 流程**蒸馏**过的工具原生记忆（不是原样镜像），且绝不在会话启动时注入。
 - v3.0（2026-09-06）：启动仅核心规则 + 可选常驻摘要；历史、战略、项目、工作流与邮箱按需检索。旧实例需刷新工具启动块并开启新会话，历史数据保留。
-- v3.1（2026-09-27，当前协议）：可选主题记忆——作用域的 `memory.md` 变成由主题文件 `description` 前置元数据生成的索引，agent 读索引后只打开匹配的文件。增量兼容，见[上下文加载](docs/context-loading.md)。
+- v3.2（2026-09-30，当前协议）：常驻态势——`shared/resident.md` 可写使用者简介与当前目标摘要；SessionStart hook 生成不进 git 的最近动态（`local/recent.md`，≤2 KB），并在 nest 不在默认分支时报警。增量兼容，见[上下文加载](docs/context-loading.md)。
+- v3.1（2026-09-27）：可选主题记忆——作用域的 `memory.md` 变成由主题文件 `description` 前置元数据生成的索引，agent 读索引后只打开匹配的文件。增量兼容，见[上下文加载](docs/context-loading.md)。
 
 完整协议规范见 [AGENTS.md](AGENTS.md)。
 

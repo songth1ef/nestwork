@@ -10,6 +10,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 HOOK_SRC = REPO_ROOT / "scripts" / "hooks" / "session-start.sh"
 READ_SRC = REPO_ROOT / "scripts" / "comms" / "read.sh"
+DIGEST_SRC = REPO_ROOT / "scripts" / "maintenance" / "recent-digest.py"
 SEND_SRC = REPO_ROOT / "scripts" / "comms" / "send.sh"
 
 
@@ -66,7 +67,7 @@ class SessionStartTests(unittest.TestCase):
         (self.repo / "AGENTS.md").write_text(
             "# NESTWORK BOOTSTRAP\n\n<!-- protocol-version: 2.4 -->\n", encoding="utf-8"
         )
-        (self.repo / ".gitignore").write_text("agents/*/*/local/\n", encoding="utf-8")
+        (self.repo / ".gitignore").write_text("agents/*/*/local/\n/local/\n", encoding="utf-8")
 
         self.hook = self.repo / "scripts" / "hooks" / "session-start.sh"
         self.hook.parent.mkdir(parents=True)
@@ -159,6 +160,64 @@ class SessionStartTests(unittest.TestCase):
 
         self.assertFalse(inbox.exists())
         self.assertNotIn("local/inbox.md", out)
+
+    def install_digest(self) -> None:
+        dst = self.repo / "scripts" / "maintenance" / "recent-digest.py"
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(DIGEST_SRC, dst)
+
+    def test_recent_digest_is_generated_and_resident(self) -> None:
+        self.install_digest()
+        project = self.repo / "projects" / "alpha.md"
+        project.parent.mkdir()
+        project.write_text(
+            "# alpha\n\n## Current Goal\nShip v1\n\n## Next Action\nWrite the launch post\n",
+            encoding="utf-8",
+        )
+        self.git("add", ".")
+        self.git("commit", "-q", "-m", "project alpha")
+
+        out = self.run_hook()
+
+        recent = self.repo / "local" / "recent.md"
+        self.assertTrue(recent.exists())
+        self.assertIn("Write the launch post", recent.read_text(encoding="utf-8"))
+        hot = out.split("=== READ-ON-START", 1)[1].split("=== READ-ON-DEMAND", 1)[0]
+        self.assertIn(f"- {self.repo}/local/recent.md", hot)
+        self.assertNotIn("launch post", out)  # paths only, never contents
+        self.assertEqual(self.git("status", "--porcelain").stdout, "")
+
+    def test_digest_is_ignored_even_without_gitignore_entry(self) -> None:
+        # Instances from before 3.2 keep their old .gitignore (update.sh skips it).
+        (self.repo / ".gitignore").write_text("agents/*/*/local/\n", encoding="utf-8")
+        self.git("commit", "-q", "-am", "old gitignore")
+        self.install_digest()
+        self.git("add", ".")
+        self.git("commit", "-q", "-m", "digest script")
+
+        self.run_hook()
+        self.run_hook()  # idempotent: exclude entry is not appended twice
+
+        self.assertTrue((self.repo / "local" / "recent.md").exists())
+        self.assertEqual(self.git("status", "--porcelain").stdout, "")
+        exclude = (self.repo / ".git" / "info" / "exclude").read_text(encoding="utf-8")
+        self.assertEqual(exclude.count("/local/"), 1)
+
+    def test_without_digest_script_manifest_is_unchanged(self) -> None:
+        self.assertNotIn("recent.md", self.run_hook())
+
+    def test_branch_guard_warns_and_skips_pull_off_default_branch(self) -> None:
+        self.git("symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/main")
+        self.assertNotIn("[!] Nestwork checkout", self.run_hook())
+
+        self.git("checkout", "-q", "-b", "feat/elsewhere")
+        out = self.run_hook()
+        self.assertIn("[!] Nestwork checkout is on 'feat/elsewhere', not 'main'", out)
+        self.assertIn("switch main", out)
+        self.assertIn("=== READ-ON-START", out)  # manifest still emitted
+
+        self.git("checkout", "-q", "--detach")
+        self.assertIn("on 'detached HEAD'", self.run_hook())
 
     def test_upstream_advisory_only_when_newer(self) -> None:
         out = self.run_hook()

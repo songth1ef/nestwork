@@ -16,6 +16,13 @@ Conventions:
 
 ## Unreleased
 
+### Protocol v3.2 — resident orientation (additive)
+
+- **Resident context now orients, not just routes.** `shared/resident.md` may carry a short owner profile and a summary of current goals, priorities and non-goals from `queen/strategy.md` (with its review date; strategy stays authoritative). 3.0 kept resident context routing-only, which left agents starting every session without knowing who they work for or what the goals are.
+- **Generated recent-activity digest.** New `scripts/maintenance/recent-digest.py` builds `local/recent.md` from git history: `projects/*.md` touched in the last 30 days (Current Goal / Next Action / Last Verified) and topic files touched in the last 7 days (their `description`); bulk commits such as splits collapse into one line. Capped at 2048 bytes, git-ignored, rebuilt by the SessionStart hook and listed in READ-ON-START. The bootstrap lists it as an optional resident file; `measure-context.py` counts it.
+- **Branch guard.** When the nest is not on its default branch (`origin/HEAD`), the SessionStart hook skips `git pull` and prints a `[!]` warning with the fix command, instead of silently rebasing a feature branch and serving its context as the instance's.
+- Migration: none required. `update.sh` brings the hook and script; rerunning installers is optional (it adds the digest path to hookless bootstraps). See `docs/context-loading.md`.
+
 ### Added
 
 - **WorkBuddy AI installer/uninstaller** (`scripts/install/workbuddy.sh` / `.ps1`, `scripts/uninstall/workbuddy.sh` / `.ps1`). WorkBuddy AI (Tencent) is a conversational desktop agent with no CLI config or session hooks; the installer writes the nestwork startup protocol to `~/.workbuddy-ai/nestwork.md` (overridable via `WORKBUDDY_HOME` / `WORKBUDDY_NESTWORK_MD`), and the agent follows it inside the conversation (pull / commit / push). README (EN + zh), llms.txt updated.

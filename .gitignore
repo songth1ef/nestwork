@@ -9,3 +9,7 @@ __pycache__/
 #   agent-history-<host>-<agent-id>
 # See scripts/hooks/snapshot-local-orphan.sh and AGENTS.md §12.
 agents/*/*/local/
+
+# Nest-level generated files shared by all agents on this machine, rebuilt from
+# git history at session start (e.g. local/recent.md, protocol 3.2).
+/local/

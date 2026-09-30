@@ -83,7 +83,7 @@ def topic_mode(scope):
 def scenarios(root, agent, tasks):
     agent_dir = root / "agents" / agent if agent else None
     rules = root / "queen" / "agent-rules.md"
-    resident = [rules, root / "shared" / "resident.md"]
+    resident = [rules, root / "shared" / "resident.md", root / "local" / "recent.md"]
     if agent_dir:
         resident.append(agent_dir / "resident.md")
 

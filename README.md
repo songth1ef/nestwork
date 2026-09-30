@@ -1,6 +1,6 @@
 # nestwork
 
-> Protocol 3.1: startup loads only core rules and small shared/agent resident summaries; history and project context are retrieved on demand, and a memory scope can optionally be split into topic files routed by a generated index. Upgrading from 2.x requires refreshing each tool's bootstrap; see the [migration guide](docs/context-loading.md).
+> Protocol 3.2: startup loads core rules, small shared/agent resident summaries (including who the owner is and their current goals) and a generated recent-activity digest; history and project context are retrieved on demand, and a memory scope can optionally be split into topic files routed by a generated index. Upgrading from 2.x requires refreshing each tool's bootstrap; see the [migration guide](docs/context-loading.md).
 
 ```text
           ♕           //  _   __ ______ _____ ______ _       __ ____  ____  __ __
@@ -14,9 +14,9 @@
 
 [中文](README.zh.md) | English
 
-Version: v0.6.0 | Protocol: 3.1
+Version: v0.6.0 | Protocol: 3.2
 
-[![Protocol](https://img.shields.io/badge/protocol-3.1-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Kimi%20%7C%20Hermes%20%7C%20OpenClaw%20%7C%20Doubao%20%7C%20WorkBuddy-green)](#supported-tools) [![Storage](https://img.shields.io/badge/storage-git-orange)](#how-it-works)
+[![Protocol](https://img.shields.io/badge/protocol-3.2-blue)](AGENTS.md) [![Tools](https://img.shields.io/badge/tools-Claude%20%7C%20Codex%20%7C%20Gemini%20%7C%20Kimi%20%7C%20Hermes%20%7C%20OpenClaw%20%7C%20Doubao%20%7C%20WorkBuddy-green)](#supported-tools) [![Storage](https://img.shields.io/badge/storage-git-orange)](#how-it-works)
 
 **nestwork is a git-native memory protocol for AI coding agents: persistent memory and shared context that live in your own git repo.** Your AI agent memory follows you across sessions, machines, and tools.
 
@@ -224,7 +224,7 @@ Session starts
   ↓
 git pull --rebase                          (SessionStart hook, automatic)
   ↓
-Load core rules + optional shared/agent resident.md (paths from hook)
+Load core rules + optional shared/agent resident.md + generated local/recent.md (paths from hook)
   ↓
 Follow current task; retrieve history / strategy / git log only when relevant
   ↓
@@ -460,6 +460,7 @@ nestwork/
 ├── shared/
 │   ├── resident.md             Small shared startup index
 │   └── memory.md               Cross-agent compiled memory, or its topic index
+├── local/recent.md             Generated recent-activity digest shared by all agents (git-ignored)
 ├── projects/<project>.md       Project context
 ├── workflow/<topic>.md         Cross-project portable knowledge
 ├── decisions/                  Protocol-level ADRs
@@ -471,7 +472,7 @@ nestwork/
     ├── uninstall/              Per-tool uninstallers (unbind only; memory & identity kept)
     ├── hooks/                  Runtime hooks (pre/post/stop, session-start, optional sync)
     ├── comms/                  Agent mailbox (send / read / archive)
-    └── maintenance/            compile.sh · distill.py · memory-index.py · check-resident.py · measure-context.py
+    └── maintenance/            compile.sh · distill.py · memory-index.py · check-resident.py · measure-context.py · recent-digest.py
                                 update.sh · sync-claude-md.sh · migrate-v2.sh
 ```
 
@@ -594,7 +595,7 @@ bash scripts/install/generic.sh <prefix> <config-path>
 
 Two paths, neither touches your private data (`agents/`, `queen/`, `shared/`, `projects/`, `workflow/<topic>.md`).
 
-**Coming from 2.x, also refresh tool bootstraps.** `update.sh` and sync PRs update repository files; they do not rewrite tool configuration on each machine. After syncing to 3.x, rerun the installer for each tool in use (or `_bootstrap.py`), then open a new session. Missing `resident.md` does not require loading full history. 3.0 → 3.1 needs no bootstrap refresh; topic memory is opt-in per scope. See the [migration guide](docs/context-loading.md).
+**Coming from 2.x, also refresh tool bootstraps.** `update.sh` and sync PRs update repository files; they do not rewrite tool configuration on each machine. After syncing to 3.x, rerun the installer for each tool in use (or `_bootstrap.py`), then open a new session. Missing `resident.md` does not require loading full history. 3.0 → 3.1 → 3.2 needs no bootstrap refresh; topic memory and resident orientation are opt-in. See the [migration guide](docs/context-loading.md).
 
 ### GitHub Action (PR-based)
 
@@ -669,7 +670,7 @@ Two different needs. **Secrets / API keys**: no — never store them here, encry
 
 ### Will the protocol break compatibility often?
 
-The current protocol is **3.1** (3.0 startup contract + optional topic memory). `protocol-version` uses `MAJOR.MINOR`: MINOR is additive-compatible; MAJOR may require migration. Moving from 2.x to 3.0 changes startup loading: update the protocol, refresh each installed tool bootstrap, then open a new session. Historical memory stays intact; see the [migration guide](docs/context-loading.md). The software release in `VERSION` (currently v0.6.0) is numbered independently from the protocol.
+The current protocol is **3.2** (3.0 startup contract + optional topic memory + resident orientation and a generated recent-activity digest). `protocol-version` uses `MAJOR.MINOR`: MINOR is additive-compatible; MAJOR may require migration. Moving from 2.x to 3.0 changes startup loading: update the protocol, refresh each installed tool bootstrap, then open a new session. Historical memory stays intact; see the [migration guide](docs/context-loading.md). The software release in `VERSION` (currently v0.6.0) is numbered independently from the protocol.
 
 ### How to handle multilingual / mixed-language content?
 
@@ -787,7 +788,8 @@ If you need any of the above, nestwork may not be the right fit. Pick a dedicate
 - v2.4 (2026-05-08): Added §12 orphan-branch strategy for high-churn artefacts. `agents/*/*/local/` is now in default `.gitignore`; `agent-history-<host>-<agent-id>` orphan branches hold a single rolling-overwrite snapshot (force-push). Fixes unbounded main-history bloat when `sync_local_history` is enabled (observed mynestwork: 177 MB → 1.6 MB).
 - v2.5 (2026-07-28): Added §13 tool-native memory carryover. Every coding agent's own memory is machine-local (Claude Code, Codex, Kimi Code alike), so it dies with the disk — and account-bound memory dies with the account. New reserved cold path `agents/<host>/<agent-id>/carryover/<tool>.md` receives that memory **distilled** through the §7 pipeline, never raw-mirrored, and is never injected at session start.
 - v3.0 (2026-09-06): core rules + optional resident summaries at startup; history, strategy, projects, workflows and inbox on demand. Existing instances must refresh tool bootstraps and open a new session; historical data stays intact.
-- v3.1 (2026-09-27, current protocol): optional topic memory — a scope's `memory.md` becomes a generated index over topic files with `description` front matter; agents read the index and open only matching files. Additive; see [context loading](docs/context-loading.md).
+- v3.2 (2026-09-30, current protocol): resident orientation — `shared/resident.md` may summarize the owner and current goals, and the SessionStart hook generates a git-ignored recent-activity digest (`local/recent.md`, ≤2 KB) and warns when the nest is not on its default branch. Additive; see [context loading](docs/context-loading.md).
+- v3.1 (2026-09-27): optional topic memory — a scope's `memory.md` becomes a generated index over topic files with `description` front matter; agents read the index and open only matching files. Additive; see [context loading](docs/context-loading.md).
 
 Full protocol: [AGENTS.md](AGENTS.md).
 

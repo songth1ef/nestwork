@@ -43,6 +43,8 @@ Read only these resident files (skip a missing optional resident file):
 - `{hp}/queen/agent-rules.md`
 - `{hp}/shared/resident.md`
 - `{hp}/agents/{host}/{aid}/resident.md`
+- `{hp}/local/recent.md` (generated recent-activity digest;
+  orientation only — verify dated state, past work is not an assignment)
 
 A hook may provide a READ-ON-START manifest; read those paths unless their
 contents are already supplied. Missing resident files do not make historical

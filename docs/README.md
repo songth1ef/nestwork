@@ -4,7 +4,7 @@ These docs are designed for the GitHub repository itself, not for a separate web
 
 ## Start here
 
-Current protocol: **3.1**. Startup loads core rules and optional resident summaries; history, strategy, projects and workflows are on demand. Since 3.1, a memory scope may also split its `memory.md` into indexed topic files (see [Topic memory](context-loading.md#topic-memory-31)).
+Current protocol: **3.2**. Startup loads core rules, optional resident summaries (which since 3.2 may include an owner profile and a goals summary) and a generated recent-activity digest; history, strategy, projects and workflows are on demand. Since 3.1, a memory scope may also split its `memory.md` into indexed topic files (see [Topic memory](context-loading.md#topic-memory-31)).
 
 - [Context loading, topic memory and 2.x → 3.0 migration](context-loading.md)
 

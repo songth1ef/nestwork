@@ -4,7 +4,7 @@ nestwork is a git-native memory protocol for AI coding agents.
 
 Use it to give Claude Code, Codex CLI, Gemini CLI, Kimi Code, OpenClaw, Hermes Agent, Doubao Work, WorkBuddy AI, and other markdown-config agents persistent memory and shared context across sessions and machines.
 
-Current protocol: 3.1. Startup reads core rules and optional shared/agent resident summaries; history, strategy, projects, workflows and the mailbox inbox are on demand (docs/context-loading.md). Protocol 3.1 adds optional topic memory: a scope's memory.md becomes a generated index of topic files, each with a `description` front matter field that tells agents when to read it. Refresh installed tool bootstraps when migrating from 2.x.
+Current protocol: 3.2. Startup reads core rules, optional shared/agent resident summaries (owner profile and goals summary allowed since 3.2) and a generated recent-activity digest (local/recent.md); history, strategy, projects, workflows and the mailbox inbox are on demand (docs/context-loading.md). Protocol 3.1 adds optional topic memory: a scope's memory.md becomes a generated index of topic files, each with a `description` front matter field that tells agents when to read it. Refresh installed tool bootstraps when migrating from 2.x.
 
 Core repository:
 - README.md

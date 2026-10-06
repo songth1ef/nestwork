@@ -16,6 +16,10 @@
 
 ## Unreleased
 
+### 新增
+
+- **Antigravity 安装器与卸载器**（`scripts/install/antigravity.sh` / `.ps1`、`scripts/uninstall/antigravity.sh` / `.ps1`）。启动块写入 `~/.gemini/GEMINI.md`，并在 `~/.gemini/config/hooks.json` 注册两个 hook：PreInvocation（`antigravity-session-start.py`：拉取、协议 3.2 常驻/按需清单、分支守卫、git-crypt 检测、每个会话只跑一次）与 Stop（`antigravity-sync.py`：提交并推送本 agent 目录，git-crypt 未解锁时拒绝提交，对仅 `local/` 的变更节流）。与 Gemini CLI 共用 `GEMINI.md`，同一台机器二选一。
+
 ### 修复
 
 - **`update.sh` 把 `upstream` 远端改成只拉不推。** 私有实例如果能推送到公开上游，只要推一个基于实例 `main` 的分支，整段历史就公开了；之后删掉分支，GitHub 上仍能按 SHA 访问这些提交。`update.sh` 现在会把 upstream 的推送地址设为一个禁用占位符，拉取不受影响。公开仓库的维护者请用单独的 clone 开发。

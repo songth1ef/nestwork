@@ -16,6 +16,10 @@ Conventions:
 
 ## Unreleased
 
+### Added
+
+- **Antigravity installer and uninstaller** (`scripts/install/antigravity.sh` / `.ps1`, `scripts/uninstall/antigravity.sh` / `.ps1`). Writes the bootstrap to `~/.gemini/GEMINI.md` and registers two hooks in `~/.gemini/config/hooks.json`: PreInvocation (`antigravity-session-start.py`: pull, protocol 3.2 resident/on-demand manifest, branch guard, git-crypt check, once per conversation) and Stop (`antigravity-sync.py`: commit + push this agent's directory, refuses while git-crypt is locked, throttles `local/`-only commits). Shares `GEMINI.md` with Gemini CLI, so install one of the two per machine.
+
 ### Fixed
 
 - **`update.sh` makes the `upstream` remote fetch-only.** A private nest that can push to the public upstream can publish its entire history with one push of a branch based on its `main`; deleting the branch afterwards leaves the commits reachable by SHA on GitHub. `update.sh` now sets upstream's push URL to a disabled placeholder (fetching is unaffected). Maintainers of the public repo should work from a separate clone.

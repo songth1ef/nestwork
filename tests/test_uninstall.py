@@ -9,9 +9,11 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 BOOTSTRAP = REPO_ROOT / "scripts" / "install" / "_bootstrap.py"
 HOOKS = REPO_ROOT / "scripts" / "install" / "_hooks.py"
 CODEX_HOOKS = REPO_ROOT / "scripts" / "install" / "_codex_hooks.py"
+ANTIGRAVITY_HOOKS = REPO_ROOT / "scripts" / "install" / "_antigravity_hooks.py"
 UNBOOTSTRAP = REPO_ROOT / "scripts" / "uninstall" / "_unbootstrap.py"
 UNHOOKS = REPO_ROOT / "scripts" / "uninstall" / "_unhooks.py"
 CODEX_UNHOOKS = REPO_ROOT / "scripts" / "uninstall" / "_codex_unhooks.py"
+ANTIGRAVITY_UNHOOKS = REPO_ROOT / "scripts" / "uninstall" / "_antigravity_unhooks.py"
 TMP_ROOT = REPO_ROOT / ".test-tmp"
 
 
@@ -164,6 +166,44 @@ class CodexUnhooksTests(unittest.TestCase):
 
     def test_noop_on_missing_hooks_file(self) -> None:
         completed = run(CODEX_UNHOOKS, TMP_ROOT / "no-hooks.json")
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+
+
+class AntigravityUnhooksTests(unittest.TestCase):
+    def setUp(self) -> None:
+        TMP_ROOT.mkdir(exist_ok=True)
+        self.hooks = TMP_ROOT / "unhooks-antigravity-hooks.json"
+
+    def tearDown(self) -> None:
+        self.hooks.unlink(missing_ok=True)
+
+    def test_removes_nestwork_hooks_and_keeps_user_hooks(self) -> None:
+        user_entry = {
+            "PreInvocation": [{"type": "command", "command": "echo user-pre"}]
+        }
+        self.hooks.write_text(
+            json.dumps({"my-custom-hook": user_entry}), encoding="utf-8"
+        )
+
+        completed = run(
+            ANTIGRAVITY_HOOKS, self.hooks, "/tmp/nestwork", "hosta", "antigravity"
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        installed = json.loads(self.hooks.read_text(encoding="utf-8"))
+        self.assertIn("my-custom-hook", installed)
+        self.assertIn("nestwork", installed)
+        self.assertEqual(len(installed["nestwork"]["PreInvocation"]), 1)
+        self.assertEqual(len(installed["nestwork"]["Stop"]), 1)
+
+        completed = run(ANTIGRAVITY_UNHOOKS, self.hooks)
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+
+        cleaned = json.loads(self.hooks.read_text(encoding="utf-8"))
+        self.assertIn("my-custom-hook", cleaned)
+        self.assertNotIn("nestwork", cleaned)
+
+    def test_noop_on_missing_hooks_file(self) -> None:
+        completed = run(ANTIGRAVITY_UNHOOKS, TMP_ROOT / "no-antigravity-hooks.json")
         self.assertEqual(completed.returncode, 0, completed.stderr)
 
 
